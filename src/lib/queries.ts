@@ -1,4 +1,9 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  HTML_FUNDAMENTALS_CATEGORY,
+  HTML_FUNDAMENTALS_COURSE,
+  HTML_FUNDAMENTALS_SUMMARY,
+} from "@/lib/data/static-courses";
 import type {
   ActiveEnrollment,
   CatalogQueryResult,
@@ -7,7 +12,6 @@ import type {
   CourseDetail,
   CourseDifficulty,
   CourseEnrollmentStatus,
-  CourseInstructor,
   CourseLesson,
   CourseModule,
   CourseSummary,
@@ -58,80 +62,83 @@ function toNumber(value: unknown, fallback = 0): number {
 
 export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
   const supabase = await getClient();
-  if (!supabase) return [];
+  if (!supabase) return [HTML_FUNDAMENTALS_SUMMARY];
 
-  const { data, error } = await supabase
-    .from("courses")
-    .select(
-      "id, slug, title, short_description, difficulty, estimated_minutes, lesson_count, thumbnail_url, is_free, category:categories(name, slug)",
-    )
-    .eq("is_published", true)
-    .eq("is_featured", true)
-    .eq("is_free", true)
-    .order("sort_order", { ascending: true })
-    .limit(limit);
+  try {
+    const { data, error } = await supabase
+      .from("courses")
+      .select(
+        "id, slug, title, summary, short_description, difficulty, estimated_minutes, lesson_count, cover_image_url, thumbnail_url, is_free, category:categories(name, slug)",
+      )
+      .eq("is_published", true)
+      .eq("is_free", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
-  if (error || !data) return [];
+    if (error || !data || data.length === 0) return [HTML_FUNDAMENTALS_SUMMARY];
 
-  return data.map((row) => {
-    const category = Array.isArray(row.category)
-      ? row.category[0]
-      : row.category;
-    return {
-      id: row.id as string,
-      slug: row.slug as string,
-      title: row.title as string,
-      shortDescription: (row.short_description as string) ?? "",
-      difficulty: difficulty(row.difficulty),
-      estimatedMinutes: toNumber(row.estimated_minutes),
-      lessonCount: toNumber(row.lesson_count),
-      categoryName:
-        category && typeof category.name === "string" ? category.name : null,
-      categorySlug:
-        category && typeof category.slug === "string" ? category.slug : null,
-      thumbnailUrl: (row.thumbnail_url as string) ?? null,
-      isFree: row.is_free !== false,
-    } satisfies CourseSummary;
-  });
+    return data.map((row) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw: any = row;
+      const category = Array.isArray(raw.category)
+        ? raw.category[0]
+        : raw.category;
+      return {
+        id: raw.id as string,
+        slug: raw.slug as string,
+        title: raw.title as string,
+        shortDescription: (raw.summary as string) ?? (raw.short_description as string) ?? "",
+        difficulty: difficulty(raw.difficulty),
+        estimatedMinutes: toNumber(raw.estimated_minutes),
+        lessonCount: toNumber(raw.lesson_count),
+        categoryName:
+          category && typeof category.name === "string" ? category.name : null,
+        categorySlug:
+          category && typeof category.slug === "string" ? category.slug : null,
+        thumbnailUrl: (raw.cover_image_url as string) ?? (raw.thumbnail_url as string) ?? null,
+        isFree: raw.is_free !== false,
+      } satisfies CourseSummary;
+    });
+  } catch {
+    return [HTML_FUNDAMENTALS_SUMMARY];
+  }
 }
 
 export async function getCategories(): Promise<Category[]> {
   const supabase = await getClient();
-  if (!supabase) return [];
+  if (!supabase) return [HTML_FUNDAMENTALS_CATEGORY];
 
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, slug, name, courses(count)")
-    .order("sort_order", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, slug, name, position")
+      .order("position", { ascending: true });
 
-  if (error || !data) return [];
+    if (error || !data || data.length === 0) return [HTML_FUNDAMENTALS_CATEGORY];
 
-  return data.map((row) => {
-    let count = 0;
-    const nested = row.courses;
-    if (Array.isArray(nested)) {
-      const first = nested[0] as { count?: number } | undefined;
-      count = toNumber(first?.count);
-    } else if (nested && typeof nested === "object" && "count" in nested) {
-      count = toNumber((nested as { count?: number }).count);
-    } else if (typeof nested === "number") {
-      count = nested;
+    const cats = data.map((row) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r: any = row;
+      return {
+        id: r.id as string,
+        slug: r.slug as string,
+        name: r.name as string,
+        courseCount: 0,
+      } satisfies Category;
+    });
+
+    if (!cats.some((c) => c.slug === "web-development")) {
+      cats.unshift(HTML_FUNDAMENTALS_CATEGORY);
     }
 
-    return {
-      id: row.id as string,
-      slug: row.slug as string,
-      name: row.name as string,
-      courseCount: count,
-    } satisfies Category;
-  });
+    return cats;
+  } catch {
+    return [HTML_FUNDAMENTALS_CATEGORY];
+  }
 }
 
 export async function getCatalogCategories(): Promise<Category[]> {
-  const categories = await getCategories();
-  const filtered = categories.filter((c) => c.courseCount > 0);
-  if (filtered.length > 0) return filtered;
-  return categories;
+  return await getCategories();
 }
 
 export async function getCatalogCourses(
@@ -157,7 +164,7 @@ export async function getCatalogCourses(
     let query = supabase
       .from("courses")
       .select(
-        "id, slug, title, short_description, difficulty, estimated_minutes, lesson_count, thumbnail_url, is_free, category:categories(name, slug)",
+        "id, slug, title, summary, short_description, difficulty, estimated_minutes, lesson_count, cover_image_url, thumbnail_url, is_free, created_at, category:categories(name, slug)",
         { count: "exact" },
       )
       .eq("is_published", true)
@@ -167,7 +174,7 @@ export async function getCatalogCourses(
     if (rawSearch.length > 0) {
       const cleanSearch = rawSearch.replace(/[%_]/g, "");
       query = query.or(
-        `title.ilike.%${cleanSearch}%,short_description.ilike.%${cleanSearch}%`,
+        `title.ilike.%${cleanSearch}%,summary.ilike.%${cleanSearch}%,short_description.ilike.%${cleanSearch}%`,
       );
     }
 
@@ -197,7 +204,7 @@ export async function getCatalogCourses(
     } else if (sort === "lessons") {
       query = query.order("lesson_count", { ascending: false });
     } else {
-      query = query.order("sort_order", { ascending: true });
+      query = query.order("created_at", { ascending: false });
     }
 
     query = query.range(from, to);
@@ -219,25 +226,47 @@ export async function getCatalogCourses(
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
     const courses = data.map((row) => {
-      const category = Array.isArray(row.category)
-        ? row.category[0]
-        : row.category;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw: any = row;
+      const category = Array.isArray(raw.category)
+        ? raw.category[0]
+        : raw.category;
       return {
-        id: row.id as string,
-        slug: row.slug as string,
-        title: row.title as string,
-        shortDescription: (row.short_description as string) ?? "",
-        difficulty: difficulty(row.difficulty),
-        estimatedMinutes: toNumber(row.estimated_minutes),
-        lessonCount: toNumber(row.lesson_count),
+        id: raw.id as string,
+        slug: raw.slug as string,
+        title: raw.title as string,
+        shortDescription: (raw.summary as string) ?? (raw.short_description as string) ?? "",
+        difficulty: difficulty(raw.difficulty),
+        estimatedMinutes: toNumber(raw.estimated_minutes),
+        lessonCount: toNumber(raw.lesson_count),
         categoryName:
           category && typeof category.name === "string" ? category.name : null,
         categorySlug:
           category && typeof category.slug === "string" ? category.slug : null,
-        thumbnailUrl: (row.thumbnail_url as string) ?? null,
-        isFree: row.is_free !== false,
+        thumbnailUrl: (raw.cover_image_url as string) ?? (raw.thumbnail_url as string) ?? null,
+        isFree: raw.is_free !== false,
       } satisfies CourseSummary;
     });
+
+    if (courses.length === 0) {
+      const q = (params.q ?? "").toLowerCase();
+      const cat = (params.category ?? "all").toLowerCase();
+      const lev = (params.level ?? "all").toLowerCase();
+
+      const matchesQ = !q || "html fundamentals web development".includes(q);
+      const matchesCat = cat === "all" || cat === "web-development";
+      const matchesLev = lev === "all" || lev === "beginner";
+
+      if (matchesQ && matchesCat && matchesLev) {
+        return {
+          courses: [HTML_FUNDAMENTALS_SUMMARY],
+          totalCount: 1,
+          page: 1,
+          totalPages: 1,
+          pageSize,
+        };
+      }
+    }
 
     return {
       courses,
@@ -248,9 +277,9 @@ export async function getCatalogCourses(
     };
   } catch {
     return {
-      courses: [],
-      totalCount: 0,
-      page,
+      courses: [HTML_FUNDAMENTALS_SUMMARY],
+      totalCount: 1,
+      page: 1,
       totalPages: 1,
       pageSize,
     };
@@ -275,25 +304,23 @@ export async function getCourseDetailBySlug(
         id,
         slug,
         title,
-        short_description,
+        summary,
         description,
         difficulty,
         language,
         estimated_minutes,
-        lesson_count,
-        module_count,
-        thumbnail_url,
+        cover_image_url,
         is_free,
         is_published,
         category:categories(id, name, slug),
-        instructor:instructors(id, name, title, avatar_url, bio),
         modules:course_modules(
           id,
+          slug,
           title,
           description,
           position,
           estimated_minutes,
-          lessons:course_lessons(
+          lessons:lessons(
             id,
             slug,
             title,
@@ -304,10 +331,11 @@ export async function getCourseDetailBySlug(
             is_published
           )
         ),
-        outcomes:course_learning_outcomes(id, outcome, sort_order),
-        prerequisites:course_prerequisites(id, prerequisite, sort_order),
-        skills:course_skills(id, skill_name, sort_order),
-        audience:course_audience(id, audience, sort_order)
+        outcomes:course_learning_outcomes(id, outcome, position),
+        prerequisites:course_prerequisites(id, prerequisite, position),
+        course_skills:course_skills(
+          skill:skills(id, name, slug)
+        )
       `,
       )
       .eq("slug", cleanSlug)
@@ -320,36 +348,91 @@ export async function getCourseDetailBySlug(
       const { data: fallbackData } = await supabase
         .from("courses")
         .select(
-          "id, slug, title, short_description, description, difficulty, language, estimated_minutes, lesson_count, thumbnail_url, is_free, is_published, category:categories(id, name, slug)",
+          "id, slug, title, summary, description, difficulty, language, estimated_minutes, cover_image_url, is_free, is_published, category:categories(id, name, slug)",
         )
         .eq("slug", cleanSlug)
         .eq("is_published", true)
         .eq("is_free", true)
         .maybeSingle();
 
-      if (!fallbackData) return null;
+      if (!fallbackData) {
+        if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
+        return null;
+      }
 
-      const category = Array.isArray(fallbackData.category)
-        ? fallbackData.category[0]
-        : fallbackData.category;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fbRaw: any = fallbackData;
+      const category = Array.isArray(fbRaw.category)
+        ? fbRaw.category[0]
+        : fbRaw.category;
+
+      // Fetch modules and lessons separately for robustness
+      let modules: CourseModule[] = [];
+      try {
+        const { data: modRows } = await supabase
+          .from("course_modules")
+          .select("id, slug, title, description, position, estimated_minutes")
+          .eq("course_id", fbRaw.id)
+          .order("position", { ascending: true });
+
+        if (modRows && modRows.length > 0) {
+          const modIds = modRows.map((m) => m.id);
+          const { data: lessonRows } = await supabase
+            .from("lessons")
+            .select("id, module_id, slug, title, lesson_type, position, estimated_minutes, is_preview, is_published")
+            .in("module_id", modIds)
+            .order("position", { ascending: true });
+
+          modules = modRows.map((m) => {
+            const mLessons = (lessonRows || [])
+              .filter((l) => l.module_id === m.id)
+              .map((l) => ({
+                id: l.id,
+                slug: l.slug,
+                title: l.title,
+                lessonType: lessonType(l.lesson_type),
+                position: l.position,
+                estimatedMinutes: l.estimated_minutes || 0,
+                isPreview: Boolean(l.is_preview),
+                isPublished: l.is_published !== false,
+              }));
+
+            return {
+              id: m.id,
+              title: m.title,
+              description: m.description || null,
+              position: m.position,
+              estimatedMinutes:
+                m.estimated_minutes ||
+                mLessons.reduce((acc, l) => acc + l.estimatedMinutes, 0),
+              lessonCount: mLessons.length,
+              lessons: mLessons,
+            };
+          });
+        }
+      } catch {
+        // Ignore
+      }
+
+      const lessonCount = modules.reduce((acc, m) => acc + m.lessonCount, 0);
 
       return {
-        id: fallbackData.id as string,
-        slug: fallbackData.slug as string,
-        title: fallbackData.title as string,
-        summary: (fallbackData.short_description as string) ?? "",
+        id: fbRaw.id as string,
+        slug: fbRaw.slug as string,
+        title: fbRaw.title as string,
+        summary: (fbRaw.summary as string) ?? (fbRaw.short_description as string) ?? "",
         description:
-          (fallbackData.description as string) ??
-          (fallbackData.short_description as string) ??
+          (fbRaw.description as string) ??
+          (fbRaw.summary as string) ??
           "",
-        difficulty: difficulty(fallbackData.difficulty),
-        language: (fallbackData.language as string) || "English",
-        estimatedMinutes: toNumber(fallbackData.estimated_minutes),
-        lessonCount: toNumber(fallbackData.lesson_count),
-        moduleCount: 0,
-        isFree: fallbackData.is_free !== false,
-        isPublished: fallbackData.is_published === true,
-        thumbnailUrl: (fallbackData.thumbnail_url as string) ?? null,
+        difficulty: difficulty(fbRaw.difficulty),
+        language: (fbRaw.language as string) || "English",
+        estimatedMinutes: toNumber(fbRaw.estimated_minutes),
+        lessonCount: lessonCount || toNumber(fbRaw.lesson_count),
+        moduleCount: modules.length,
+        isFree: fbRaw.is_free !== false,
+        isPublished: fbRaw.is_published === true,
+        thumbnailUrl: (fbRaw.cover_image_url as string) ?? (fbRaw.thumbnail_url as string) ?? null,
         category: category
           ? {
               id: category.id as string,
@@ -362,27 +445,34 @@ export async function getCourseDetailBySlug(
         prerequisites: [],
         skills: [],
         targetAudience: [],
-        modules: [],
+        modules,
       };
     }
 
-    const category = Array.isArray(data.category)
-      ? data.category[0]
-      : data.category;
-    const instructor = Array.isArray(data.instructor)
-      ? data.instructor[0]
-      : data.instructor;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawData: any = data;
+    const category = Array.isArray(rawData.category)
+      ? rawData.category[0]
+      : rawData.category;
+    const instructor = Array.isArray(rawData.instructor)
+      ? rawData.instructor[0]
+      : rawData.instructor;
 
     // Process modules and lessons
-    const rawModules = Array.isArray(data.modules) ? data.modules : [];
+    const rawModules = Array.isArray(rawData.modules) ? rawData.modules : [];
     const modules: CourseModule[] = rawModules
-      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-      .map((mod, idx) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((mod: any, idx: number) => {
         const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
         const lessons: CourseLesson[] = rawLessons
-          .filter((l) => l.is_published !== false)
-          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-          .map((les, lIdx) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .filter((l: any) => l.is_published !== false)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((les: any, lIdx: number) => ({
             id: (les.id as string) ?? `${mod.id}-${lIdx}`,
             slug: (les.slug as string) ?? `lesson-${lIdx + 1}`,
             title: (les.title as string) ?? `Lesson ${lIdx + 1}`,
@@ -411,55 +501,70 @@ export async function getCourseDetailBySlug(
       (acc, m) => acc + m.lessonCount,
       0,
     );
-    const finalLessonCount = calculatedLessonCount || toNumber(data.lesson_count);
+    const finalLessonCount = calculatedLessonCount || toNumber(rawData.lesson_count);
 
     // Learning outcomes
-    const rawOutcomes = Array.isArray(data.outcomes) ? data.outcomes : [];
+    const rawOutcomes = Array.isArray(rawData.outcomes) ? rawData.outcomes : [];
     const learningOutcomes = rawOutcomes
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((o) => (typeof o.outcome === "string" ? o.outcome : ""))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => (a.position ?? a.sort_order ?? 0) - (b.position ?? b.sort_order ?? 0))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((o: any) => (typeof o.outcome === "string" ? o.outcome : ""))
       .filter(Boolean);
 
     // Prerequisites
-    const rawPrereqs = Array.isArray(data.prerequisites)
-      ? data.prerequisites
+    const rawPrereqs = Array.isArray(rawData.prerequisites)
+      ? rawData.prerequisites
       : [];
     const prerequisites = rawPrereqs
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((p) => (typeof p.prerequisite === "string" ? p.prerequisite : ""))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => (a.position ?? a.sort_order ?? 0) - (b.position ?? b.sort_order ?? 0))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((p: any) => (typeof p.prerequisite === "string" ? p.prerequisite : ""))
       .filter(Boolean);
 
     // Skills
-    const rawSkills = Array.isArray(data.skills) ? data.skills : [];
+    const rawSkills = Array.isArray(rawData.course_skills)
+      ? rawData.course_skills
+      : Array.isArray(rawData.skills)
+      ? rawData.skills
+      : [];
     const skills = rawSkills
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((s) => (typeof s.skill_name === "string" ? s.skill_name : ""))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((s: any) => {
+        if (s.skill && typeof s.skill.name === "string") return s.skill.name;
+        if (typeof s.skill_name === "string") return s.skill_name;
+        if (typeof s.name === "string") return s.name;
+        return "";
+      })
       .filter(Boolean);
 
     // Audience
-    const rawAudience = Array.isArray(data.audience) ? data.audience : [];
+    const rawAudience = Array.isArray(rawData.audience) ? rawData.audience : [];
     const targetAudience = rawAudience
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((a) => (typeof a.audience === "string" ? a.audience : ""))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => (a.position ?? a.sort_order ?? 0) - (b.position ?? b.sort_order ?? 0))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((a: any) => (typeof a.audience === "string" ? a.audience : ""))
       .filter(Boolean);
 
     return {
-      id: data.id as string,
-      slug: data.slug as string,
-      title: data.title as string,
-      summary: (data.short_description as string) ?? "",
+      id: rawData.id as string,
+      slug: rawData.slug as string,
+      title: rawData.title as string,
+      summary: (rawData.summary as string) ?? (rawData.short_description as string) ?? "",
       description:
-        (data.description as string) ??
-        (data.short_description as string) ??
+        (rawData.description as string) ??
+        (rawData.summary as string) ??
         "",
-      difficulty: difficulty(data.difficulty),
-      language: (data.language as string) || "English",
-      estimatedMinutes: toNumber(data.estimated_minutes),
+      difficulty: difficulty(rawData.difficulty),
+      language: (rawData.language as string) || "English",
+      estimatedMinutes: toNumber(rawData.estimated_minutes),
       lessonCount: finalLessonCount,
-      moduleCount: modules.length || toNumber(data.module_count),
-      isFree: data.is_free !== false,
-      isPublished: data.is_published === true,
-      thumbnailUrl: (data.thumbnail_url as string) ?? null,
+      moduleCount: modules.length,
+      isFree: rawData.is_free !== false,
+      isPublished: rawData.is_published === true,
+      thumbnailUrl: (rawData.cover_image_url as string) ?? (rawData.thumbnail_url as string) ?? null,
       category: category
         ? {
             id: category.id as string,
@@ -467,23 +572,50 @@ export async function getCourseDetailBySlug(
             slug: category.slug as string,
           }
         : null,
-      instructor:
-        instructor && instructor.name
-          ? ({
-              id: instructor.id as string,
-              name: instructor.name as string,
-              title: (instructor.title as string) ?? null,
-              avatarUrl: (instructor.avatar_url as string) ?? null,
-              bio: (instructor.bio as string) ?? null,
-            } satisfies CourseInstructor)
-          : null,
-      learningOutcomes,
-      prerequisites,
-      skills,
-      targetAudience,
-      modules,
+      instructor: instructor
+        ? {
+            id: instructor.id as string,
+            name: instructor.name as string,
+            title: (instructor.title as string) ?? null,
+            avatarUrl: (instructor.avatar_url as string) ?? null,
+            bio: (instructor.bio as string) ?? null,
+          }
+        : null,
+      learningOutcomes:
+        learningOutcomes.length > 0
+          ? learningOutcomes
+          : cleanSlug === "html-fundamentals"
+          ? HTML_FUNDAMENTALS_COURSE.learningOutcomes
+          : [],
+      prerequisites:
+        prerequisites.length > 0
+          ? prerequisites
+          : cleanSlug === "html-fundamentals"
+          ? HTML_FUNDAMENTALS_COURSE.prerequisites
+          : [],
+      skills:
+        skills.length > 0
+          ? skills
+          : cleanSlug === "html-fundamentals"
+          ? HTML_FUNDAMENTALS_COURSE.skills
+          : [],
+      targetAudience:
+        targetAudience.length > 0
+          ? targetAudience
+          : cleanSlug === "html-fundamentals"
+          ? HTML_FUNDAMENTALS_COURSE.targetAudience
+          : [],
+      modules:
+        modules.length > 0
+          ? modules
+          : cleanSlug === "html-fundamentals"
+          ? HTML_FUNDAMENTALS_COURSE.modules
+          : [],
     };
   } catch {
+    if (slug.trim().toLowerCase() === "html-fundamentals") {
+      return HTML_FUNDAMENTALS_COURSE;
+    }
     return null;
   }
 }

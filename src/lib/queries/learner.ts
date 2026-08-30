@@ -1,4 +1,5 @@
 import { getCategories, getCourseDetailBySlug } from "@/lib/queries";
+import { HTML_LESSON_DETAILS_MAP } from "@/lib/data/static-courses";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ActiveEnrollmentDetail,
@@ -1098,84 +1099,110 @@ export async function getLessonPlayerData(
     // 5. Query or generate rich educational content for the lesson
     let lessonContent: string | null = rawTargetLesson.content || null;
     let keyTakeaway: string | null = rawTargetLesson.key_takeaway || null;
-    const videoUrl: string | null = rawTargetLesson.video_url || null;
+    let videoUrl: string | null = rawTargetLesson.video_url || null;
+    let summaryText: string | null = rawTargetLesson.summary || null;
+    let objectives: string[] = [];
+    let resources: LessonResource[] = [];
+
+    try {
+      const { data: dbLesson } = await supabase
+        .from("lessons")
+        .select(`
+          content,
+          video_url,
+          key_takeaway,
+          summary,
+          objectives:lesson_objectives(objective, position),
+          resources:lesson_resources(id, title, resource_type, url, file_size_bytes)
+        `)
+        .eq("id", rawTargetLesson.id)
+        .maybeSingle();
+
+      if (dbLesson) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawDb: any = dbLesson;
+        if (rawDb.content) {
+          lessonContent = typeof rawDb.content === "string" ? rawDb.content : JSON.stringify(rawDb.content);
+        }
+        if (rawDb.video_url) videoUrl = rawDb.video_url;
+        if (rawDb.key_takeaway) keyTakeaway = rawDb.key_takeaway;
+        if (rawDb.summary) summaryText = rawDb.summary;
+
+        if (Array.isArray(rawDb.objectives) && rawDb.objectives.length > 0) {
+          objectives = rawDb.objectives
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((o: any) => o.objective)
+            .filter(Boolean);
+        }
+
+        if (Array.isArray(rawDb.resources) && rawDb.resources.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          resources = rawDb.resources.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            resourceType: r.resource_type === "code" || r.resource_type === "pdf" || r.resource_type === "transcript" || r.resource_type === "download" ? r.resource_type : "external",
+            url: r.url || "#",
+            size: r.file_size_bytes ? `${Math.round(r.file_size_bytes / 1024)} KB` : undefined,
+          }));
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    const staticLesson = HTML_LESSON_DETAILS_MAP[lessonSlug];
+    if (staticLesson) {
+      if (!lessonContent) lessonContent = staticLesson.content;
+      if (!keyTakeaway) keyTakeaway = staticLesson.keyTakeaway;
+      if (!videoUrl && staticLesson.videoUrl) videoUrl = staticLesson.videoUrl;
+      if (!summaryText && staticLesson.summary) summaryText = staticLesson.summary;
+      if (objectives.length === 0 && staticLesson.objectives) {
+        objectives = staticLesson.objectives;
+      }
+    }
 
     // If no custom text content in database, build clear educational content
     if (!lessonContent) {
-      lessonContent = `## Overview
-
-Welcome to **${rawTargetLesson.title}**. In this lesson, we will explore the core concepts and practical mental models required to master this topic effectively.
-
-### Core Concepts Explained
-
-Understanding the underlying mechanics is essential for writing clean, bug-free, and scalable code. Let us walk through how this concept functions step-by-step:
-
-1. **Fundamental Rules**: The execution engine processes declarations, scopes, and assignments in discrete phases.
-2. **Context Resolution**: When evaluating expressions, the lookup resolves from innermost local definitions outward to global scope.
-3. **Common Gotchas**: Avoid shadowing variables unintentionally or relying on implicit global assignments.
-
-\`\`\`javascript
-// Example: Demonstrating core concepts in action
-function executeContext(parameter) {
-  const localBinding = "Scoped variable";
-  
-  function nestedComputation() {
-    // Has access to outer lexical environment
-    console.log(\`\${localBinding} -> Parameter: \${parameter}\`);
-    return true;
-  }
-  
-  return nestedComputation();
-}
-
-executeContext("Meritloom Mastery");
-\`\`\`
-
-### Practical Tips & Best Practices
-
-- Always prefer explicit variable declarations with \`const\` and \`let\` over \`var\`.
-- Keep functions pure and scoped closely to where they are invoked.
-- Break down complex nested evaluations into clear helper functions for improved readability.`;
+      lessonContent = `## Overview\n\nWelcome to **${rawTargetLesson.title}**. In this lesson, we will explore the core concepts and practical mental models required to master this topic effectively.\n\n### Key Concepts\n\n- Understand the syntax, semantics, and standard conventions.\n- Follow best practices for code readability and accessibility.\n- Practice creating sample structures and testing in your browser.`;
     }
 
     if (!keyTakeaway) {
-      keyTakeaway = `Always structure your code with clear lexical boundaries and predictable variable lifetimes to keep execution flow intuitive and maintainable.`;
+      keyTakeaway = `Understand the core mechanics and apply semantic structure to build clean, maintainable web pages.`;
     }
 
-    const objectives: string[] = [
-      `Understand the foundational principles and mental models of ${rawTargetLesson.title}.`,
-      `Apply best practices to structure clean and efficient implementations.`,
-      `Identify and prevent common bugs, edge cases, and scope traps.`,
-    ];
+    if (objectives.length === 0) {
+      objectives = [
+        `Understand the foundational principles of ${rawTargetLesson.title}.`,
+        `Apply best practices to structure clean and efficient markup.`,
+        `Test and validate your implementation in the browser.`,
+      ];
+    }
 
-    const resources: LessonResource[] = [
-      {
-        id: "res-1",
-        title: "Lesson Notes & Summary (PDF)",
-        resourceType: "pdf",
-        url: "#",
-        size: "1.2 MB",
-      },
-      {
-        id: "res-2",
-        title: "Starter Code & Examples (GitHub)",
-        resourceType: "code",
-        url: "https://github.com",
-      },
-      {
-        id: "res-3",
-        title: "Full Lesson Transcript",
-        resourceType: "transcript",
-        url: "#",
-        size: "Text",
-      },
-    ];
+    if (resources.length === 0) {
+      resources = [
+        {
+          id: "res-1",
+          title: "MDN Web Docs HTML Reference",
+          resourceType: "external",
+          url: "https://developer.mozilla.org/en-US/docs/Web/HTML",
+        },
+        {
+          id: "res-2",
+          title: "Starter Code & Examples (GitHub)",
+          resourceType: "code",
+          url: "https://github.com/gitdagray/html_course",
+        },
+      ];
+    }
 
     const currentLesson: FullLessonDetail = {
       id: rawTargetLesson.id,
       slug: rawTargetLesson.slug,
       title: rawTargetLesson.title,
       summary:
+        summaryText ||
         rawTargetLesson.summary ||
         `Master the core mechanics and practical applications of ${rawTargetLesson.title}.`,
       lessonType: rawTargetLesson.lessonType || "video",
