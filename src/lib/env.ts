@@ -1,14 +1,14 @@
 /**
  * Environment access helpers.
  *
- * Only the public Supabase URL and anon key are ever read here. The
- * service-role key is never referenced anywhere in this codebase. When the
- * project is not configured (e.g. a fresh checkout with no `.env.local`),
- * `isSupabaseConfigured` is false and the data layer degrades to polished
- * empty states instead of throwing during the build or at request time.
+ * Reads public Supabase URL and Publishable / Anon key.
+ * When the project is not configured, isSupabaseConfigured is false
+ * and the data layer gracefully falls back.
  */
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const anonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export function getSupabaseConfig() {
   return {

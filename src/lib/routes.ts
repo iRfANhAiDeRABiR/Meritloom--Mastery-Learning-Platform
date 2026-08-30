@@ -11,7 +11,12 @@ export const routes = {
     resetPassword: "/auth/reset-password",
     callback: "/auth/callback",
   },
-  dashboard: "/dashboard",
+  onboarding: "/onboarding",
+  dashboard: "/learn",
+  learn: "/learn",
+  learnCourses: "/learn/courses",
+  learnSaved: "/learn/saved",
+  profile: "/profile",
   courses: {
     index: "/courses",
     detail: (slug: string) => `/courses/${slug}`,
@@ -24,7 +29,7 @@ export const routes = {
     index: "/categories",
     detail: (slug: string) => `/categories/${slug}`,
   },
-  myLearning: "/my-learning",
+  myLearning: "/learn",
   // In-page anchors used by the landing navigation.
   anchors: {
     courses: "#courses",

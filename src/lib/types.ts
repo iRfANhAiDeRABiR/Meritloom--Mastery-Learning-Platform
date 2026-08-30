@@ -15,6 +15,33 @@ export type LessonType =
   | "quiz"
   | "knowledge_check";
 
+export type PrimaryLearningGoal = "explore" | "practical" | "deepen";
+
+export type StudyPace =
+  | "15_min"
+  | "30_min"
+  | "45_min"
+  | "60_min"
+  | "few_times_week"
+  | "no_schedule";
+
+export type ContentPreference =
+  | "video"
+  | "reading"
+  | "exercises"
+  | "projects"
+  | "knowledge_checks";
+
+export interface LearnerOnboardingState {
+  goal: PrimaryLearningGoal | null;
+  interests: string[];
+  level: CourseDifficulty | null;
+  notSureLevel: boolean;
+  studyPace: StudyPace | null;
+  contentPreferences: ContentPreference[];
+  reminders: boolean;
+}
+
 export interface Category {
   id: string;
   slug: string;
@@ -110,6 +137,72 @@ export interface LearnerProfile {
   id: string;
   name: string;
   avatarUrl: string | null;
+  email?: string | null;
+  onboardingCompleted?: boolean;
+}
+
+export interface ActiveEnrollmentDetail {
+  id: string;
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  categoryName: string | null;
+  categorySlug?: string | null;
+  thumbnailUrl: string | null;
+  difficulty: CourseDifficulty;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  nextLessonTitle: string | null;
+  nextLessonSlug: string | null;
+  lastAccessedAt: string | null;
+}
+
+export interface LearnerDashboardData {
+  user: LearnerProfile;
+  onboardingCompleted: boolean;
+  continueCourse: ActiveEnrollmentDetail | null;
+  activeCourses: ActiveEnrollmentDetail[];
+  recommendedCourses: CourseSummary[];
+  recentCourses: CourseSummary[];
+}
+
+export type LearnerTabStatus = "active" | "completed" | "saved";
+
+export interface LearnerCourseItem {
+  id: string;
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  categoryName: string | null;
+  categorySlug: string | null;
+  thumbnailUrl: string | null;
+  difficulty: CourseDifficulty;
+  estimatedMinutes: number;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  nextLessonTitle: string | null;
+  nextLessonSlug: string | null;
+  status: LearnerTabStatus;
+  enrolledAt?: string | null;
+  completedAt?: string | null;
+  savedAt?: string | null;
+  lastAccessedAt?: string | null;
+  isRecentlyActive?: boolean;
+}
+
+export interface MyLearningCounts {
+  activeCount: number;
+  completedCount: number;
+  savedCount: number;
+}
+
+export interface MyLearningPageData {
+  status: LearnerTabStatus;
+  courses: LearnerCourseItem[];
+  counts: MyLearningCounts;
+  categories: Category[];
 }
 
 export interface ActiveEnrollment {
@@ -134,6 +227,7 @@ export interface CatalogSearchParams {
   level?: string;
   sort?: string;
   page?: string;
+  recommended?: string;
 }
 
 export interface CatalogQueryResult {

@@ -16,7 +16,7 @@ export default async function AuthLayout({
   // If user is already logged in, redirect them to /courses
   const user = await getCurrentUser();
   if (user) {
-    redirect(routes.courses.index);
+    redirect(routes.learn);
   }
 
   return (
