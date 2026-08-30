@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Menu, X } from "lucide-react";
 
@@ -12,10 +13,10 @@ import type { LearnerProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Courses", href: routes.anchors.courses },
-  { label: "Learning Paths", href: routes.anchors.paths },
-  { label: "How It Works", href: routes.anchors.howItWorks },
-  { label: "About", href: routes.anchors.about },
+  { label: "Courses", href: routes.courses.index, isCourseRoute: true },
+  { label: "Learning Paths", href: `/${routes.anchors.paths}`, isCourseRoute: false },
+  { label: "How It Works", href: `/${routes.anchors.howItWorks}`, isCourseRoute: false },
+  { label: "About", href: `/${routes.anchors.about}`, isCourseRoute: false },
 ] as const;
 
 export function MobileNavigation({
@@ -23,6 +24,8 @@ export function MobileNavigation({
 }: {
   user: LearnerProfile | null;
 }) {
+  const pathname = usePathname();
+
   return (
     <DialogPrimitive.Root>
       <DialogPrimitive.Trigger asChild>
@@ -58,18 +61,28 @@ export function MobileNavigation({
 
           <nav aria-label="Mobile Navigation" className="mt-4">
             <ul className="flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <DialogPrimitive.Close asChild>
-                    <Link
-                      href={link.href}
-                      className="block rounded-[14px] px-4 py-3 text-base font-semibold text-ink transition-colors hover:bg-surface"
-                    >
-                      {link.label}
-                    </Link>
-                  </DialogPrimitive.Close>
-                </li>
-              ))}
+              {NAV_LINKS.map((link) => {
+                const isActive = link.isCourseRoute && pathname.startsWith("/courses");
+
+                return (
+                  <li key={link.href}>
+                    <DialogPrimitive.Close asChild>
+                      <Link
+                        href={link.href}
+                        className={cn(
+                          "block rounded-[14px] px-4 py-3 text-base font-semibold transition-colors",
+                          isActive
+                            ? "bg-lavender text-primary"
+                            : "text-ink hover:bg-surface",
+                        )}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        {link.label}
+                      </Link>
+                    </DialogPrimitive.Close>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 

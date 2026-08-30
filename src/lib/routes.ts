@@ -1,9 +1,5 @@
 /**
  * Centralised route constants.
- *
- * Only the landing page (`/`) is implemented in this step. The other routes
- * are referenced by navigation and CTAs and are prepared for later page
- * prompts, so they should be defined here rather than hard-coded as strings.
  */
 export const routes = {
   home: "/",
@@ -11,6 +7,9 @@ export const routes = {
     signIn: "/auth/sign-in",
     signUp: "/auth/sign-up",
     signOut: "/auth/sign-out",
+    forgotPassword: "/auth/forgot-password",
+    resetPassword: "/auth/reset-password",
+    callback: "/auth/callback",
   },
   dashboard: "/dashboard",
   courses: {

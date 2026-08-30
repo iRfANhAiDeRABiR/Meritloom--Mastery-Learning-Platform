@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 
 import { Logo } from "@/components/brand/logo";
@@ -20,10 +21,10 @@ import type { LearnerProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Courses", href: routes.anchors.courses },
-  { label: "Learning Paths", href: routes.anchors.paths },
-  { label: "How It Works", href: routes.anchors.howItWorks },
-  { label: "About", href: routes.anchors.about },
+  { label: "Courses", href: routes.courses.index, isCourseRoute: true },
+  { label: "Learning Paths", href: `/${routes.anchors.paths}`, isCourseRoute: false },
+  { label: "How It Works", href: `/${routes.anchors.howItWorks}`, isCourseRoute: false },
+  { label: "About", href: `/${routes.anchors.about}`, isCourseRoute: false },
 ] as const;
 
 /**
@@ -31,6 +32,8 @@ const NAV_LINKS = [
  * Positioned before the Sign In button.
  */
 export function SiteHeader({ user }: { user: LearnerProfile | null }) {
+  const pathname = usePathname();
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-line bg-background/80 backdrop-blur-md transition-colors">
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:h-[72px]">
@@ -46,16 +49,26 @@ export function SiteHeader({ user }: { user: LearnerProfile | null }) {
 
           <nav aria-label="Primary" className="hidden md:block">
             <ul className="flex items-center gap-1">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="rounded-full px-3.5 py-2 text-[15px] font-medium text-ink/80 transition-colors hover:bg-lavender/60 hover:text-ink"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {NAV_LINKS.map((link) => {
+                const isActive = link.isCourseRoute && pathname.startsWith("/courses");
+
+                return (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors",
+                        isActive
+                          ? "bg-lavender text-primary font-bold"
+                          : "text-ink/80 hover:bg-lavender/60 hover:text-ink",
+                      )}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         </div>
