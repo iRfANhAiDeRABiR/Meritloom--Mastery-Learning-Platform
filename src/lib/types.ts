@@ -205,6 +205,117 @@ export interface MyLearningPageData {
   categories: Category[];
 }
 
+export type ModuleState = "completed" | "in_progress" | "not_started";
+
+export interface LearnerLessonDetail {
+  id: string;
+  slug: string;
+  title: string;
+  lessonType: LessonType;
+  position: number;
+  estimatedMinutes: number;
+  isCompleted: boolean;
+  isNext: boolean;
+}
+
+export interface LearnerModuleDetail {
+  id: string;
+  title: string;
+  description: string | null;
+  position: number;
+  estimatedMinutes: number;
+  lessonCount: number;
+  completedLessonsCount: number;
+  state: ModuleState;
+  lessons: LearnerLessonDetail[];
+  nextLesson: LearnerLessonDetail | null;
+}
+
+export interface CourseLearningOverviewData {
+  course: CourseDetail;
+  isEnrolled: boolean;
+  enrollmentId: string | null;
+  enrolledAt: string | null;
+  completedAt: string | null;
+  modules: LearnerModuleDetail[];
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  nextLesson: {
+    lesson: LearnerLessonDetail;
+    moduleTitle: string;
+    modulePosition: number;
+  } | null;
+  isCourseCompleted: boolean;
+  studyPaceLabel?: string | null;
+  estimatedWeeksRemaining?: number | null;
+}
+
+export type LessonResourceType =
+  | "transcript"
+  | "pdf"
+  | "code"
+  | "external"
+  | "download";
+
+export interface LessonResource {
+  id: string;
+  title: string;
+  resourceType: LessonResourceType;
+  url: string;
+  size?: string | null;
+}
+
+export interface FullLessonDetail {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  lessonType: LessonType;
+  position: number;
+  estimatedMinutes: number;
+  videoUrl: string | null;
+  content: string | null;
+  keyTakeaway: string | null;
+  isCompleted: boolean;
+  completedAt: string | null;
+  objectives: string[];
+  resources: LessonResource[];
+  module: {
+    id: string;
+    title: string;
+    position: number;
+    totalLessons: number;
+  };
+}
+
+export interface LessonNavigationItem {
+  slug: string;
+  title: string;
+  modulePosition: number;
+  lessonPosition: number;
+}
+
+export interface LessonPlayerData {
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+    difficulty: CourseDifficulty;
+    isFree: boolean;
+    category: { name: string; slug: string } | null;
+  };
+  isEnrolled: boolean;
+  currentLesson: FullLessonDetail;
+  modules: LearnerModuleDetail[];
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  previousLesson: LessonNavigationItem | null;
+  nextLesson: LessonNavigationItem | null;
+  isLastLesson: boolean;
+}
+
 export interface ActiveEnrollment {
   courseSlug: string;
   courseTitle: string;
@@ -243,3 +354,151 @@ export interface CatalogQueryResult {
 export type QueryResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
+
+export type QuestionType = "single_choice" | "multiple_choice" | "true_false";
+
+export interface PracticeQuestionOption {
+  id: string;
+  questionId: string;
+  optionText: string;
+  position: number;
+}
+
+export interface PracticeQuestion {
+  id: string;
+  quizId: string;
+  questionType: QuestionType;
+  questionText: string;
+  topic: string | null;
+  codeContent: string | null;
+  codeLanguage: string | null;
+  imageUrl: string | null;
+  position: number;
+  options: PracticeQuestionOption[];
+  explanation?: string | null;
+}
+
+export interface QuizAttemptAnswer {
+  questionId: string;
+  selectedOptionIds: string[];
+  isCorrect: boolean;
+  explanation?: string | null;
+  correctOptionIds?: string[];
+  answeredAt?: string | null;
+}
+
+export interface PracticeQuizData {
+  id: string;
+  lessonId: string;
+  courseSlug: string;
+  lessonSlug: string;
+  title: string;
+  description: string | null;
+  estimatedMinutes: number;
+  questions: PracticeQuestion[];
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+  };
+  module: {
+    id: string;
+    title: string;
+    position: number;
+  };
+  previousLesson: LessonNavigationItem | null;
+  nextLesson: LessonNavigationItem | null;
+  isLastLesson: boolean;
+  currentAttempt: {
+    id: string;
+    completedAt: string | null;
+    correctCount: number;
+    totalQuestions: number;
+    answers: Record<string, QuizAttemptAnswer>;
+  } | null;
+}
+
+export type ConceptStatus = "strong" | "good_progress" | "review";
+
+export interface ConceptPerformance {
+  topic: string;
+  correctCount: number;
+  totalCount: number;
+  percent: number;
+  status: ConceptStatus;
+}
+
+export interface QuizReviewQuestion {
+  id: string;
+  questionText: string;
+  questionType: QuestionType;
+  topic: string | null;
+  codeContent: string | null;
+  codeLanguage: string | null;
+  imageUrl: string | null;
+  position: number;
+  selectedOptionIds: string[];
+  selectedOptionTexts: string[];
+  correctOptionIds: string[];
+  correctOptionTexts: string[];
+  isCorrect: boolean;
+  explanation: string | null;
+}
+
+export interface QuizRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  type: "review" | "resource" | "practice";
+  url: string;
+  badge: string;
+}
+
+export interface QuizAttemptSummary {
+  id: string;
+  attemptNumber: number;
+  correctCount: number;
+  totalQuestions: number;
+  percent: number;
+  completedAt: string;
+}
+
+export interface QuizResultsPageData {
+  attempt: {
+    id: string;
+    completedAt: string;
+    correctCount: number;
+    totalQuestions: number;
+    percent: number;
+    attemptNumber: number;
+  };
+  quiz: {
+    id: string;
+    title: string;
+    description: string | null;
+    estimatedMinutes: number;
+  };
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+  };
+  lesson: {
+    id: string;
+    slug: string;
+    title: string;
+    summary: string | null;
+  };
+  module: {
+    id: string;
+    title: string;
+    position: number;
+  };
+  concepts: ConceptPerformance[];
+  recommendations: QuizRecommendation[];
+  reviewQuestions: QuizReviewQuestion[];
+  previousAttempts: QuizAttemptSummary[];
+  nextLesson: LessonNavigationItem | null;
+}
+
+

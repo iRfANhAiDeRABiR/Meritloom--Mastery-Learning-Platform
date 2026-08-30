@@ -10,6 +10,7 @@ import { MyLearningHeader } from "@/components/my-learning/my-learning-header";
 import { getCurrentUser } from "@/lib/auth";
 import { getMyLearningCoursesData } from "@/lib/queries/learner";
 import { routes } from "@/lib/routes";
+import type { LearnerCourseItem } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "My Learning | Meritloom",
@@ -73,7 +74,7 @@ export default async function MyLearningCoursesPage({
         {/* Course Grid or Empty State */}
         {data.courses.length > 0 ? (
           <div className="grid gap-6 lg:grid-cols-2">
-            {data.courses.map((course) => (
+            {data.courses.map((course: LearnerCourseItem) => (
               <LearnerCourseCard key={course.id} course={course} />
             ))}
           </div>
