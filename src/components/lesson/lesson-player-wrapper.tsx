@@ -106,8 +106,11 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
               {/* Video Player (If Video Lesson) */}
               {currentLesson.lessonType === "video" && (
                 <LessonVideoPlayer
+                  videoId={currentLesson.youtubeVideoId}
                   videoUrl={currentLesson.videoUrl}
                   title={currentLesson.title}
+                  sourceChannel={currentLesson.sourceChannel}
+                  sourceUrl={currentLesson.sourceUrl}
                 />
               )}
 

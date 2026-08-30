@@ -175,8 +175,13 @@ export function CourseTimeline({ data }: CourseTimelineProps) {
                     <div className="flex flex-col gap-1.5 flex-1 pr-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted">
-                          Module {index + 1}
+                          {mod.isBonus ? "Bonus Module" : `Module ${index + 1}`}
                         </span>
+                        {mod.isBonus && (
+                          <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-extrabold text-amber-500 border border-amber-500/30">
+                            Bonus (Optional)
+                          </span>
+                        )}
                         {mod.state === "completed" && (
                           <span className="rounded bg-mint px-2 py-0.5 text-[10px] font-bold text-mint-ink">
                             Completed
@@ -195,7 +200,9 @@ export function CourseTimeline({ data }: CourseTimelineProps) {
 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                         <span>
-                          {mod.lessonCount} {mod.lessonCount === 1 ? "lesson" : "lessons"}
+                          {mod.isBonus
+                            ? `${mod.lessonCount} bonus ${mod.lessonCount === 1 ? "lesson" : "lessons"}`
+                            : `${mod.lessonCount} ${mod.lessonCount === 1 ? "lesson" : "lessons"}`}
                         </span>
                         {mod.estimatedMinutes > 0 && (
                           <>
@@ -247,7 +254,7 @@ export function CourseTimeline({ data }: CourseTimelineProps) {
                           onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 py-1.5 text-xs font-bold text-muted hover:border-primary/40 hover:text-ink transition-colors cursor-pointer"
                         >
-                          <span>Start module</span>
+                          <span>{mod.isBonus ? "Watch bonus" : "Start module"}</span>
                           <ArrowRight className="size-3" aria-hidden="true" />
                         </Link>
                       )}
@@ -316,7 +323,7 @@ export function CourseTimeline({ data }: CourseTimelineProps) {
 
                                 {/* Lesson Number & Type Icon */}
                                 <span className="text-xs font-semibold text-muted">
-                                  {index + 1}.{lIdx + 1}
+                                  {lesson.isBonus ? "★" : `${index + 1}.${lIdx + 1}`}
                                 </span>
 
                                 <TypeIcon
@@ -331,6 +338,12 @@ export function CourseTimeline({ data }: CourseTimelineProps) {
                                 <span className="truncate text-xs font-semibold group-hover/lesson:text-primary transition-colors">
                                   {lesson.title}
                                 </span>
+
+                                {lesson.isBonus && (
+                                  <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-500 border border-amber-500/30 shrink-0">
+                                    Bonus
+                                  </span>
+                                )}
 
                                 {lesson.isNext && (
                                   <span className="hidden sm:inline-flex items-center gap-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-extrabold text-white">

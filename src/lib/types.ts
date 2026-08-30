@@ -82,6 +82,8 @@ export interface CourseLesson {
   estimatedMinutes: number;
   isPreview: boolean;
   isPublished: boolean;
+  isBonus?: boolean;
+  youtubeVideoId?: string | null;
 }
 
 export interface CourseModule {
@@ -92,6 +94,7 @@ export interface CourseModule {
   estimatedMinutes: number;
   lessonCount: number;
   lessons: CourseLesson[];
+  isBonus?: boolean;
 }
 
 export interface CourseDetail {
@@ -119,6 +122,8 @@ export interface CourseDetail {
   skills: string[];
   targetAudience: string[];
   modules: CourseModule[];
+  requiredLessonsCount?: number;
+  bonusLessonsCount?: number;
 }
 
 export interface LearningPathSummary {
@@ -216,6 +221,8 @@ export interface LearnerLessonDetail {
   estimatedMinutes: number;
   isCompleted: boolean;
   isNext: boolean;
+  isBonus?: boolean;
+  youtubeVideoId?: string | null;
 }
 
 export interface LearnerModuleDetail {
@@ -229,6 +236,7 @@ export interface LearnerModuleDetail {
   state: ModuleState;
   lessons: LearnerLessonDetail[];
   nextLesson: LearnerLessonDetail | null;
+  isBonus?: boolean;
 }
 
 export interface CourseLearningOverviewData {
@@ -249,6 +257,8 @@ export interface CourseLearningOverviewData {
   isCourseCompleted: boolean;
   studyPaceLabel?: string | null;
   estimatedWeeksRemaining?: number | null;
+  requiredLessonsCount?: number;
+  bonusLessonsCount?: number;
 }
 
 export type LessonResourceType =
@@ -281,11 +291,18 @@ export interface FullLessonDetail {
   completedAt: string | null;
   objectives: string[];
   resources: LessonResource[];
+  isBonus?: boolean;
+  youtubeVideoId?: string | null;
+  videoProvider?: string | null;
+  sourceChannel?: string | null;
+  sourceUrl?: string | null;
+  playlistId?: string | null;
   module: {
     id: string;
     title: string;
     position: number;
     totalLessons: number;
+    isBonus?: boolean;
   };
 }
 
@@ -294,6 +311,7 @@ export interface LessonNavigationItem {
   title: string;
   modulePosition: number;
   lessonPosition: number;
+  isBonus?: boolean;
 }
 
 export interface LessonPlayerData {
@@ -314,6 +332,9 @@ export interface LessonPlayerData {
   previousLesson: LessonNavigationItem | null;
   nextLesson: LessonNavigationItem | null;
   isLastLesson: boolean;
+  requiredLessonsCount?: number;
+  bonusLessonsCount?: number;
+  isBonusLesson?: boolean;
 }
 
 export interface ActiveEnrollment {

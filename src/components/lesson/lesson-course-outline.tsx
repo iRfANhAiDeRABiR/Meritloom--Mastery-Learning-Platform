@@ -132,9 +132,16 @@ export function LessonCourseOutline({
                 className="flex items-center justify-between gap-2.5 p-3.5 sm:px-4 text-left hover:bg-surface transition-colors cursor-pointer"
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
-                    Module {modIdx + 1}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
+                      {mod.isBonus ? "Bonus" : `Module ${modIdx + 1}`}
+                    </span>
+                    {mod.isBonus && (
+                      <span className="rounded-full bg-amber-500/15 px-1.5 py-0.2 text-[9px] font-extrabold text-amber-500">
+                        Optional
+                      </span>
+                    )}
+                  </div>
                   <h3 className="truncate text-xs font-bold text-ink">
                     {mod.title}
                   </h3>
@@ -195,7 +202,7 @@ export function LessonCourseOutline({
 
                           {/* Lesson Position */}
                           <span className="text-[11px] font-semibold text-muted shrink-0">
-                            {modIdx + 1}.{lesIdx + 1}
+                            {les.isBonus ? "★" : `${modIdx + 1}.${lesIdx + 1}`}
                           </span>
 
                           <TypeIcon
@@ -210,6 +217,12 @@ export function LessonCourseOutline({
                           <span className="truncate group-hover:text-ink transition-colors">
                             {les.title}
                           </span>
+
+                          {les.isBonus && (
+                            <span className="rounded bg-amber-500/15 px-1 py-0.2 text-[9px] font-extrabold text-amber-500 shrink-0">
+                              Bonus
+                            </span>
+                          )}
                         </div>
 
                         {/* Estimated Duration */}

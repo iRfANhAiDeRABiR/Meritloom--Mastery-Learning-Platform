@@ -116,7 +116,7 @@ export function CourseSyllabus({ modules, className }: CourseSyllabusProps) {
               <div className="flex flex-1 flex-col items-start gap-1 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-4 pr-2">
                 <div>
                   <span className="text-xs font-extrabold uppercase tracking-wider text-primary">
-                    Module {idx + 1}
+                    {module.isBonus ? "Bonus Module" : `Module ${idx + 1}`}
                   </span>
                   <p className="text-base font-bold text-ink mt-0.5">
                     {module.title}
@@ -125,7 +125,9 @@ export function CourseSyllabus({ modules, className }: CourseSyllabusProps) {
 
                 <div className="flex items-center gap-3 text-xs font-medium text-muted">
                   <span>
-                    {module.lessonCount} {module.lessonCount === 1 ? "lesson" : "lessons"}
+                    {module.isBonus
+                      ? `${module.lessonCount} bonus ${module.lessonCount === 1 ? "lesson" : "lessons"}`
+                      : `${module.lessonCount} ${module.lessonCount === 1 ? "lesson" : "lessons"}`}
                   </span>
                   {module.estimatedMinutes > 0 && (
                     <>
@@ -156,7 +158,7 @@ export function CourseSyllabus({ modules, className }: CourseSyllabusProps) {
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-xs font-bold text-muted w-5 shrink-0 text-right">
-                          {lIdx + 1}.
+                          {lesson.isBonus ? "★" : `${lIdx + 1}.`}
                         </span>
                         <LessonTypeIcon type={lesson.lessonType} />
                         <span className="truncate font-semibold text-ink">
@@ -165,7 +167,12 @@ export function CourseSyllabus({ modules, className }: CourseSyllabusProps) {
                       </div>
 
                       <div className="flex items-center gap-2.5 shrink-0 text-xs text-muted">
-                        {lesson.isPreview && (
+                        {lesson.isBonus && (
+                          <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-extrabold text-amber-500">
+                            Bonus
+                          </span>
+                        )}
+                        {lesson.isPreview && !lesson.isBonus && (
                           <Badge
                             variant="mint"
                             className="py-0.5 px-2 text-[10px] font-bold"

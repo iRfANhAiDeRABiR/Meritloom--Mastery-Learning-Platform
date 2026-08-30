@@ -328,7 +328,9 @@ export async function getCourseDetailBySlug(
             position,
             estimated_minutes,
             is_preview,
-            is_published
+            is_published,
+            is_bonus,
+            youtube_video_id
           )
         ),
         outcomes:course_learning_outcomes(id, outcome, position),
@@ -379,7 +381,7 @@ export async function getCourseDetailBySlug(
           const modIds = modRows.map((m) => m.id);
           const { data: lessonRows } = await supabase
             .from("lessons")
-            .select("id, module_id, slug, title, lesson_type, position, estimated_minutes, is_preview, is_published")
+            .select("id, module_id, slug, title, lesson_type, position, estimated_minutes, is_preview, is_published, is_bonus, youtube_video_id")
             .in("module_id", modIds)
             .order("position", { ascending: true });
 
@@ -395,6 +397,8 @@ export async function getCourseDetailBySlug(
                 estimatedMinutes: l.estimated_minutes || 0,
                 isPreview: Boolean(l.is_preview),
                 isPublished: l.is_published !== false,
+                isBonus: Boolean(l.is_bonus),
+                youtubeVideoId: l.youtube_video_id || null,
               }));
 
             return {
@@ -407,6 +411,7 @@ export async function getCourseDetailBySlug(
                 mLessons.reduce((acc, l) => acc + l.estimatedMinutes, 0),
               lessonCount: mLessons.length,
               lessons: mLessons,
+              isBonus: mLessons.length > 0 && mLessons.every((l) => l.isBonus),
             };
           });
         }
@@ -414,7 +419,14 @@ export async function getCourseDetailBySlug(
         // Ignore
       }
 
-      const lessonCount = modules.reduce((acc, m) => acc + m.lessonCount, 0);
+      if (modules.length === 0 && cleanSlug === "html-fundamentals") {
+        return HTML_FUNDAMENTALS_COURSE;
+      }
+
+      const allLessons = modules.flatMap((m) => m.lessons);
+      const lessonCount = allLessons.length;
+      const requiredLessonsCount = allLessons.filter((l) => !l.isBonus).length;
+      const bonusLessonsCount = allLessons.filter((l) => l.isBonus).length;
 
       return {
         id: fbRaw.id as string,
@@ -429,6 +441,8 @@ export async function getCourseDetailBySlug(
         language: (fbRaw.language as string) || "English",
         estimatedMinutes: toNumber(fbRaw.estimated_minutes),
         lessonCount: lessonCount || toNumber(fbRaw.lesson_count),
+        requiredLessonsCount,
+        bonusLessonsCount,
         moduleCount: modules.length,
         isFree: fbRaw.is_free !== false,
         isPublished: fbRaw.is_published === true,
@@ -441,10 +455,10 @@ export async function getCourseDetailBySlug(
             }
           : null,
         instructor: null,
-        learningOutcomes: [],
-        prerequisites: [],
-        skills: [],
-        targetAudience: [],
+        learningOutcomes: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.learningOutcomes : [],
+        prerequisites: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.prerequisites : [],
+        skills: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.skills : [],
+        targetAudience: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.targetAudience : [],
         modules,
       };
     }
@@ -481,6 +495,8 @@ export async function getCourseDetailBySlug(
             estimatedMinutes: toNumber(les.estimated_minutes),
             isPreview: Boolean(les.is_preview),
             isPublished: les.is_published !== false,
+            isBonus: Boolean(les.is_bonus),
+            youtubeVideoId: les.youtube_video_id || null,
           }));
 
         return {
@@ -493,15 +509,20 @@ export async function getCourseDetailBySlug(
             lessons.reduce((acc, l) => acc + l.estimatedMinutes, 0),
           lessonCount: lessons.length,
           lessons,
+          isBonus: lessons.length > 0 && lessons.every((l) => l.isBonus),
         };
       });
 
+    if (modules.length === 0 && cleanSlug === "html-fundamentals") {
+      return HTML_FUNDAMENTALS_COURSE;
+    }
+
     // Total lessons from modules or course field
-    const calculatedLessonCount = modules.reduce(
-      (acc, m) => acc + m.lessonCount,
-      0,
-    );
+    const allLessons = modules.flatMap((m) => m.lessons);
+    const calculatedLessonCount = allLessons.length;
     const finalLessonCount = calculatedLessonCount || toNumber(rawData.lesson_count);
+    const requiredLessonsCount = allLessons.filter((l) => !l.isBonus).length;
+    const bonusLessonsCount = allLessons.filter((l) => l.isBonus).length;
 
     // Learning outcomes
     const rawOutcomes = Array.isArray(rawData.outcomes) ? rawData.outcomes : [];
@@ -561,6 +582,8 @@ export async function getCourseDetailBySlug(
       language: (rawData.language as string) || "English",
       estimatedMinutes: toNumber(rawData.estimated_minutes),
       lessonCount: finalLessonCount,
+      requiredLessonsCount,
+      bonusLessonsCount,
       moduleCount: modules.length,
       isFree: rawData.is_free !== false,
       isPublished: rawData.is_published === true,

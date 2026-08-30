@@ -132,11 +132,17 @@ export function LessonContentRenderer({ lesson }: LessonContentRendererProps) {
       {/* Lesson Meta Badges & Heading */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-lavender px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/20">
-            Module {lesson.module.position} · Lesson {lesson.position}
-          </span>
-          <span className="rounded-md bg-surface px-2.5 py-0.5 text-xs font-semibold text-muted border border-line capitalize">
-            {lesson.lessonType} lesson
+          {lesson.isBonus ? (
+            <span className="rounded-md bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-500 border border-amber-500/30">
+              Bonus lesson
+            </span>
+          ) : (
+            <span className="rounded-md bg-lavender px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/20">
+              Lesson {lesson.position} of 22 required lessons
+            </span>
+          )}
+          <span className="rounded-md bg-surface px-2.5 py-0.5 text-xs font-semibold text-muted border border-line">
+            Module {lesson.module.position}: {lesson.module.title}
           </span>
         </div>
 

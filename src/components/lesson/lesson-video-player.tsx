@@ -3,8 +3,9 @@
 import * as React from "react";
 import { ExternalLink, Play, VideoOff } from "lucide-react";
 
-interface LessonVideoPlayerProps {
-  videoUrl: string | null;
+export interface LessonVideoPlayerProps {
+  videoId?: string | null;
+  videoUrl?: string | null;
   title: string;
   sourceChannel?: string | null;
   sourceUrl?: string | null;
@@ -12,16 +13,16 @@ interface LessonVideoPlayerProps {
 
 /**
  * Helper to safely extract YouTube video ID and optional start timestamp.
- * Supports standard watch URLs, share links, embed URLs, and timestamp queries (t=55s, t=1h30m, start=55).
+ * Supports standard watch URLs, share links, embed URLs, and timestamp queries.
  */
-function parseYouTubeUrl(url: string | null): {
+function parseYouTubeUrl(urlOrId: string | null): {
   videoId: string;
   startSeconds: number | null;
 } | null {
-  if (!url) return null;
-  const trimmed = url.trim();
+  if (!urlOrId) return null;
+  const trimmed = urlOrId.trim();
 
-  // If raw 11-char ID
+  // If raw 11-char valid YouTube ID
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
     return { videoId: trimmed, startSeconds: null };
   }
@@ -72,11 +73,9 @@ function parseYouTubeUrl(url: string | null): {
 
 function parseTimestampToSeconds(timeStr: string): number | null {
   if (!timeStr) return null;
-  // If purely integer digits
   if (/^\d+$/.test(timeStr)) {
     return parseInt(timeStr, 10);
   }
-  // If format like 1h30m38s or 55s or 20m13s
   let total = 0;
   const hoursMatch = timeStr.match(/(\d+)\s*h/i);
   const minsMatch = timeStr.match(/(\d+)\s*m/i);
@@ -90,6 +89,7 @@ function parseTimestampToSeconds(timeStr: string): number | null {
 }
 
 export function LessonVideoPlayer({
+  videoId,
   videoUrl,
   title,
   sourceChannel,
@@ -98,7 +98,12 @@ export function LessonVideoPlayer({
   const [hasError, setHasError] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
-  const youtubeData = React.useMemo(() => parseYouTubeUrl(videoUrl), [videoUrl]);
+  const youtubeData = React.useMemo(() => {
+    if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+      return { videoId, startSeconds: null };
+    }
+    return parseYouTubeUrl(videoUrl ?? null);
+  }, [videoId, videoUrl]);
 
   const handleStartPlay = () => {
     if (videoRef.current) {
@@ -106,7 +111,7 @@ export function LessonVideoPlayer({
     }
   };
 
-  // Build embed src
+  // Build privacy-enhanced YouTube embed src without autoplay
   const youtubeEmbedSrc = React.useMemo(() => {
     if (!youtubeData) return null;
     let src = `https://www.youtube-nocookie.com/embed/${youtubeData.videoId}?rel=0&modestbranding=1`;
@@ -116,7 +121,7 @@ export function LessonVideoPlayer({
     return src;
   }, [youtubeData]);
 
-  const channelName = sourceChannel || "Dave Gray (freeCodeCamp.org)";
+  const channelName = sourceChannel || "W3Schools.com";
   const originalUrl =
     sourceUrl ||
     (youtubeData
@@ -195,7 +200,7 @@ export function LessonVideoPlayer({
       {youtubeData && (
         <div className="flex items-center justify-between px-1 text-[11px] text-muted">
           <span className="truncate">
-            Video tutorial provided by <strong className="font-semibold text-ink">{channelName}</strong>
+            Video by <strong className="font-semibold text-ink">{channelName}</strong>
           </span>
           {originalUrl && (
             <a
@@ -213,3 +218,5 @@ export function LessonVideoPlayer({
     </div>
   );
 }
+
+export const YouTubeLessonPlayer = LessonVideoPlayer;

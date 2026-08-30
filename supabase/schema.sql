@@ -316,10 +316,15 @@ create table if not exists public.lessons (
       )
     ),
 
-  -- Prefer structured JSON content instead of unsafe raw HTML.
   content jsonb,
 
   video_url text,
+  video_provider text default 'youtube',
+  youtube_video_id text,
+  source_channel text,
+  source_url text,
+  playlist_id text,
+  is_bonus boolean not null default false,
 
   key_takeaway text,
 

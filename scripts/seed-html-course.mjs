@@ -26,7 +26,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function seedHtmlCourse() {
-  console.log("🚀 Starting HTML Fundamentals Course Seed...");
+  console.log("🚀 Starting W3Schools HTML Fundamentals Course Seed (23 Videos)...");
 
   // 1. Category
   console.log("1. Seeding Category: Web Development...");
@@ -48,12 +48,10 @@ async function seedHtmlCourse() {
     .single();
 
   if (catErr) {
-    console.error("Error upserting category:", catErr);
-    return;
+    console.warn("Category notice (RLS or existing):", catErr.message);
   }
 
-  const categoryId = category.id;
-  console.log(`✅ Category ID: ${categoryId}`);
+  const categoryId = category?.id;
 
   // 2. Course
   console.log("2. Seeding Course: HTML Fundamentals...");
@@ -66,11 +64,11 @@ async function seedHtmlCourse() {
         summary:
           "Learn the foundations of HTML and build well-structured web pages using headings, text, links, images, forms, tables and semantic HTML.",
         description:
-          "HTML is the foundation of every website. In this beginner-friendly course, learners will understand how web pages are structured using HTML and gradually build confidence with the most important HTML elements. The course starts with the basic document structure and then covers text, links, images, lists, tables, forms and semantic HTML. Lessons use real video tutorials together with short Meritloom lesson summaries and practice opportunities. No previous web-development experience is required.",
+          "HTML is the foundation of every website. In this beginner-friendly course powered by the official W3Schools HTML video series, learners will understand how web pages are structured using HTML and gradually build confidence with the most important HTML elements. The course covers HTML basics, text styling, colors, CSS integration, links, images, tables, lists, layout concepts, iframes, scripting, head metadata, and interactive forms. Lessons use real W3Schools video tutorials alongside original Meritloom summaries, takeaways, and learning objectives.",
         category_id: categoryId,
         difficulty: "beginner",
         language: "English",
-        estimated_minutes: 285,
+        estimated_minutes: 110,
         is_free: true,
         is_published: true,
         published_at: new Date().toISOString(),
@@ -81,704 +79,523 @@ async function seedHtmlCourse() {
     .single();
 
   if (courseErr) {
-    console.error("Error upserting course:", courseErr);
-    return;
+    console.warn("Course notice (RLS or existing):", courseErr.message);
   }
 
-  const courseId = course.id;
-  console.log(`✅ Course ID: ${courseId}`);
+  const courseId = course?.id;
 
-  // 3. Learning Outcomes
-  console.log("3. Seeding Learning Outcomes...");
-  const outcomes = [
-    "Understand how HTML structures a webpage",
-    "Create a valid HTML document",
-    "Work with headings, paragraphs and text formatting",
-    "Create links and navigation",
-    "Add images and media",
-    "Build ordered and unordered lists",
-    "Create HTML tables",
-    "Build accessible HTML forms",
-    "Use semantic HTML elements",
-    "Build a complete basic webpage",
-  ];
+  // 3. Modules & Lessons dataset
+  const PLAYLIST_ID = "PLP9IO4UYNF0VdAajP_5pYG-jG2JRrG72s";
+  const SOURCE_CHANNEL = "W3Schools.com";
 
-  await supabase.from("course_learning_outcomes").delete().eq("course_id", courseId);
-  const outcomeRows = outcomes.map((outcome, idx) => ({
-    course_id: courseId,
-    outcome,
-    position: idx + 1,
-  }));
-  const { error: outErr } = await supabase
-    .from("course_learning_outcomes")
-    .insert(outcomeRows);
-  if (outErr) console.warn("Learning outcomes note:", outErr.message);
-
-  // 4. Prerequisites
-  console.log("4. Seeding Prerequisites...");
-  const prerequisites = [
-    "No previous coding experience required",
-    "Basic computer skills",
-    "A modern web browser",
-    "A text editor such as VS Code",
-  ];
-
-  await supabase.from("course_prerequisites").delete().eq("course_id", courseId);
-  const prereqRows = prerequisites.map((prerequisite, idx) => ({
-    course_id: courseId,
-    prerequisite,
-    position: idx + 1,
-  }));
-  const { error: preErr } = await supabase
-    .from("course_prerequisites")
-    .insert(prereqRows);
-  if (preErr) console.warn("Prerequisites note:", preErr.message);
-
-  // 5. Skills
-  console.log("5. Seeding Skills...");
-  const skills = [
-    { name: "HTML", slug: "html" },
-    { name: "Semantic HTML", slug: "semantic-html" },
-    { name: "HTML Forms", slug: "html-forms" },
-    { name: "Web Development", slug: "web-development" },
-    { name: "Web Accessibility", slug: "web-accessibility" },
-    { name: "Web Page Structure", slug: "web-page-structure" },
-  ];
-
-  const skillIds = [];
-  for (const s of skills) {
-    const { data: sk } = await supabase
-      .from("skills")
-      .upsert({ name: s.name, slug: s.slug, is_active: true }, { onConflict: "slug" })
-      .select("id")
-      .single();
-    if (sk) skillIds.push(sk.id);
-  }
-
-  await supabase.from("course_skills").delete().eq("course_id", courseId);
-  if (skillIds.length > 0) {
-    await supabase.from("course_skills").insert(
-      skillIds.map((skill_id) => ({
-        course_id: courseId,
-        skill_id,
-      })),
-    );
-  }
-
-  // 6. Modules and Lessons Data
   const modulesData = [
     {
-      slug: "getting-started",
-      title: "Getting Started with HTML",
-      description:
-        "Understand what HTML is, set up your development environment in VS Code, and create your first valid HTML5 document.",
+      slug: "html-basics",
+      title: "HTML Basics",
+      description: "Understand what HTML is, configure text editors, and learn the anatomy of HTML elements and attributes.",
       position: 1,
-      estimated_minutes: 38,
+      estimated_minutes: 18,
       lessons: [
         {
-          slug: "what-is-html-and-editor-setup",
-          title: "What is HTML & Setting Up Your Editor",
-          summary:
-            "Discover what HTML is, how it works in the browser, and how to set up Visual Studio Code with the Live Server extension for web development.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=55s",
-          key_takeaway:
-            "HTML (HyperText Markup Language) describes the structure of web pages using elements denoted by tags.",
-          estimated_minutes: 19,
           position: 1,
-          is_preview: true,
-          content:
-            "## Introduction to Web Development\n\nHTML stands for **HyperText Markup Language**. It is the standard markup language used to structure content on the web. Every web page you visit—from news websites to video platforms—relies on HTML as its structural backbone.\n\n### Essential Tools\n\nTo begin coding HTML, you only need two tools:\n\n1. **A Code Editor**: We recommend [Visual Studio Code (VS Code)](https://code.visualstudio.com/), a free and powerful editor.\n2. **A Web Browser**: Google Chrome, Firefox, Safari, or Microsoft Edge.\n\n### Recommended VS Code Extensions\n\n- **Live Server**: Enables a local development server with live browser reload as soon as you save your files.\n- **Prettier**: Automatically formats your HTML markup for maximum readability.",
-          objectives: [
-            "Understand what HTML is and how browsers interpret markup",
-            "Install and configure Visual Studio Code for web development",
-            "Use the Live Server extension for instant browser reloading",
-          ],
-        },
-        {
-          slug: "html-document-structure-and-head",
-          title: "HTML Document Structure & The Head Element",
-          summary:
-            "Understand the boilerplate anatomy of an HTML5 document including <!DOCTYPE html>, <html>, <head>, <meta>, <title>, and <body> tags.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=1213s",
-          key_takeaway:
-            "The <head> element contains metadata about the webpage, while the <body> element contains the visible content.",
-          estimated_minutes: 9,
-          position: 2,
-          is_preview: false,
-          content:
-            "## The Anatomy of an HTML Document\n\nEvery standard HTML5 document follows a clear, predictable structure:\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>My First Web Page</title>\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n    <p>Welcome to web development with Meritloom.</p>\n  </body>\n</html>\n```\n\n### Breakdown of Key Elements\n\n- `<!DOCTYPE html>`: Informs the browser that this document is HTML5.\n- `<html lang=\"en\">`: The root element wrapping the whole document, specifying English as the primary language.\n- `<head>`: Container for document metadata that is not directly rendered on the page.\n- `<meta charset=\"UTF-8\">`: Specifies the UTF-8 character encoding covering almost all human languages.\n- `<title>`: Defines the document title displayed in the browser tab and search results.\n- `<body>`: Contains all visible elements (headings, text, images, buttons).",
-          objectives: [
-            "Declare a standard HTML5 <!DOCTYPE html> doctype",
-            "Configure character encoding with <meta charset=\"UTF-8\">",
-            "Set an accessible browser page title with <title>",
-          ],
-        },
-        {
-          slug: "practice-create-first-html-document",
-          title: "Practice: Create Your First HTML Document",
-          summary:
-            "Write a clean, valid HTML5 boilerplate document from scratch and preview it in your browser.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Every valid HTML page begins with <!DOCTYPE html> followed by <html>, <head>, and <body> tags.",
-          estimated_minutes: 10,
-          position: 3,
-          is_preview: false,
-          content:
-            "## Exercise: Build Your First HTML Page\n\nIn this exercise, you will create a new HTML file called `index.html` on your computer.\n\n### Instructions\n\n1. Open VS Code and create a new project folder named `my-first-website`.\n2. Inside the folder, create a file named `index.html`.\n3. Type the complete HTML5 document structure without using Emmet shortcuts.\n4. Set the page `<title>` to **\"Learner Profile | Meritloom\"**.\n5. Inside the `<body>`, add an `<h1>` heading with your name and a `<p>` paragraph describing your learning goals.\n6. Open the file in your browser using Live Server or by double-clicking the file.\n\n### Expected Solution\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Learner Profile | Meritloom</title>\n  </head>\n  <body>\n    <h1>Alex Mercer</h1>\n    <p>I am learning HTML on Meritloom to build accessible, modern websites.</p>\n  </body>\n</html>\n```",
-          objectives: [
-            "Write a complete HTML5 boilerplate from scratch",
-            "Verify proper element nesting and tag closures",
-            "View the rendered page in a browser",
-          ],
-        },
-      ],
-    },
-    {
-      slug: "text-content-structure",
-      title: "Text & Content Structure",
-      description:
-        "Master headings, paragraphs, horizontal rules, line breaks, and semantic text formatting tags.",
-      position: 2,
-      estimated_minutes: 35,
-      lessons: [
-        {
-          slug: "headings-paragraphs-text-formatting",
-          title: "Headings, Paragraphs & Text Formatting",
-          summary:
-            "Learn how to structure readable content using heading levels (h1 through h6), paragraphs, line breaks, horizontal rules, and semantic text formatting.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=1742s",
-          key_takeaway:
-            "Maintain a single <h1> per page and nest headings sequentially without skipping levels for accessibility and SEO.",
-          estimated_minutes: 20,
-          position: 1,
-          is_preview: false,
-          content:
-            "## Heading Hierarchy & Formatting\n\nHTML provides 6 levels of headings: `<h1>` through `<h6>`. `<h1>` is the most important heading on the page, representing the primary topic.\n\n### Formatting Tags\n\n- `<strong>`: Represents strong importance or urgency (typically rendered bold).\n- `<em>`: Represents stress emphasis (typically rendered italic).\n- `<hr>`: Represents a thematic break or transition between topics.\n- `<br>`: Inserts a line break inside a paragraph or poem.\n\n```html\n<h1>Web Development Fundamentals</h1>\n<p>HTML is <strong>essential</strong> for all web builders.</p>\n<hr>\n<h2>Getting Started</h2>\n<p>Practice every day to build <em>lasting</em> confidence.</p>\n```",
-          objectives: [
-            "Apply heading levels h1 through h6 in hierarchical order",
-            "Format text using <p>, <hr>, <br>, <strong>, and <em>",
-            "Distinguish between visual formatting and semantic meaning",
-          ],
-        },
-        {
-          slug: "html-comments-and-readability",
-          title: "HTML Comments & Code Readability",
-          summary:
-            "Learn how to use HTML comments <!-- comment --> to annotate sections, leave notes for developers, and organize complex templates.",
-          lesson_type: "article",
-          video_url: null,
-          key_takeaway:
-            "HTML comments are ignored by the browser parser but remain visible in page source code.",
+          title: "HTML - Introduction",
+          slug: "html-introduction",
+          youtubeVideoId: "it1rTvBcfRg",
           estimated_minutes: 5,
-          position: 2,
-          is_preview: false,
-          content:
-            "## Writing Comments in HTML\n\nComments are snippets of text inside your HTML file that are ignored by the web browser when rendering the page.\n\n### Syntax\n\n```html\n<!-- This is a single line HTML comment -->\n\n<!--\n  Multi-line comments are helpful\n  for explaining large blocks of code\n  or leaving developer notes.\n-->\n```\n\n### Best Practices\n\n- Use comments to indicate the start and end of major page sections (e.g. `<!-- START: Main Navigation -->`).\n- Never put sensitive information (passwords, private API keys) in HTML comments, as anyone can view page source.",
+          is_preview: true,
+          is_bonus: false,
+          summary: "Learn what HTML is, how HTML tags describe page structure, and how browsers interpret HTML documents.",
+          key_takeaway: "HTML (HyperText Markup Language) is the standard markup language used to create and structure web pages.",
           objectives: [
-            "Write single-line and multi-line HTML comments",
-            "Use comments to document page sections effectively",
+            "Understand what HTML is and how browsers interpret web markup",
+            "Learn how tags describe page headings, paragraphs, and links",
+            "Identify the basic building blocks of an HTML document",
           ],
         },
         {
-          slug: "practice-structuring-article",
-          title: "Practice: Structuring an Article with Headings & Paragraphs",
-          summary:
-            "Format a multi-section article using sequential headings, paragraphs, and emphasis tags.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Clear visual and semantic hierarchy makes content easier to navigate for both screen readers and human readers.",
-          estimated_minutes: 10,
-          position: 3,
+          position: 2,
+          title: "HTML - Editors",
+          slug: "html-editors",
+          youtubeVideoId: "bBP0ckEln4Y",
+          estimated_minutes: 4,
           is_preview: false,
-          content:
-            "## Exercise: Build an Article Structure\n\nCreate a new file `article.html` and structure a blog post about learning web development.\n\n### Requirements\n\n- One main `<h1>` title\n- Two sections each introduced by an `<h2>` heading\n- At least 3 `<p>` paragraphs containing `<strong>` and `<em>` tags\n- An `<hr>` divider between sections\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>The Journey into Code</title>\n  </head>\n  <body>\n    <h1>The Journey into Code</h1>\n    <p>Starting out in programming feels <strong>exciting</strong> yet challenging.</p>\n    <hr>\n    <h2>Why HTML Matters</h2>\n    <p>Without HTML, there is <em>no structure</em> to display on the web.</p>\n  </body>\n</html>\n```",
+          is_bonus: false,
+          summary: "Learn how to create, save, and open your first HTML document using code editors like VS Code, Notepad, or TextEdit.",
+          key_takeaway: "You can write HTML in any plain text editor and view the result by opening the .html file in any web browser.",
           objectives: [
-            "Build an article with h1, h2, and h3 headings",
-            "Format key terms using <strong> and <em>",
-            "Validate proper tag nesting",
+            "Set up a text editor for writing HTML code",
+            "Save files properly with the .html extension and UTF-8 encoding",
+            "View and test HTML files locally in a web browser",
+          ],
+        },
+        {
+          position: 3,
+          title: "HTML - Elements",
+          slug: "html-elements",
+          youtubeVideoId: "vIoO52MdZFE",
+          estimated_minutes: 4,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Understand HTML elements, opening and closing tags, nested element hierarchies, and empty self-closing elements.",
+          key_takeaway: "An HTML element is defined by a start tag, content, and an end tag. Elements can be nested inside one another.",
+          objectives: [
+            "Understand the anatomy of an HTML element (start tag, content, end tag)",
+            "Learn the rules for correctly nesting elements",
+            "Identify empty elements like <br> that do not have a closing tag",
+          ],
+        },
+        {
+          position: 4,
+          title: "HTML - Attributes",
+          slug: "html-attributes",
+          youtubeVideoId: "yMX901oVtn8",
+          estimated_minutes: 5,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn how attributes add additional information, links, dimensions, and styling to HTML elements.",
+          key_takeaway: "HTML attributes always appear in the opening tag as name=\"value\" pairs, providing extra details or behavior.",
+          objectives: [
+            "Understand how attributes modify HTML elements",
+            "Learn common attributes like href, src, alt, width, and style",
+            "Follow best practices by using lowercase attribute names and quotes",
           ],
         },
       ],
     },
     {
-      slug: "lists-and-tables",
-      title: "Lists & Tables",
-      description:
-        "Organize items and tabular data using unordered lists, ordered lists, nested lists, and accessible data tables.",
-      position: 3,
-      estimated_minutes: 38,
+      slug: "text-basic-styling",
+      title: "Text & Basic Styling",
+      description: "Master headings, paragraphs, inline styles, text formatting tags, and developer comments.",
+      position: 2,
+      estimated_minutes: 21,
       lessons: [
         {
-          slug: "ordered-unordered-nested-lists",
-          title: "Ordered, Unordered & Nested Lists",
-          summary:
-            "Explore unordered lists (<ul>), ordered lists (<ol>), list items (<li>), and description lists (<dl>) along with list nesting.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=2985s",
-          key_takeaway:
-            "Use <ol> when sequence matters and <ul> when items are non-sequential. Always place <li> elements directly inside <ul> or <ol>.",
-          estimated_minutes: 10,
           position: 1,
+          title: "HTML - Headings",
+          slug: "html-headings",
+          youtubeVideoId: "9gHPpwq6IaY",
+          estimated_minutes: 4,
           is_preview: false,
-          content:
-            "## Lists in HTML\n\nLists allow you to group related items clearly.\n\n### Unordered Lists (`<ul>`)\n\nUsed when the order of list items does not affect the meaning:\n\n```html\n<ul>\n  <li>HTML5</li>\n  <li>CSS3</li>\n  <li>JavaScript</li>\n</ul>\n```\n\n### Ordered Lists (`<ol>`)\n\nUsed for step-by-step instructions or ranked items:\n\n```html\n<ol>\n  <li>Install code editor</li>\n  <li>Write HTML boilerplate</li>\n  <li>Preview in browser</li>\n</ol>\n```\n\n### Nested Lists\n\nLists can be nested inside an `<li>` element to create sub-menus or hierarchical outlines.",
+          is_bonus: false,
+          summary: "Master heading levels from <h1> to <h6> to establish clear hierarchical structure and improve accessibility and SEO.",
+          key_takeaway: "Use headings to show document hierarchy (h1 through h6), not merely to make text bigger or bolder.",
           objectives: [
-            "Create numbered ordered lists and bulleted unordered lists",
-            "Build multi-level nested lists",
+            "Use heading tags from <h1> to <h6>",
+            "Understand why heading structure is critical for SEO and accessibility",
+            "Maintain a single main <h1> per page",
+          ],
+        },
+        {
+          position: 2,
+          title: "HTML - Paragraphs",
+          slug: "html-paragraphs",
+          youtubeVideoId: "qis4kAOThLw",
+          estimated_minutes: 4,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn how to structure body text using paragraph tags (<p>), line breaks (<br>), and thematic dividers (<hr>).",
+          key_takeaway: "Browsers automatically add margin around <p> elements and collapse multiple spaces into a single space.",
+          objectives: [
+            "Define paragraphs using the <p> tag",
+            "Insert line breaks with <br> and horizontal rules with <hr>",
+            "Understand browser whitespace collapse",
+          ],
+        },
+        {
+          position: 3,
+          title: "HTML - Styles",
+          slug: "html-styles",
+          youtubeVideoId: "twdNPJfbj_8",
+          estimated_minutes: 5,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Explore the HTML style attribute to apply inline CSS properties including color, background-color, font-family, and text-align.",
+          key_takeaway: "The style attribute allows adding CSS rules directly inside an element tag using property:value syntax.",
+          objectives: [
+            "Use the style attribute to customize element presentation",
+            "Set text colors, background colors, and font sizes",
+            "Apply text alignment with text-align: center",
+          ],
+        },
+        {
+          position: 4,
+          title: "HTML - Formatting",
+          slug: "html-formatting",
+          youtubeVideoId: "7FqQLqNIEY8",
+          estimated_minutes: 5,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn semantic and visual text formatting tags like <strong>, <em>, <mark>, <small>, <del>, <ins>, <sub>, and <sup>.",
+          key_takeaway: "Use <strong> for strong importance and <em> for stress emphasis rather than purely visual <b> or <i> tags.",
+          objectives: [
+            "Format important text with <strong> and <em>",
+            "Highlight keywords with <mark> and represent edits with <del> and <ins>",
+            "Format formulas with <sub> and <sup>",
+          ],
+        },
+        {
+          position: 5,
+          title: "HTML - Comments",
+          slug: "html-comments",
+          youtubeVideoId: "229HYq40vaA",
+          estimated_minutes: 3,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn how to write single-line and multi-line comments in HTML to document your code and troubleshoot layouts.",
+          key_takeaway: "HTML comments (<!-- comment -->) are ignored by the browser renderer but remain visible in the page source.",
+          objectives: [
+            "Write comments using <!-- and --> syntax",
+            "Use comments to organize sections and document markup",
+            "Temporarily comment out code blocks during debugging",
+          ],
+        },
+      ],
+    },
+    {
+      slug: "colors-css-links",
+      title: "Colors, CSS & Links",
+      description: "Learn color representation formats, linking CSS stylesheets, and creating hyperlinks and bookmark anchors.",
+      position: 3,
+      estimated_minutes: 17,
+      lessons: [
+        {
+          position: 1,
+          title: "HTML - Colors",
+          slug: "html-colors",
+          youtubeVideoId: "zCrolmdqmF8",
+          estimated_minutes: 5,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Understand how colors are defined in HTML using color names, RGB, HEX, HSL, RGBA, and HSLA values.",
+          key_takeaway: "Colors can be specified by predefined names or precise values like HEX (#ff0000) and RGB/RGBA for transparency.",
+          objectives: [
+            "Specify colors using standard color names",
+            "Understand RGB and HEX color formats",
+            "Control opacity and transparency using RGBA and HSLA values",
+          ],
+        },
+        {
+          position: 2,
+          title: "HTML - CSS",
+          slug: "html-css",
+          youtubeVideoId: "cZHp-Oozg6I",
+          estimated_minutes: 6,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn the three ways to add CSS styling to HTML: inline styles, internal <style> blocks, and external stylesheets with <link>.",
+          key_takeaway: "External stylesheets linked in the <head> element are the standard best practice for styling multi-page websites.",
+          objectives: [
+            "Compare inline, internal, and external CSS approaches",
+            "Link an external stylesheet using <link rel=\"stylesheet\">",
+            "Understand CSS selectors, properties, and values",
+          ],
+        },
+        {
+          position: 3,
+          title: "HTML - Links",
+          slug: "html-links",
+          youtubeVideoId: "HA6bByKdAQM",
+          estimated_minutes: 6,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Master hyperlinks using the <a> tag, the href attribute, link targets, bookmark jump links, and mailto links.",
+          key_takeaway: "The <a> tag creates hyperlinks to external sites, other pages on your site, or specific sections on the same page.",
+          objectives: [
+            "Create clickable links with <a href=\"...\">",
+            "Open links in new tabs with target=\"_blank\"",
+            "Create in-page jump bookmarks with #id anchors",
+          ],
+        },
+      ],
+    },
+    {
+      slug: "images-data-structure",
+      title: "Images & Data Structure",
+      description: "Embed images with accessible alt text, present tabular data with tables, and organize items into ordered and unordered lists.",
+      position: 4,
+      estimated_minutes: 18,
+      lessons: [
+        {
+          position: 1,
+          title: "HTML - Images",
+          slug: "html-images",
+          youtubeVideoId: "FmoYRiepmOE",
+          estimated_minutes: 6,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn how to embed graphics and photos with the <img> tag, write accessible alt text, and set responsive dimensions.",
+          key_takeaway: "The <img> element requires src and alt attributes; alt text is essential for screen readers and SEO.",
+          objectives: [
+            "Embed images using <img src=\"...\" alt=\"...\">",
+            "Write descriptive alternative text",
+            "Specify width and height to prevent layout shifts",
+          ],
+        },
+        {
+          position: 2,
+          title: "HTML - Tables",
+          slug: "html-tables",
+          youtubeVideoId: "e62D-aayveY",
+          estimated_minutes: 7,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Learn how to present structured tabular data using <table>, <tr>, <th>, and <td> elements, along with colspan and rowspan.",
+          key_takeaway: "Tables are strictly for tabular data; use <th> for table headers and merge cells with colspan and rowspan.",
+          objectives: [
+            "Build accessible tables with <table>, <tr>, <th>, and <td>",
+            "Structure header rows and data cells cleanly",
+            "Span multiple columns or rows using colspan and rowspan",
+          ],
+        },
+        {
+          position: 3,
+          title: "HTML - Lists",
+          slug: "html-lists",
+          youtubeVideoId: "-QuK8taGLCs",
+          estimated_minutes: 5,
+          is_preview: false,
+          is_bonus: false,
+          summary: "Organize related items into unordered bulleted lists (<ul>), numbered ordered lists (<ol>), and description lists (<dl>).",
+          key_takeaway: "Use <ol> for sequential items, <ul> for non-sequential items, and <dl> for key-value terms and definitions.",
+          objectives: [
+            "Create bulleted lists with <ul> and numbered lists with <ol>",
+            "Nest lists inside list items to create sub-menus",
             "Create description lists with <dl>, <dt>, and <dd>",
           ],
         },
-        {
-          slug: "creating-and-structuring-html-tables",
-          title: "Creating & Structuring HTML Tables",
-          summary:
-            "Learn how to present structured tabular data using <table>, <caption>, <thead>, <tbody>, <tr>, <th>, and <td> elements.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=8693s",
-          key_takeaway:
-            "Use <th> elements with the scope attribute to provide accessible headers for rows and columns in tabular data.",
-          estimated_minutes: 16,
-          position: 2,
-          is_preview: false,
-          content:
-            "## Tabular Data in HTML\n\nHTML tables present information in a grid of rows and columns.\n\n```html\n<table>\n  <caption>Weekly Learning Schedule</caption>\n  <thead>\n    <tr>\n      <th scope=\"col\">Day</th>\n      <th scope=\"col\">Topic</th>\n      <th scope=\"col\">Duration</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Monday</td>\n      <td>HTML Basics</td>\n      <td>45 min</td>\n    </tr>\n    <tr>\n      <td>Tuesday</td>\n      <td>Links & Lists</td>\n      <td>45 min</td>\n    </tr>\n  </tbody>\n</table>\n```\n\n### Essential Table Elements\n\n- `<table>`: The wrapper for all table content.\n- `<caption>`: Describes the table purpose for accessibility.\n- `<thead>` & `<tbody>`: Separate table header rows from data body rows.\n- `<tr>`: Table row.\n- `<th>`: Header cell with `scope=\"col\"` or `scope=\"row\"`.\n- `<td>`: Standard data cell.",
-          objectives: [
-            "Structure tables with <thead>, <tbody>, and <tfoot>",
-            "Define accessible row and column headers with <th scope=\"...\">",
-            "Merge cells using colspan and rowspan attributes",
-          ],
-        },
-        {
-          slug: "practice-build-schedule-table",
-          title: "Practice: Build a Student Schedule Table",
-          summary:
-            "Construct an accessible weekly class schedule table with proper headings, captions, and merged cells.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Tables should strictly be used for tabular data, never for general page layouts.",
-          estimated_minutes: 12,
-          position: 3,
-          is_preview: false,
-          content:
-            "## Exercise: Course Schedule Table\n\nCreate an HTML file `schedule.html` containing an accessible table.\n\n### Checklist\n\n1. Include a descriptive `<caption>`\n2. Define a `<thead>` with column header cells (`<th scope=\"col\">`)\n3. Include at least 4 rows in `<tbody>`\n4. Use `colspan=\"2\"` to span a lunch break across multiple columns\n\n```html\n<table>\n  <caption>Meritloom Study Plan</caption>\n  <thead>\n    <tr>\n      <th scope=\"col\">Time</th>\n      <th scope=\"col\">Module</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>9:00 AM</td>\n      <td>HTML Tables</td>\n    </tr>\n    <tr>\n      <td colspan=\"2\">Break</td>\n    </tr>\n  </tbody>\n</table>\n```",
-          objectives: [
-            "Create a multi-column table with a descriptive <caption>",
-            "Use <thead> and <tbody> blocks properly",
-            "Implement colspan or rowspan to represent spanning schedule blocks",
-          ],
-        },
       ],
     },
     {
-      slug: "links-and-navigation",
-      title: "Links & Navigation",
-      description:
-        "Master hyperlinks, page navigation, absolute vs relative paths, in-page bookmarks, and security attributes.",
-      position: 4,
-      estimated_minutes: 46,
-      lessons: [
-        {
-          slug: "anchor-elements-and-page-links",
-          title: "Anchor Elements & Page Links",
-          summary:
-            "Master the anchor element (<a>) to connect pages, link to external sites, create in-page jump links, and configure target=\"_blank\" safely.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=3595s",
-          key_takeaway:
-            "When opening external links in a new tab with target=\"_blank\", always include rel=\"noopener noreferrer\" for security.",
-          estimated_minutes: 30,
-          position: 1,
-          is_preview: false,
-          content:
-            "## The Power of the Hyperlink\n\nThe web is interconnected through hyperlinks created using the `<a>` (anchor) element and the `href` attribute.\n\n### External Links\n\n```html\n<a href=\"https://developer.mozilla.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n  Visit MDN Web Docs\n</a>\n```\n\n### Internal Page Links\n\n```html\n<a href=\"about.html\">About Us</a>\n<a href=\"contact.html\">Contact</a>\n```\n\n### In-Page Jump Links\n\n```html\n<!-- Link trigger -->\n<a href=\"#faq-section\">Jump to FAQ</a>\n\n<!-- Target section -->\n<h2 id=\"faq-section\">Frequently Asked Questions</h2>\n```",
-          objectives: [
-            "Create links using the href attribute",
-            "Link between multiple local HTML files using relative paths",
-            "Implement in-page jump navigation using id attributes",
-            "Secure external links with rel=\"noopener noreferrer\"",
-          ],
-        },
-        {
-          slug: "relative-vs-absolute-urls",
-          title: "Relative vs Absolute URLs Explained",
-          summary:
-            "Understand the vital differences between absolute URLs (full web addresses) and relative file paths (parent, sibling, and subfolder references).",
-          lesson_type: "article",
-          video_url: null,
-          key_takeaway:
-            "Use relative paths for internal website assets and pages; use absolute URLs for external domains.",
-          estimated_minutes: 6,
-          position: 2,
-          is_preview: false,
-          content:
-            "## Understanding Paths in Web Development\n\n- **Absolute URLs**: Include the protocol and domain name (e.g. `https://example.com/about.html`). Used for external websites.\n- **Relative URLs**: Point to a file relative to the current file location on your server.\n\n### Relative Path Cheatsheet\n\n- `about.html`: Sibling file in the same folder.\n- `pages/about.html`: File inside a subfolder named `pages`.\n- `../index.html`: Go up one directory level to find `index.html`.",
-          objectives: [
-            "Navigate up directory trees using ../",
-            "Reference files in subdirectories using folder/file.html",
-          ],
-        },
-        {
-          slug: "practice-build-navigation-bar",
-          title: "Practice: Build a Multi-Page Navigation Bar",
-          summary:
-            "Construct a multi-page website header navigation bar containing links to Home, About, and Contact pages.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Wrap website navigation in a semantic <nav> element and use an unordered list (<ul>) for menu items.",
-          estimated_minutes: 10,
-          position: 3,
-          is_preview: false,
-          content:
-            "## Exercise: Site Navigation Bar\n\nBuild a standard navigation header component in HTML.\n\n### Requirements\n\n```html\n<header>\n  <nav aria-label=\"Main Navigation\">\n    <ul>\n      <li><a href=\"index.html\">Home</a></li>\n      <li><a href=\"about.html\">About</a></li>\n      <li><a href=\"courses.html\">Courses</a></li>\n      <li><a href=\"contact.html\">Contact</a></li>\n    </ul>\n  </nav>\n</header>\n```",
-          objectives: [
-            "Group navigation links inside <nav> and <ul>",
-            "Connect relative links across multiple pages",
-            "Add in-page jump anchor links",
-          ],
-        },
-      ],
-    },
-    {
-      slug: "images-and-media",
-      title: "Images & Media",
-      description:
-        "Learn how to embed images, audio, and video with accessible alternative text, figures, and dimensions.",
+      slug: "html-layout-concepts",
+      title: "HTML Layout Concepts",
+      description: "Understand block vs inline element behavior and use class and id attributes for styling and targeting.",
       position: 5,
-      estimated_minutes: 48,
+      estimated_minutes: 14,
       lessons: [
         {
-          slug: "adding-images-alt-text-figures",
-          title: "Adding Images, Alt Text & Accessible Figures",
-          summary:
-            "Learn how to embed images using the <img> tag, write descriptive alt text for accessibility, specify width and height, and use <figure> and <figcaption>.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=5438s",
-          key_takeaway:
-            "Every <img> must have an alt attribute. Provide concise, descriptive text for informative images or alt=\"\" for decorative images.",
-          estimated_minutes: 30,
           position: 1,
+          title: "HTML - Block and Inline",
+          slug: "html-block-inline",
+          youtubeVideoId: "M4n-WSkehmI",
+          estimated_minutes: 5,
           is_preview: false,
-          content:
-            "## Working with Images in HTML\n\nThe `<img>` element embeds visual graphics into web pages. It is a self-closing void element.\n\n```html\n<figure>\n  <img\n    src=\"images/html-logo.png\"\n    alt=\"HTML5 shield logo on orange background\"\n    width=\"300\"\n    height=\"200\"\n    loading=\"lazy\"\n  >\n  <figcaption>Figure 1: Official HTML5 Logo</figcaption>\n</figure>\n```\n\n### Essential Attributes\n\n- `src`: Path or URL of the image file.\n- `alt`: Text equivalent read by screen readers and shown if the image fails to load.\n- `width` & `height`: Prevents Cumulative Layout Shift (CLS) as pages load.\n- `loading=\"lazy\"`: Defers offscreen image loading until the user scrolls near.",
+          is_bonus: false,
+          summary: "Understand the fundamental difference between block-level elements (<div>, <p>, <h1>) and inline elements (<span>, <a>, <strong>).",
+          key_takeaway: "Block elements start on a new line and take up full width; inline elements only take up as much width as necessary.",
           objectives: [
-            "Embed images with src, alt, width, and height attributes",
-            "Write meaningful alt text for screen readers",
-            "Wrap captioned images in <figure> and <figcaption>",
-            "Prevent layout shifts by specifying aspect ratio dimensions",
+            "Distinguish between block-level and inline HTML elements",
+            "Use <div> as a block-level container and <span> as an inline container",
+            "Understand display behavior impact on page flow",
           ],
         },
         {
-          slug: "image-accessibility-best-practices",
-          title: "Image Best Practices & Accessibility Basics",
-          summary:
-            "Explore modern image formats (WebP, SVG, PNG, JPG), loading=\"lazy\" performance optimization, and Web Content Accessibility Guidelines (WCAG).",
-          lesson_type: "article",
-          video_url: null,
-          key_takeaway:
-            "Using loading=\"lazy\" on below-the-fold images dramatically accelerates initial page load times.",
-          estimated_minutes: 8,
           position: 2,
+          title: "HTML - Classes",
+          slug: "html-classes",
+          youtubeVideoId: "tWIkDOJo0Ts",
+          estimated_minutes: 5,
           is_preview: false,
-          content:
-            "## Image Optimization & Accessibility\n\n- **Photos**: Use WebP or JPG for high compression.\n- **Icons & Logos**: Use SVG (vector format) for crisp rendering at any resolution.\n- **Screenshots**: Use PNG or WebP with lossless compression.",
+          is_bonus: false,
+          summary: "Learn how the class attribute assigns reusable style and script identifiers to multiple HTML elements.",
+          key_takeaway: "The class attribute can be shared across multiple elements to apply consistent styling or targeting.",
           objectives: [
-            "Select appropriate image formats for photos versus logos",
-            "Implement native browser lazy loading with loading=\"lazy\"",
+            "Assign class names using class=\"className\"",
+            "Apply multiple space-separated classes to a single element",
+            "Target class names in CSS with .className syntax",
           ],
         },
         {
-          slug: "practice-product-showcase-images",
-          title: "Practice: Build a Product Showcase with Images",
-          summary:
-            "Create a responsive product showcase card using <figure>, <figcaption>, descriptive alt text, and linked imagery.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Combining <a> and <img> allows creating accessible clickable image links.",
-          estimated_minutes: 10,
           position: 3,
+          title: "HTML - Id",
+          slug: "html-id",
+          youtubeVideoId: "rZ0k516qZmc",
+          estimated_minutes: 4,
           is_preview: false,
-          content:
-            "## Exercise: Product Card\n\n```html\n<article>\n  <figure>\n    <a href=\"product-details.html\">\n      <img\n        src=\"taco.jpg\"\n        alt=\"Two crispy beef tacos topped with fresh salsa and cilantro\"\n        width=\"400\"\n        height=\"300\"\n      >\n    </a>\n    <figcaption>Signature Street Tacos — $9.50</figcaption>\n  </figure>\n  <p>Fresh handmade corn tortillas with slow-cooked shredded beef.</p>\n</article>\n```",
+          is_bonus: false,
+          summary: "Learn how the id attribute assigns a unique identifier to a single HTML element on the page for styling, scripting, and bookmarks.",
+          key_takeaway: "An id must be unique within an HTML document; use id for unique element targeting and in-page navigation anchors.",
           objectives: [
-            "Wrap an image inside a <figure> element",
-            "Add a descriptive <figcaption> with price and details",
-            "Ensure all accessibility criteria are met",
+            "Assign unique IDs to elements with id=\"uniqueId\"",
+            "Target IDs in CSS with #uniqueId syntax",
+            "Understand the difference between reusable classes and unique IDs",
           ],
         },
       ],
     },
     {
-      slug: "semantic-html5",
-      title: "Semantic HTML5",
-      description:
-        "Understand landmark layout tags including header, nav, main, section, article, aside, and footer.",
+      slug: "embedding-scripting",
+      title: "Embedding & Scripting",
+      description: "Embed external pages with iframes and connect client-side JavaScript for dynamic behavior.",
       position: 6,
-      estimated_minutes: 43,
+      estimated_minutes: 10,
       lessons: [
         {
-          slug: "semantic-html5-layout-elements",
-          title: "Semantic HTML5 Layout Elements",
-          summary:
-            "Learn why semantic elements like <header>, <nav>, <main>, <article>, <section>, <aside>, and <footer> are superior to generic <div> containers.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=7258s",
-          key_takeaway:
-            "Semantic HTML elements communicate the role and purpose of content to browsers, screen readers, and search engines.",
-          estimated_minutes: 24,
           position: 1,
+          title: "HTML - Iframes",
+          slug: "html-iframes",
+          youtubeVideoId: "qP23O70ve7k",
+          estimated_minutes: 5,
           is_preview: false,
-          content:
-            "## The Power of Semantic HTML\n\nSemantic elements clearly describe their meaning to both the browser and the developer.\n\n### Common Semantic Landmarks\n\n- `<header>`: Introductory content or navigation header.\n- `<nav>`: Major navigation links.\n- `<main>`: The dominant, unique content of the page (only one `<main>` per page).\n- `<article>`: Self-contained content that could be syndicated (e.g. blog post, product card).\n- `<section>`: A thematic grouping of content, typically with a heading.\n- `<aside>`: Tangentially related content (sidebar, related links, callouts).\n- `<footer>`: Copyright, author info, or secondary links.",
+          is_bonus: false,
+          summary: "Learn how the <iframe> element embeds external web pages, video players, maps, and interactive widgets inside your HTML.",
+          key_takeaway: "An iframe displays a nested browsing context; always provide a descriptive title attribute for accessibility.",
           objectives: [
-            "Replace generic <div> tags with semantic HTML5 structural elements",
-            "Distinguish between <article> and <section>",
-            "Organize main content landmarks with <header>, <main>, and <footer>",
+            "Embed external pages and media using <iframe src=\"...\">",
+            "Set iframe dimensions and borders with CSS",
+            "Use the title attribute for screen reader accessibility",
           ],
         },
         {
-          slug: "why-semantic-html-matters",
-          title: "Why Semantic HTML Matters for SEO & Accessibility",
-          summary:
-            "Examine how screen readers navigate landmark regions and how search engine crawlers rank semantically structured documents.",
-          lesson_type: "article",
-          video_url: null,
-          key_takeaway:
-            "Landmark elements allow assistive technology users to quickly jump between main content, navigation, and supplementary info.",
-          estimated_minutes: 7,
           position: 2,
+          title: "HTML - JavaScript",
+          slug: "html-javascript",
+          youtubeVideoId: "uSgcWDkwc3U",
+          estimated_minutes: 5,
           is_preview: false,
-          content:
-            "## Accessibility & Search Engine Ranking\n\nAssistive technologies provide shortcut keys (e.g. \"D\" in NVDA or \"R\" in VoiceOver) allowing users to leap directly between landmarks.\n\nWhen a page is composed exclusively of `<div>` tags, screen reader users are forced to listen through the entire page linearly.",
+          is_bonus: false,
+          summary: "Discover how HTML and JavaScript interact using the <script> tag to manipulate the DOM, handle events, and create interactivity.",
+          key_takeaway: "The <script> tag is used to embed or link client-side JavaScript to make web pages dynamic and interactive.",
           objectives: [
-            "Explain accessibility landmark navigation",
-            "Understand how semantic structure boosts search engine discoverability",
-          ],
-        },
-        {
-          slug: "practice-refactor-to-semantic-html",
-          title: "Practice: Refactor a Non-Semantic Page to Semantic HTML",
-          summary:
-            "Take a legacy div-heavy webpage and refactor it into clean, accessible HTML5 semantic landmarks.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Refactoring to semantic tags improves readability and accessibility without requiring CSS changes.",
-          estimated_minutes: 12,
-          position: 3,
-          is_preview: false,
-          content:
-            "## Exercise: Semantic Refactor\n\n```html\n<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>Semantic Magazine</title>\n  </head>\n  <body>\n    <header>\n      <h1>The Code Journal</h1>\n      <nav>\n        <a href=\"#latest\">Latest Articles</a>\n      </nav>\n    </header>\n    <main>\n      <article id=\"latest\">\n        <h2>Mastering Semantic HTML</h2>\n        <p>Using the right elements elevates your code quality.</p>\n      </article>\n      <aside>\n        <h3>Author Bio</h3>\n        <p>Dave Gray is a passionate educator.</p>\n      </aside>\n    </main>\n    <footer>\n      <p>&copy; 2026 The Code Journal</p>\n    </footer>\n  </body>\n</html>\n```",
-          objectives: [
-            "Identify and replace generic div containers with semantic elements",
-            "Validate proper nesting of <main>, <section>, and <article>",
+            "Insert client-side scripts using <script> tags",
+            "Link external JavaScript files with <script src=\"app.js\">",
+            "Provide fallback content for disabled scripts using <noscript>",
           ],
         },
       ],
     },
     {
-      slug: "forms-and-user-input",
-      title: "HTML Forms & User Input",
-      description:
-        "Build forms, inputs, labels, textareas, selects, radio buttons, checkboxes, fieldsets, and accessible validation.",
+      slug: "page-metadata-forms",
+      title: "Page Metadata & Forms",
+      description: "Configure <head> document metadata and build accessible user input forms with common controls.",
       position: 7,
-      estimated_minutes: 67,
+      estimated_minutes: 12,
       lessons: [
         {
-          slug: "building-forms-inputs-and-controls",
-          title: "Building Forms, Inputs & Form Controls",
-          summary:
-            "Master HTML forms using <form>, <label>, <input> (text, email, password, number), <textarea>, <select>, radio buttons, checkboxes, and buttons.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=9642s",
-          key_takeaway:
-            "Always associate every input with a <label> using the for attribute matching the input id.",
-          estimated_minutes: 44,
           position: 1,
+          title: "HTML - Head",
+          slug: "html-head",
+          youtubeVideoId: "WeuVX5x2MJE",
+          estimated_minutes: 5,
           is_preview: false,
-          content:
-            "## Interactive Forms in HTML\n\nForms collect user input and submit it to a server.\n\n```html\n<form action=\"/submit\" method=\"post\">\n  <fieldset>\n    <legend>Contact Information</legend>\n    \n    <label for=\"user-name\">Your Name:</label>\n    <input type=\"text\" id=\"user-name\" name=\"name\" required>\n\n    <label for=\"user-email\">Email Address:</label>\n    <input type=\"email\" id=\"user-email\" name=\"email\" required>\n  </fieldset>\n\n  <button type=\"submit\">Submit Form</button>\n</form>\n```",
+          is_bonus: false,
+          summary: "Explore the <head> element and its essential tags: <title>, <meta>, <link>, <style>, and <base>.",
+          key_takeaway: "The <head> container holds machine-readable metadata about the page that is not directly rendered in the main viewport.",
           objectives: [
-            "Connect labels to inputs using matching for and id attributes",
-            "Work with text, email, tel, password, number, and date input types",
-            "Build radio button groups with shared name attributes",
-            "Group related fields with <fieldset> and <legend>",
+            "Set page titles and favicons in the <head> section",
+            "Configure UTF-8 charset and responsive viewport meta tags",
+            "Link external stylesheets and resources",
           ],
         },
         {
-          slug: "accessible-form-validation",
-          title: "Accessible Form Validation & Input Types",
-          summary:
-            "Learn how to enforce client-side form validation using required, pattern, min, max, and maxlength attributes.",
-          lesson_type: "article",
-          video_url: null,
-          key_takeaway:
-            "Native HTML5 validation attributes provide immediate accessible feedback without requiring custom JavaScript.",
-          estimated_minutes: 8,
           position: 2,
+          title: "HTML - Forms",
+          slug: "html-forms",
+          youtubeVideoId: "VLeERv_dR6Q",
+          estimated_minutes: 7,
           is_preview: false,
-          content:
-            "## Built-in HTML5 Form Validation\n\n- `required`: Field must not be empty.\n- `minlength` / `maxlength`: String length constraints.\n- `type=\"email\"` / `type=\"url\"`: Built-in syntax format verification.\n- `pattern=\"[0-9]{3}-[0-9]{4}\"`: Regular expression matching.",
+          is_bonus: false,
+          summary: "Learn how to build user input forms using <form>, <input>, <label>, <select>, <textarea>, and <button> elements.",
+          key_takeaway: "Forms collect user input for server processing; always pair input elements with explicit <label> tags for accessibility.",
           objectives: [
-            "Use required, minlength, and maxlength for text constraints",
-            "Specify email and URL formats with native input types",
-            "Add helpful placeholder and autocomplete attributes",
-          ],
-        },
-        {
-          slug: "practice-user-registration-form",
-          title: "Practice: Build a User Registration & Feedback Form",
-          summary:
-            "Construct a complete registration form with text inputs, radio selections, dropdown menus, checkboxes, and a submit button.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "A well-structured form ensures every interactive control is accessible via keyboard and screen reader.",
-          estimated_minutes: 15,
-          position: 3,
-          is_preview: false,
-          content:
-            "## Exercise: Registration Form\n\n```html\n<form action=\"#\" method=\"post\">\n  <fieldset>\n    <legend>Account Details</legend>\n    <label for=\"fullname\">Full Name:</label>\n    <input type=\"text\" id=\"fullname\" name=\"fullname\" required>\n    \n    <label for=\"role\">Primary Goal:</label>\n    <select id=\"role\" name=\"role\">\n      <option value=\"skills\">Build practical skills</option>\n      <option value=\"explore\">Explore something new</option>\n    </select>\n  </fieldset>\n  <button type=\"submit\">Sign Up</button>\n</form>\n```",
-          objectives: [
-            "Create a form with method=\"post\" and action=\"#\"",
-            "Implement <fieldset> and <legend> for personal details",
-            "Validate required fields natively",
+            "Explain the purpose and structure of HTML forms",
+            "Add common form controls (text, password, submit, checkboxes, radio buttons)",
+            "Associate <label> elements with <input> fields using for and id",
           ],
         },
       ],
     },
     {
-      slug: "capstone-project",
-      title: "Capstone Project: Build Your First Website",
-      description:
-        "Combine everything you learned to build a complete multi-section restaurant or personal portfolio webpage using pure HTML.",
+      slug: "bonus",
+      title: "Bonus",
+      description: "Optional behind-the-scenes bloopers from the W3Schools HTML tutorial recording.",
       position: 8,
-      estimated_minutes: 67,
+      estimated_minutes: 3,
       lessons: [
         {
-          slug: "project-walkthrough-little-taco-shop",
-          title: "Project Walkthrough: The Little Taco Shop Webpage",
-          summary:
-            "Watch the full step-by-step project build of the Little Taco Shop website, combining document structure, navigation, images, tables, and forms.",
-          lesson_type: "video",
-          video_url: "https://www.youtube.com/watch?v=kUMe1FH4CHE&t=12316s",
-          key_takeaway:
-            "A complete HTML website combines semantic landmarks, accessible media, structured data, and interactive forms into cohesive pages.",
-          estimated_minutes: 42,
           position: 1,
+          title: "HTML - Bloopers",
+          slug: "html-bloopers",
+          youtubeVideoId: "HHxPoYUrSQ0",
+          estimated_minutes: 3,
           is_preview: false,
-          content:
-            "## The Capstone Project: Little Taco Shop\n\nIn this walkthrough video, Dave Gray builds a complete multi-page HTML website from scratch.\n\n### Features Demonstrated\n\n1. Proper semantic layout (`<header>`, `<nav>`, `<main>`, `<section>`, `<footer>`)\n2. Internal navigation across multiple pages\n3. High-quality accessible images with `<figure>` and `<figcaption>`\n4. Business hours data table\n5. Customer feedback and order contact form",
+          is_bonus: true,
+          summary: "A fun bonus from the W3Schools HTML tutorial recording.",
+          key_takeaway: "Learning to code takes practice, patience, and having fun along the way!",
           objectives: [
-            "Plan the multi-page structure of a real-world website",
-            "Combine header navigation, article content, hours table, and contact form",
-            "Review complete HTML5 best practices in action",
-          ],
-        },
-        {
-          slug: "capstone-build-personal-profile-webpage",
-          title: "Capstone: Build Your Personal Profile Webpage",
-          summary:
-            "Combine everything you have learned in this course to build your own multi-section personal profile or portfolio webpage using pure semantic HTML.",
-          lesson_type: "practice",
-          video_url: null,
-          key_takeaway:
-            "Writing clean, semantic HTML creates the strong structural backbone that you will style with CSS in the next course.",
-          estimated_minutes: 25,
-          position: 2,
-          is_preview: false,
-          content:
-            "## Capstone Project: Personal Profile Webpage\n\nCongratulations on reaching the final lesson of HTML Fundamentals! Now it is time to build your own complete personal webpage.\n\n### Project Requirements\n\n- [x] Valid `<!DOCTYPE html>` and `<html lang=\"en\">` structure\n- [x] `<head>` with descriptive `<title>` and UTF-8 charset\n- [x] Semantic `<header>` with `<h1>` and navigation menu\n- [x] `<main>` section containing:\n  - About me biography with `<strong>` and `<em>` tags\n  - Profile image inside `<figure>` with descriptive `alt` and `<figcaption>`\n  - Unordered list of your technical skills\n  - Table listing projects or coursework completed\n  - Accessible contact form with name, email, topic select, and message textarea\n- [x] Semantic `<footer>` with copyright and social links with `target=\"_blank\"` and `rel=\"noopener noreferrer\"`\n\n### Next Step: CSS Fundamentals\n\nOnce your HTML structure is complete and validated, you will be ready for **Course 2: CSS Fundamentals** to bring your website to life with colors, layouts, and animations!",
-          objectives: [
-            "Build a complete HTML5 webpage from scratch",
-            "Include a header, navigation bar, hero bio, skills list, project table, and contact form",
-            "Validate semantic correctness and accessibility without styling",
+            "Enjoy behind-the-scenes moments from the W3Schools HTML tutorial recording",
           ],
         },
       ],
     },
   ];
 
-  // Insert Modules & Lessons
-  for (const m of modulesData) {
-    console.log(`📂 Seeding Module ${m.position}: ${m.title}...`);
-    const { data: mod, error: modErr } = await supabase
-      .from("course_modules")
-      .upsert(
-        {
-          course_id: courseId,
-          slug: m.slug,
-          title: m.title,
-          description: m.description,
-          position: m.position,
-          estimated_minutes: m.estimated_minutes,
-          is_published: true,
-        },
-        { onConflict: "course_id, slug" },
-      )
-      .select("id")
-      .single();
-
-    if (modErr) {
-      console.error(`Error upserting module ${m.slug}:`, modErr);
-      continue;
-    }
-
-    const moduleId = mod.id;
-
-    for (const l of m.lessons) {
-      console.log(`   📄 Lesson ${l.position}: ${l.title}...`);
-      const { data: lessonRow, error: lErr } = await supabase
-        .from("lessons")
+  if (courseId) {
+    for (const m of modulesData) {
+      console.log(`📂 Seeding Module ${m.position}: ${m.title}...`);
+      const { data: mod } = await supabase
+        .from("course_modules")
         .upsert(
           {
-            module_id: moduleId,
-            slug: l.slug,
-            title: l.title,
-            summary: l.summary,
-            lesson_type: l.lesson_type,
-            video_url: l.video_url,
-            key_takeaway: l.key_takeaway,
-            estimated_minutes: l.estimated_minutes,
-            position: l.position,
-            is_preview: l.is_preview,
+            course_id: courseId,
+            slug: m.slug,
+            title: m.title,
+            description: m.description,
+            position: m.position,
+            estimated_minutes: m.estimated_minutes,
             is_published: true,
-            content: l.content,
           },
-          { onConflict: "slug" },
+          { onConflict: "course_id, slug" },
         )
         .select("id")
         .single();
 
-      if (lErr) {
-        console.error(`   ❌ Error upserting lesson ${l.slug}:`, lErr);
-        continue;
-      }
+      const moduleId = mod?.id;
+      if (!moduleId) continue;
 
-      const lessonId = lessonRow.id;
+      for (const l of m.lessons) {
+        console.log(`   🎬 Lesson: ${l.title} (${l.youtubeVideoId})`);
+        const videoUrl = `https://www.youtube.com/watch?v=${l.youtubeVideoId}`;
+        const { data: lessonRow } = await supabase
+          .from("lessons")
+          .upsert(
+            {
+              module_id: moduleId,
+              slug: l.slug,
+              title: l.title,
+              summary: l.summary,
+              lesson_type: "video",
+              video_url: videoUrl,
+              video_provider: "youtube",
+              youtube_video_id: l.youtubeVideoId,
+              source_channel: SOURCE_CHANNEL,
+              source_url: videoUrl,
+              playlist_id: PLAYLIST_ID,
+              is_bonus: l.is_bonus,
+              key_takeaway: l.key_takeaway,
+              estimated_minutes: l.estimated_minutes,
+              position: l.position,
+              is_preview: l.is_preview,
+              is_published: true,
+            },
+            { onConflict: "slug" },
+          )
+          .select("id")
+          .single();
 
-      // Lesson Objectives
-      if (l.objectives && l.objectives.length > 0) {
-        await supabase.from("lesson_objectives").delete().eq("lesson_id", lessonId);
-        const objRows = l.objectives.map((objective, idx) => ({
-          lesson_id: lessonId,
-          objective,
-          position: idx + 1,
-        }));
-        await supabase.from("lesson_objectives").insert(objRows);
+        if (lessonRow?.id && l.objectives) {
+          await supabase.from("lesson_objectives").delete().eq("lesson_id", lessonRow.id);
+          const objRows = l.objectives.map((objective, idx) => ({
+            lesson_id: lessonRow.id,
+            objective,
+            position: idx + 1,
+          }));
+          await supabase.from("lesson_objectives").insert(objRows);
+        }
       }
     }
   }
 
-  console.log("🎉 HTML Fundamentals Course Successfully Seeded!");
+  console.log("🎉 W3Schools HTML Fundamentals (23 Videos) Dataset Prepared!");
 }
 
 seedHtmlCourse().catch((err) => {

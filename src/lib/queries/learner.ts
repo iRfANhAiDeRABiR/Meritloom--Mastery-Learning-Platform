@@ -763,6 +763,9 @@ export async function getCourseLearningOverviewData(
 
     let totalLessonsCount = 0;
     let totalCompletedCount = 0;
+    let requiredLessonsCount = 0;
+    let completedRequiredCount = 0;
+    let bonusLessonsCount = 0;
 
     const learnerModules: LearnerModuleDetail[] = course.modules.map((mod, modIdx) => {
       let modCompletedCount = 0;
@@ -770,11 +773,21 @@ export async function getCourseLearningOverviewData(
 
       const lessons: LearnerLessonDetail[] = mod.lessons.map((les, lesIdx) => {
         totalLessonsCount++;
+        const isBonus = Boolean(les.isBonus);
+        if (isBonus) {
+          bonusLessonsCount++;
+        } else {
+          requiredLessonsCount++;
+        }
+
         const isCompleted = completedLessonIds.has(les.id);
 
         if (isCompleted) {
           modCompletedCount++;
           totalCompletedCount++;
+          if (!isBonus) {
+            completedRequiredCount++;
+          }
         }
 
         let isNext = false;
@@ -792,6 +805,8 @@ export async function getCourseLearningOverviewData(
           estimatedMinutes: les.estimatedMinutes || 5,
           isCompleted,
           isNext,
+          isBonus,
+          youtubeVideoId: les.youtubeVideoId,
         };
 
         if (isNext) {
@@ -825,6 +840,7 @@ export async function getCourseLearningOverviewData(
         state,
         lessons,
         nextLesson: modNextLesson,
+        isBonus: mod.isBonus || (lessons.length > 0 && lessons.every((l) => l.isBonus)),
       };
     });
 
@@ -842,21 +858,23 @@ export async function getCourseLearningOverviewData(
       }
     }
 
+    // Progress percentage based ONLY on required published lessons
+    const totalRequiredDenominator = requiredLessonsCount > 0 ? requiredLessonsCount : totalLessonsCount;
     const progressPercent =
-      totalLessonsCount > 0
-        ? Math.min(100, Math.round((totalCompletedCount / totalLessonsCount) * 100))
+      totalRequiredDenominator > 0
+        ? Math.min(100, Math.round((completedRequiredCount / totalRequiredDenominator) * 100))
         : 0;
 
     const isCourseCompleted =
-      totalLessonsCount > 0 && totalCompletedCount === totalLessonsCount;
+      totalRequiredDenominator > 0 && completedRequiredCount >= totalRequiredDenominator;
 
     // Calculate estimated weeks remaining
     let estimatedWeeksRemaining: number | null = null;
-    if (weeklyMinutes > 0 && totalLessonsCount > 0) {
-      const remainingLessons = totalLessonsCount - totalCompletedCount;
+    if (weeklyMinutes > 0 && totalRequiredDenominator > 0) {
+      const remainingLessons = totalRequiredDenominator - completedRequiredCount;
       const avgMinutesPerLesson =
         course.estimatedMinutes > 0
-          ? course.estimatedMinutes / totalLessonsCount
+          ? course.estimatedMinutes / totalRequiredDenominator
           : 8;
       const remainingMinutes = remainingLessons * avgMinutesPerLesson;
 
@@ -872,13 +890,15 @@ export async function getCourseLearningOverviewData(
       enrolledAt,
       completedAt,
       modules: learnerModules,
-      totalLessons: totalLessonsCount,
-      completedLessons: totalCompletedCount,
+      totalLessons: totalRequiredDenominator,
+      completedLessons: completedRequiredCount,
       progressPercent,
       nextLesson: globalNextLesson,
       isCourseCompleted,
       studyPaceLabel,
       estimatedWeeksRemaining,
+      requiredLessonsCount,
+      bonusLessonsCount,
     };
   } catch {
     return null;
@@ -906,6 +926,7 @@ export async function getLessonPlayerData(
       title: string;
       position: number;
       totalLessons: number;
+      isBonus?: boolean;
     } | null = null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let rawTargetLesson: any = null;
@@ -916,6 +937,7 @@ export async function getLessonPlayerData(
       title: string;
       modulePosition: number;
       lessonPosition: number;
+      isBonus?: boolean;
     }[] = [];
 
     for (let mIdx = 0; mIdx < course.modules.length; mIdx++) {
@@ -925,6 +947,7 @@ export async function getLessonPlayerData(
       for (let lIdx = 0; lIdx < mod.lessons.length; lIdx++) {
         const les = mod.lessons[lIdx];
         const lesPos = les.position || lIdx + 1;
+        const isBonus = Boolean(les.isBonus);
 
         flattenedLessons.push({
           id: les.id,
@@ -932,6 +955,7 @@ export async function getLessonPlayerData(
           title: les.title,
           modulePosition: modPos,
           lessonPosition: lesPos,
+          isBonus,
         });
 
         if (les.slug === lessonSlug) {
@@ -941,6 +965,7 @@ export async function getLessonPlayerData(
             title: mod.title,
             position: modPos,
             totalLessons: mod.lessons.length,
+            isBonus: mod.isBonus || isBonus,
           };
         }
       }
@@ -1034,7 +1059,10 @@ export async function getLessonPlayerData(
     const isLastLesson = currentIndex === flattenedLessons.length - 1;
 
     // Calculate module states
-    let totalCompleted = 0;
+    let completedRequiredCount = 0;
+    let requiredLessonsCount = 0;
+    let bonusLessonsCount = 0;
+
     const modules: LearnerModuleDetail[] = course.modules.map(
       (mod, modIdx) => {
         let modCompleted = 0;
@@ -1042,10 +1070,19 @@ export async function getLessonPlayerData(
 
         const lessons: LearnerLessonDetail[] = mod.lessons.map(
           (les, lesIdx) => {
+            const isBonus = Boolean(les.isBonus);
+            if (isBonus) {
+              bonusLessonsCount++;
+            } else {
+              requiredLessonsCount++;
+            }
+
             const isCompleted = completedLessonIds.has(les.id);
             if (isCompleted) {
               modCompleted++;
-              totalCompleted++;
+              if (!isBonus) {
+                completedRequiredCount++;
+              }
             }
             const isCurrent = les.slug === lessonSlug;
 
@@ -1058,6 +1095,8 @@ export async function getLessonPlayerData(
               estimatedMinutes: les.estimatedMinutes || 5,
               isCompleted,
               isNext: isCurrent,
+              isBonus,
+              youtubeVideoId: les.youtubeVideoId,
             };
 
             if (isCurrent) {
@@ -1086,14 +1125,15 @@ export async function getLessonPlayerData(
           state,
           lessons,
           nextLesson: modNext,
+          isBonus: mod.isBonus || (lessons.length > 0 && lessons.every((l) => l.isBonus)),
         };
       },
     );
 
-    const totalLessons = flattenedLessons.length;
+    const totalRequiredDenominator = requiredLessonsCount > 0 ? requiredLessonsCount : flattenedLessons.length;
     const progressPercent =
-      totalLessons > 0
-        ? Math.min(100, Math.round((totalCompleted / totalLessons) * 100))
+      totalRequiredDenominator > 0
+        ? Math.min(100, Math.round((completedRequiredCount / totalRequiredDenominator) * 100))
         : 0;
 
     // 5. Query or generate rich educational content for the lesson
@@ -1101,6 +1141,11 @@ export async function getLessonPlayerData(
     let keyTakeaway: string | null = rawTargetLesson.key_takeaway || null;
     let videoUrl: string | null = rawTargetLesson.video_url || null;
     let summaryText: string | null = rawTargetLesson.summary || null;
+    let youtubeVideoId: string | null = rawTargetLesson.youtube_video_id || rawTargetLesson.youtubeVideoId || null;
+    let videoProvider: string = rawTargetLesson.video_provider || "youtube";
+    let sourceChannel: string = rawTargetLesson.source_channel || "W3Schools.com";
+    let sourceUrl: string | null = rawTargetLesson.source_url || null;
+    let playlistId: string | null = rawTargetLesson.playlist_id || "PLP9IO4UYNF0VdAajP_5pYG-jG2JRrG72s";
     let objectives: string[] = [];
     let resources: LessonResource[] = [];
 
@@ -1110,8 +1155,14 @@ export async function getLessonPlayerData(
         .select(`
           content,
           video_url,
+          video_provider,
+          youtube_video_id,
+          source_channel,
+          source_url,
+          playlist_id,
           key_takeaway,
           summary,
+          is_bonus,
           objectives:lesson_objectives(objective, position),
           resources:lesson_resources(id, title, resource_type, url, file_size_bytes)
         `)
@@ -1125,6 +1176,11 @@ export async function getLessonPlayerData(
           lessonContent = typeof rawDb.content === "string" ? rawDb.content : JSON.stringify(rawDb.content);
         }
         if (rawDb.video_url) videoUrl = rawDb.video_url;
+        if (rawDb.youtube_video_id) youtubeVideoId = rawDb.youtube_video_id;
+        if (rawDb.video_provider) videoProvider = rawDb.video_provider;
+        if (rawDb.source_channel) sourceChannel = rawDb.source_channel;
+        if (rawDb.source_url) sourceUrl = rawDb.source_url;
+        if (rawDb.playlist_id) playlistId = rawDb.playlist_id;
         if (rawDb.key_takeaway) keyTakeaway = rawDb.key_takeaway;
         if (rawDb.summary) summaryText = rawDb.summary;
 
@@ -1157,22 +1213,35 @@ export async function getLessonPlayerData(
       if (!lessonContent) lessonContent = staticLesson.content;
       if (!keyTakeaway) keyTakeaway = staticLesson.keyTakeaway;
       if (!videoUrl && staticLesson.videoUrl) videoUrl = staticLesson.videoUrl;
+      if (!youtubeVideoId && staticLesson.youtubeVideoId) youtubeVideoId = staticLesson.youtubeVideoId;
+      if (!sourceUrl && staticLesson.sourceUrl) sourceUrl = staticLesson.sourceUrl;
+      if (!sourceChannel && staticLesson.sourceChannel) sourceChannel = staticLesson.sourceChannel;
+      if (!playlistId && staticLesson.playlistId) playlistId = staticLesson.playlistId;
       if (!summaryText && staticLesson.summary) summaryText = staticLesson.summary;
       if (objectives.length === 0 && staticLesson.objectives) {
         objectives = staticLesson.objectives;
       }
     }
 
+    if (!youtubeVideoId && videoUrl) {
+      const match = videoUrl.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+      if (match) youtubeVideoId = match[1];
+    }
+
+    if (!sourceUrl && youtubeVideoId) {
+      sourceUrl = `https://www.youtube.com/watch?v=${youtubeVideoId}`;
+    }
+
     // If no custom text content in database, build clear educational content
     if (!lessonContent) {
-      lessonContent = `## Overview\n\nWelcome to **${rawTargetLesson.title}**. In this lesson, we will explore the core concepts and practical mental models required to master this topic effectively.\n\n### Key Concepts\n\n- Understand the syntax, semantics, and standard conventions.\n- Follow best practices for code readability and accessibility.\n- Practice creating sample structures and testing in your browser.`;
+      lessonContent = `## Overview\n\nWelcome to **${rawTargetLesson.title}**. In this video lesson from W3Schools, you will learn the practical principles and key conventions of ${rawTargetLesson.title}.\n\n### Key Concepts\n\n- Understand the syntax, semantics, and standard conventions.\n- Follow best practices for code readability and accessibility.\n- Practice writing code and viewing the output in your browser.`;
     }
 
     if (!keyTakeaway) {
       keyTakeaway = `Understand the core mechanics and apply semantic structure to build clean, maintainable web pages.`;
     }
 
-    if (objectives.length === 0) {
+    if (objectives.length === 0 && !rawTargetLesson.isBonus) {
       objectives = [
         `Understand the foundational principles of ${rawTargetLesson.title}.`,
         `Apply best practices to structure clean and efficient markup.`,
@@ -1184,18 +1253,20 @@ export async function getLessonPlayerData(
       resources = [
         {
           id: "res-1",
+          title: "W3Schools HTML Tutorial",
+          resourceType: "external",
+          url: "https://www.w3schools.com/html/",
+        },
+        {
+          id: "res-2",
           title: "MDN Web Docs HTML Reference",
           resourceType: "external",
           url: "https://developer.mozilla.org/en-US/docs/Web/HTML",
         },
-        {
-          id: "res-2",
-          title: "Starter Code & Examples (GitHub)",
-          resourceType: "code",
-          url: "https://github.com/gitdagray/html_course",
-        },
       ];
     }
+
+    const isBonusLesson = Boolean(rawTargetLesson.isBonus);
 
     const currentLesson: FullLessonDetail = {
       id: rawTargetLesson.id,
@@ -1207,8 +1278,14 @@ export async function getLessonPlayerData(
         `Master the core mechanics and practical applications of ${rawTargetLesson.title}.`,
       lessonType: rawTargetLesson.lessonType || "video",
       position: rawTargetLesson.position || 1,
-      estimatedMinutes: rawTargetLesson.estimatedMinutes || 8,
-      videoUrl,
+      estimatedMinutes: rawTargetLesson.estimatedMinutes || 5,
+      videoUrl: videoUrl || (youtubeVideoId ? `https://www.youtube.com/watch?v=${youtubeVideoId}` : null),
+      youtubeVideoId,
+      videoProvider,
+      sourceChannel,
+      sourceUrl,
+      playlistId,
+      isBonus: isBonusLesson,
       content: lessonContent,
       keyTakeaway,
       isCompleted: currentLessonCompleted,
@@ -1232,12 +1309,15 @@ export async function getLessonPlayerData(
       isEnrolled,
       currentLesson,
       modules,
-      totalLessons,
-      completedLessons: totalCompleted,
+      totalLessons: totalRequiredDenominator,
+      completedLessons: completedRequiredCount,
       progressPercent,
       previousLesson,
       nextLesson,
       isLastLesson,
+      requiredLessonsCount,
+      bonusLessonsCount,
+      isBonusLesson,
     };
   } catch {
     return null;
