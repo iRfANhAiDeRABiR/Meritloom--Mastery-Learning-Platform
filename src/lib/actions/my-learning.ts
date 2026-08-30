@@ -102,6 +102,7 @@ export async function toggleSaveCourseAction(
       });
     }
 
+    revalidatePath("/learn/saved");
     revalidatePath("/learn/courses");
     revalidatePath("/learn");
     return { success: true };
@@ -161,23 +162,13 @@ export async function startSavedCourseAction(
       });
     }
 
-    // Optionally remove from saved_courses table
-    try {
-      await supabase
-        .from("saved_courses")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("course_id", courseId);
-    } catch {
-      // Ignore
-    }
-
+    revalidatePath("/learn/saved");
     revalidatePath("/learn/courses");
     revalidatePath("/learn");
 
     return {
       success: true,
-      redirectUrl: `/courses/${course.slug}`,
+      redirectUrl: `/learn/courses/${course.slug}`,
     };
   } catch {
     return { success: false, error: "Unable to start course." };

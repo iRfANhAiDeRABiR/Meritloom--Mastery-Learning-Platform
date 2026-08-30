@@ -501,4 +501,60 @@ export interface QuizResultsPageData {
   nextLesson: LessonNavigationItem | null;
 }
 
+export type ProfileTabId = "profile" | "learning" | "appearance" | "account";
+
+export interface ProfileSettingsData {
+  profile: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+    email: string;
+    createdAt: string;
+  };
+  preferences: {
+    learningGoal: PrimaryLearningGoal | null;
+    levelPreference: CourseDifficulty | null;
+    preferredMinutesPerDay: number | null;
+    schedulePreference: StudyPace | null;
+    contentPreferences: ContentPreference[];
+    learningReminders: boolean;
+  };
+  selectedCategoryIds: string[];
+  categories: Category[];
+  provider: "email" | "google" | "unknown";
+  activeTab: ProfileTabId;
+}
+
+export interface SavedCourseItem {
+  id: string;
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  shortDescription: string | null;
+  thumbnailUrl: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  difficulty: CourseDifficulty;
+  estimatedMinutes: number;
+  lessonCount: number;
+  savedAt: string;
+  enrollmentStatus: "not_started" | "active" | "completed";
+  completedLessonsCount: number;
+  totalLessonsCount: number;
+  progressPercent: number;
+}
+
+export interface SavedCoursesPageData {
+  courses: SavedCourseItem[];
+  totalSavedCount: number;
+  categories: Category[];
+  recommendations: CourseSummary[];
+  query: string;
+  selectedCategory: string;
+  selectedDifficulty: string;
+  selectedSort: string;
+}
+
+
+
 
