@@ -3,16 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Mail } from "lucide-react";
 
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { PasswordInput } from "@/components/auth/password-input";
-import { Button } from "@/components/ui/button";
 import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
 import { routes } from "@/lib/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 export function SignInForm() {
   const router = useRouter();
@@ -22,6 +22,7 @@ export function SignInForm() {
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [isEmailFocused, setIsEmailFocused] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
@@ -72,16 +73,16 @@ export function SignInForm() {
     <div className="flex flex-col">
       {/* Heading & Subtitle */}
       <div className="text-left">
-        <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-[34px]">
           Welcome back
         </h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           Sign in and continue learning.
         </p>
       </div>
 
       {/* Google OAuth Button */}
-      <div className="mt-6">
+      <div className="mt-7">
         <GoogleAuthButton
           nextUrl={safeNext}
           onError={(msg) => setErrorMessage(msg)}
@@ -95,7 +96,7 @@ export function SignInForm() {
       <AuthErrorAlert message={errorMessage} className="mb-4" />
 
       {/* Email Sign In Form */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4.5">
         {/* Email Address */}
         <div className="flex flex-col gap-1.5 text-left">
           <label
@@ -104,16 +105,36 @@ export function SignInForm() {
           >
             Email address
           </label>
-          <input
-            id="signin-email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="h-11 w-full rounded-xl border border-line bg-card px-4 text-sm text-ink placeholder:text-muted transition-colors shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+          <div
+            className={cn(
+              "relative flex h-[50px] w-full items-center rounded-[13px] border bg-card transition-all duration-200 shadow-xs",
+              isEmailFocused
+                ? "border-primary ring-2 ring-primary/15"
+                : "border-line hover:border-line/80",
+            )}
+          >
+            <span
+              className={cn(
+                "pointer-events-none absolute left-4 flex items-center transition-colors duration-200",
+                isEmailFocused ? "text-primary" : "text-muted",
+              )}
+              aria-hidden="true"
+            >
+              <Mail className="size-[18px]" />
+            </span>
+            <input
+              id="signin-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setIsEmailFocused(true)}
+              onBlur={() => setIsEmailFocused(false)}
+              placeholder="you@example.com"
+              className="h-full w-full bg-transparent pl-11 pr-4 text-sm text-ink placeholder:text-muted focus:outline-none"
+            />
+          </div>
         </div>
 
         {/* Password */}
@@ -127,7 +148,7 @@ export function SignInForm() {
             </label>
             <Link
               href={routes.auth.forgotPassword}
-              className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
+              className="text-xs font-semibold text-primary underline-offset-4 hover:underline transition-colors"
             >
               Forgot password?
             </Link>
@@ -143,24 +164,26 @@ export function SignInForm() {
         </div>
 
         {/* Submit Button */}
-        <Button
+        <button
           type="submit"
-          size="lg"
           disabled={isLoading}
-          className="mt-2 w-full text-base font-bold shadow-soft"
+          className="group mt-2 flex h-[50px] w-full items-center justify-center gap-2.5 rounded-[13px] bg-gradient-to-r from-[#7357FF] via-[#7C5CFF] to-[#6847F5] px-6 text-sm font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(109,74,255,0.35)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {isLoading ? (
             <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              <Loader2 className="size-4.5 animate-spin" aria-hidden="true" />
               <span>Signing in...</span>
             </>
           ) : (
             <>
               <span>Sign in</span>
-              <ArrowRight className="size-4" aria-hidden="true" />
+              <ArrowRight
+                className="size-[18px] transition-transform duration-200 group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </>
           )}
-        </Button>
+        </button>
       </form>
 
       {/* Switch to Sign Up */}
@@ -168,7 +191,7 @@ export function SignInForm() {
         Don&apos;t have an account?{" "}
         <Link
           href={signUpLink}
-          className="font-bold text-primary underline-offset-4 hover:underline"
+          className="font-bold text-primary underline-offset-4 hover:underline transition-colors"
         >
           Start learning free
         </Link>
@@ -176,4 +199,3 @@ export function SignInForm() {
     </div>
   );
 }
-

@@ -35,24 +35,27 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={label}
       title={label}
       className={cn(
-        "relative grid size-10 place-items-center rounded-full border border-line bg-card text-ink transition-colors hover:bg-lavender/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+        "relative grid size-[42px] place-items-center rounded-full border transition-all duration-250 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        isDark
+          ? "border-[#29334A] bg-[#151D31]/85 text-[#FFD76A] hover:bg-[#1A233A] hover:border-[#7C5CFF]/40 hover:scale-105"
+          : "border-[#E7EAF1] bg-white/90 text-[#263148] hover:bg-white hover:border-[#7C5CFF]/40 hover:scale-105",
         className,
       )}
     >
       <Sun
         className={cn(
-          "size-[18px] transition-all duration-300",
+          "size-[19px] transition-all duration-300",
           mounted && isDark
-            ? "rotate-0 scale-100 opacity-100 text-amber-400"
+            ? "rotate-0 scale-100 opacity-100 text-[#FFD76A]"
             : "-rotate-90 scale-0 opacity-0 absolute",
         )}
         aria-hidden="true"
       />
       <Moon
         className={cn(
-          "size-[18px] transition-all duration-300",
+          "size-[19px] transition-all duration-300",
           !mounted || !isDark
-            ? "rotate-0 scale-100 opacity-100 text-ink"
+            ? "rotate-0 scale-100 opacity-100 text-[#263148]"
             : "rotate-90 scale-0 opacity-0 absolute",
         )}
         aria-hidden="true"
@@ -61,4 +64,3 @@ export function ThemeToggle({ className }: { className?: string }) {
     </button>
   );
 }
-

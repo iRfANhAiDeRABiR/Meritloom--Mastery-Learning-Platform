@@ -68,7 +68,7 @@ export function ResetPasswordForm() {
           <CheckCircle2 className="size-7" aria-hidden="true" />
         </div>
 
-        <h1 className="mt-5 text-2xl font-extrabold text-ink sm:text-3xl">
+        <h1 className="mt-5 text-2xl font-bold text-ink sm:text-3xl">
           Password updated!
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted max-w-sm">
@@ -76,7 +76,7 @@ export function ResetPasswordForm() {
         </p>
 
         <div className="mt-8 flex w-full flex-col gap-3">
-          <Button asChild size="lg" className="w-full">
+          <Button asChild size="lg" className="w-full h-[50px]">
             <Link href={routes.courses.index}>
               <span>Explore Courses</span>
               <ArrowRight className="size-4" aria-hidden="true" />
@@ -90,10 +90,10 @@ export function ResetPasswordForm() {
   return (
     <div className="flex flex-col">
       <div className="text-left">
-        <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-[34px]">
           Update your password
         </h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           Choose a new password for your Meritloom account.
         </p>
       </div>
@@ -140,26 +140,27 @@ export function ResetPasswordForm() {
           />
         </div>
 
-        <Button
+        <button
           type="submit"
-          size="lg"
           disabled={isLoading}
-          className="mt-2 w-full text-base font-bold shadow-soft"
+          className="group mt-2 flex h-[50px] w-full items-center justify-center gap-2.5 rounded-[13px] bg-gradient-to-r from-[#7357FF] via-[#7C5CFF] to-[#6847F5] px-6 text-sm font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(109,74,255,0.35)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {isLoading ? (
             <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              <Loader2 className="size-4.5 animate-spin" aria-hidden="true" />
               <span>Updating password...</span>
             </>
           ) : (
             <>
               <span>Update password</span>
-              <ArrowRight className="size-4" aria-hidden="true" />
+              <ArrowRight
+                className="size-[18px] transition-transform duration-200 group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </>
           )}
-        </Button>
+        </button>
       </form>
     </div>
   );
 }
-

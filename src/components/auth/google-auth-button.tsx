@@ -51,18 +51,18 @@ export function GoogleAuthButton({
       onClick={handleGoogleAuth}
       disabled={isLoading}
       className={cn(
-        "relative flex h-11 w-full items-center justify-center gap-3 rounded-full border border-line bg-card px-4 text-sm font-semibold text-ink shadow-xs transition-colors hover:bg-surface hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60 cursor-pointer",
+        "group relative flex h-[50px] w-full items-center justify-center gap-3 rounded-[13px] border border-line bg-card px-4 text-sm font-semibold text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60 cursor-pointer",
         className,
       )}
     >
       {isLoading ? (
         <>
-          <Loader2 className="size-4 animate-spin text-primary" aria-hidden="true" />
+          <Loader2 className="size-4.5 animate-spin text-primary" aria-hidden="true" />
           <span>Connecting to Google...</span>
         </>
       ) : (
         <>
-          <svg className="size-4.5" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="size-4.5 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -86,4 +86,3 @@ export function GoogleAuthButton({
     </button>
   );
 }
-

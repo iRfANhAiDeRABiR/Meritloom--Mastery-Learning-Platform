@@ -20,16 +20,38 @@ export default async function AuthLayout({
   }
 
   return (
-    <div className="flex min-h-dvh bg-background text-ink transition-colors">
-      {/* Left visual panel (Desktop only, 46% width) */}
-      <div className="hidden lg:block lg:w-[46%] xl:w-[45%] shrink-0">
+    <div className="flex min-h-dvh bg-background text-ink transition-colors duration-300">
+      {/* Left visual panel (Desktop only, 48% width) */}
+      <div className="hidden lg:block lg:w-[48%] xl:w-[48%] shrink-0">
         <div className="sticky top-0 h-screen w-full">
           <AuthBrandPanel />
         </div>
       </div>
 
-      {/* Right form panel (Full width on mobile/tablet, 54% width on desktop) */}
-      <div className="flex flex-1 flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16">
+      {/* Right form panel (52% width on desktop, full width on mobile/tablet) */}
+      <div className="relative flex flex-1 flex-col justify-between overflow-hidden p-6 sm:p-10 lg:p-12 xl:p-16">
+        {/* Subtle Ambient Right-Side Background Glows */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 85% 15%, rgba(124, 92, 255, 0.05), transparent 40%),
+              radial-gradient(circle at 15% 85%, rgba(109, 74, 255, 0.03), transparent 35%)
+            `,
+          }}
+        />
+
+        {/* 3 Calm Faint Particles on the form side */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+        >
+          <span className="absolute top-[18%] right-[12%] size-1.5 rounded-full bg-primary/20 animate-particle-1" />
+          <span className="absolute top-[65%] right-[25%] size-2 rounded-full bg-[#8B6CFF]/15 animate-particle-2" />
+          <span className="absolute bottom-[15%] left-[10%] size-1.5 rounded-full bg-mint/20 animate-particle-3" />
+        </div>
+
         {/* Top Header Bar */}
         <div className="flex items-center justify-between">
           <div className="lg:hidden">
@@ -49,8 +71,18 @@ export default async function AuthLayout({
         {/* Centered Form Body */}
         <main
           id="auth-main"
-          className="mx-auto my-auto flex w-full max-w-[430px] flex-col justify-center py-8"
+          className="mx-auto my-auto flex w-full max-w-[450px] flex-col justify-center py-8"
         >
+          {/* Mobile Welcome Header */}
+          <div className="mb-6 text-center lg:hidden">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">
+              Mastery-Based Learning
+            </p>
+            <p className="text-sm font-medium text-muted mt-0.5">
+              Learn freely. Build real understanding.
+            </p>
+          </div>
+
           {children}
         </main>
 
@@ -59,7 +91,7 @@ export default async function AuthLayout({
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link
               href="/terms"
-              className="underline-offset-4 hover:underline hover:text-ink"
+              className="underline-offset-4 hover:underline hover:text-ink transition-colors"
             >
               Terms of Service
             </Link>
@@ -68,7 +100,7 @@ export default async function AuthLayout({
             </span>
             <Link
               href="/privacy"
-              className="underline-offset-4 hover:underline hover:text-ink"
+              className="underline-offset-4 hover:underline hover:text-ink transition-colors"
             >
               Privacy Policy
             </Link>
@@ -78,4 +110,3 @@ export default async function AuthLayout({
     </div>
   );
 }
-

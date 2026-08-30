@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Loader2, Mail, RotateCcw } from "lucide-react";
+import { ArrowRight, Loader2, Mail, RotateCcw, User } from "lucide-react";
 
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
 import { routes } from "@/lib/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -24,6 +25,9 @@ export function SignUpForm() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
+
+  const [isNameFocused, setIsNameFocused] = React.useState(false);
+  const [isEmailFocused, setIsEmailFocused] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -148,7 +152,7 @@ export function SignUpForm() {
           <Mail className="size-7" aria-hidden="true" />
         </div>
 
-        <h1 className="mt-5 text-2xl font-extrabold text-ink sm:text-3xl">
+        <h1 className="mt-5 text-2xl font-bold text-ink sm:text-3xl">
           Check your email
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted max-w-sm">
@@ -169,7 +173,7 @@ export function SignUpForm() {
             variant="outline"
             onClick={handleResendVerification}
             disabled={resendCooldown > 0}
-            className="w-full gap-2"
+            className="w-full gap-2 h-[48px]"
           >
             <RotateCcw className="size-4" aria-hidden="true" />
             <span>
@@ -199,16 +203,16 @@ export function SignUpForm() {
     <div className="flex flex-col">
       {/* Heading & Subtitle */}
       <div className="text-left">
-        <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-[34px]">
           Create your account
         </h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           Create a free account and start learning at your own pace.
         </p>
       </div>
 
       {/* Google OAuth Button */}
-      <div className="mt-6">
+      <div className="mt-7">
         <GoogleAuthButton
           nextUrl={safeNext}
           onError={(msg) => setErrorMessage(msg)}
@@ -231,17 +235,37 @@ export function SignUpForm() {
           >
             Full name
           </label>
-          <input
-            id="signup-name"
-            type="text"
-            required
-            maxLength={100}
-            autoComplete="name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Enter your name"
-            className="h-11 w-full rounded-xl border border-line bg-card px-4 text-sm text-ink placeholder:text-muted transition-colors shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+          <div
+            className={cn(
+              "relative flex h-[50px] w-full items-center rounded-[13px] border bg-card transition-all duration-200 shadow-xs",
+              isNameFocused
+                ? "border-primary ring-2 ring-primary/15"
+                : "border-line hover:border-line/80",
+            )}
+          >
+            <span
+              className={cn(
+                "pointer-events-none absolute left-4 flex items-center transition-colors duration-200",
+                isNameFocused ? "text-primary" : "text-muted",
+              )}
+              aria-hidden="true"
+            >
+              <User className="size-[18px]" />
+            </span>
+            <input
+              id="signup-name"
+              type="text"
+              required
+              maxLength={100}
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              onFocus={() => setIsNameFocused(true)}
+              onBlur={() => setIsNameFocused(false)}
+              placeholder="Enter your name"
+              className="h-full w-full bg-transparent pl-11 pr-4 text-sm text-ink placeholder:text-muted focus:outline-none"
+            />
+          </div>
         </div>
 
         {/* Email Address */}
@@ -252,16 +276,36 @@ export function SignUpForm() {
           >
             Email address
           </label>
-          <input
-            id="signup-email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="h-11 w-full rounded-xl border border-line bg-card px-4 text-sm text-ink placeholder:text-muted transition-colors shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+          <div
+            className={cn(
+              "relative flex h-[50px] w-full items-center rounded-[13px] border bg-card transition-all duration-200 shadow-xs",
+              isEmailFocused
+                ? "border-primary ring-2 ring-primary/15"
+                : "border-line hover:border-line/80",
+            )}
+          >
+            <span
+              className={cn(
+                "pointer-events-none absolute left-4 flex items-center transition-colors duration-200",
+                isEmailFocused ? "text-primary" : "text-muted",
+              )}
+              aria-hidden="true"
+            >
+              <Mail className="size-[18px]" />
+            </span>
+            <input
+              id="signup-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setIsEmailFocused(true)}
+              onBlur={() => setIsEmailFocused(false)}
+              placeholder="you@example.com"
+              className="h-full w-full bg-transparent pl-11 pr-4 text-sm text-ink placeholder:text-muted focus:outline-none"
+            />
+          </div>
         </div>
 
         {/* Password */}
@@ -310,14 +354,14 @@ export function SignUpForm() {
           By creating an account, you agree to the{" "}
           <Link
             href="/terms"
-            className="underline underline-offset-4 hover:text-ink font-medium"
+            className="underline underline-offset-4 hover:text-ink font-medium transition-colors"
           >
             Terms of Service
           </Link>{" "}
           and{" "}
           <Link
             href="/privacy"
-            className="underline underline-offset-4 hover:text-ink font-medium"
+            className="underline underline-offset-4 hover:text-ink font-medium transition-colors"
           >
             Privacy Policy
           </Link>
@@ -325,24 +369,26 @@ export function SignUpForm() {
         </p>
 
         {/* Submit Button */}
-        <Button
+        <button
           type="submit"
-          size="lg"
           disabled={isLoading}
-          className="mt-2 w-full text-base font-bold shadow-soft"
+          className="group mt-2 flex h-[50px] w-full items-center justify-center gap-2.5 rounded-[13px] bg-gradient-to-r from-[#7357FF] via-[#7C5CFF] to-[#6847F5] px-6 text-sm font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(109,74,255,0.35)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-60 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {isLoading ? (
             <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              <Loader2 className="size-4.5 animate-spin" aria-hidden="true" />
               <span>Creating account...</span>
             </>
           ) : (
             <>
               <span>Create free account</span>
-              <ArrowRight className="size-4" aria-hidden="true" />
+              <ArrowRight
+                className="size-[18px] transition-transform duration-200 group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </>
           )}
-        </Button>
+        </button>
       </form>
 
       {/* Switch to Sign In */}
@@ -350,7 +396,7 @@ export function SignUpForm() {
         Already have an account?{" "}
         <Link
           href={signInLink}
-          className="font-bold text-primary underline-offset-4 hover:underline"
+          className="font-bold text-primary underline-offset-4 hover:underline transition-colors"
         >
           Sign in
         </Link>
@@ -358,4 +404,3 @@ export function SignUpForm() {
     </div>
   );
 }
-
