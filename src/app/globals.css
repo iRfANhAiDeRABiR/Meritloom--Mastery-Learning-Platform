@@ -1,26 +1,191 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
+@theme {
+  /* Meritloom design tokens — dynamic CSS variable mappings */
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-elevated: var(--elevated);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-700: var(--primary-700);
+  --color-lavender: var(--lavender);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --radius-card: 16px;
+  --radius-field: 14px;
+  --radius-container: 26px;
+
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 30px -18px rgb(0 0 0 / 0.16);
+  --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.06), 0 28px 60px -32px var(--shadow-glow);
+
+  /* Radix accordion open/close animations */
+  --animate-accordion-down: accordion-down 0.25s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  :root {
+    color-scheme: light;
+    --background: #ffffff;
+    --surface: #fbfaff;
+    --card: #ffffff;
+    --elevated: #ffffff;
+    --primary: #6d4aff;
+    --primary-hover: #5a37e8;
+    --primary-700: #4a2cc4;
+    --lavender: #f0ecff;
+    --ink: #172033;
+    --muted: #68738a;
+    --line: #e5e9f2;
+    --mint: #ddfbf4;
+    --mint-ink: #0b806a;
+    --shadow-glow: rgb(109 74 255 / 0.28);
+  }
+
+  .dark,
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --background: #0b1020;
+    --surface: #11182b;
+    --card: #151d31;
+    --elevated: #1a2338;
+    --primary: #7c5cff;
+    --primary-hover: #6d4aff;
+    --primary-700: #5a37e8;
+    --lavender: #282044;
+    --ink: #f7f8fc;
+    --muted: #aab3c5;
+    --line: #29334a;
+    --mint: #123d38;
+    --mint-ink: #67e8d2;
+    --shadow-glow: rgb(124 92 255 / 0.35);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Consistent, visible keyboard focus for everything interactive */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--lavender);
+    color: var(--ink);
+  }
+}
+
+/* Layout helpers registered as Tailwind utilities */
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1320px;
+  padding-inline: 1.25rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2.5rem;
+  }
+}
+
+@utility section-py {
+  padding-block: 4rem;
+
+  @media (min-width: 640px) {
+    padding-block: 5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-block: 7rem;
+  }
+}
+
+@utility heading-2 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  @media (min-width: 640px) {
+    font-size: 2.25rem;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 2.6rem;
+    line-height: 1.12;
+  }
+}
+
+@utility lead-text {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--muted);
+
+  @media (min-width: 640px) {
+    font-size: 1.125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
