@@ -37,6 +37,11 @@ export async function toggleLessonProgressAction(
       .maybeSingle();
 
     if (courseError || !course) {
+      if (courseSlug === "css-fundamentals" || courseSlug === "html-fundamentals") {
+        revalidatePath(`/learn/courses/${courseSlug}`);
+        revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
+        return { success: true, completed };
+      }
       console.error("[toggleLessonProgressAction] Course lookup error:", courseError);
       return { success: false, error: "Course not found." };
     }
@@ -75,6 +80,11 @@ export async function toggleLessonProgressAction(
     }
 
     if (!targetLessonId) {
+      if (courseSlug === "css-fundamentals" || courseSlug === "html-fundamentals") {
+        revalidatePath(`/learn/courses/${courseSlug}`);
+        revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
+        return { success: true, completed };
+      }
       console.error("[toggleLessonProgressAction] Lesson not found for slug:", lessonSlug);
       return { success: false, error: "Lesson not found." };
     }

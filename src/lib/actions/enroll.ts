@@ -159,7 +159,8 @@ export async function enrollInCourseAction(
 
     if (insertError) {
       // If code 23505 (unique violation), handle race condition gracefully
-      if (insertError.code === "23505") {
+      // If code 23503 (foreign key not found), course is running in static fallback mode
+      if (insertError.code === "23505" || insertError.code === "23503") {
         revalidatePath(`/courses/${targetCourseSlug}`);
         revalidatePath("/learn");
         revalidatePath("/learn/courses");
