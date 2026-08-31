@@ -7,23 +7,23 @@ export default function CourseDetailLoading() {
       <div className="h-16 w-full shrink-0 border-b border-line bg-background/80 lg:h-[72px]" />
 
       <main className="flex-1">
-        {/* Dark Course Hero Placeholder */}
-        <div className="relative overflow-hidden bg-[#0B1020] py-12 text-white sm:py-16">
+        {/* Course Hero Placeholder */}
+        <div className="relative overflow-hidden bg-surface dark:bg-[#0B1020] border-b border-line py-12 sm:py-16">
           <div className="container-page grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
             <div className="flex flex-col gap-4">
-              <div className="h-4 w-40 rounded bg-white/10 animate-pulse" />
-              <div className="h-10 w-3/4 max-w-lg rounded-xl bg-white/10 animate-pulse" />
-              <div className="mt-1 h-4 w-2/3 max-w-md rounded bg-white/10 animate-pulse" />
+              <div className="h-4 w-40 rounded bg-line/60 dark:bg-white/10 animate-pulse" />
+              <div className="h-10 w-3/4 max-w-lg rounded-xl bg-line/60 dark:bg-white/10 animate-pulse" />
+              <div className="mt-1 h-4 w-2/3 max-w-md rounded bg-line/60 dark:bg-white/10 animate-pulse" />
               <div className="mt-4 flex items-center gap-3">
-                <div className="size-12 rounded-full bg-white/10 animate-pulse" />
-                <div className="h-4 w-32 rounded bg-white/10 animate-pulse" />
+                <div className="size-12 rounded-full bg-line/60 dark:bg-white/10 animate-pulse" />
+                <div className="h-4 w-32 rounded bg-line/60 dark:bg-white/10 animate-pulse" />
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <div className="h-9 w-24 rounded-full bg-white/10 animate-pulse" />
-                <div className="h-9 w-28 rounded-full bg-white/10 animate-pulse" />
+                <div className="h-9 w-24 rounded-full bg-line/60 dark:bg-white/10 animate-pulse" />
+                <div className="h-9 w-28 rounded-full bg-line/60 dark:bg-white/10 animate-pulse" />
               </div>
             </div>
-            <div className="hidden h-56 rounded-[20px] bg-white/[0.06] animate-pulse lg:block" />
+            <div className="hidden h-56 rounded-[20px] bg-line/40 dark:bg-white/[0.06] animate-pulse lg:block" />
           </div>
         </div>
 

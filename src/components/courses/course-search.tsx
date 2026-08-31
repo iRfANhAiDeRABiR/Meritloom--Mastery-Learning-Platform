@@ -73,7 +73,7 @@ export function CourseSearch({ className }: { className?: string }) {
 
       <div className="relative flex items-center">
         <span
-          className="pointer-events-none absolute left-4.5 text-white/70 transition-colors"
+          className="pointer-events-none absolute left-4.5 text-muted dark:text-white/70 transition-colors"
           aria-hidden="true"
         >
           <Search className="size-5" />
@@ -88,8 +88,8 @@ export function CourseSearch({ className }: { className?: string }) {
           autoComplete="off"
           spellCheck="false"
           className={cn(
-            "h-13 w-full rounded-full border border-white/15 bg-white/10 pl-12 pr-12 text-[15px] text-white placeholder:text-white/60 shadow-lift backdrop-blur-md transition-all",
-            "focus:border-primary focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50",
+            "h-13 w-full rounded-full border border-line bg-card dark:border-white/15 dark:bg-white/10 pl-12 pr-12 text-[15px] text-ink dark:text-white placeholder:text-muted dark:placeholder:text-white/60 shadow-soft dark:shadow-lift backdrop-blur-md transition-all",
+            "focus:border-primary focus:bg-card dark:focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/40",
           )}
         />
 
@@ -98,7 +98,7 @@ export function CourseSearch({ className }: { className?: string }) {
             type="button"
             onClick={handleClear}
             aria-label="Clear search input"
-            className="absolute right-3.5 grid size-7 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+            className="absolute right-3.5 grid size-7 place-items-center rounded-full text-muted hover:text-ink hover:bg-surface dark:text-white/70 dark:hover:bg-white/20 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
           >
             <X className="size-4" aria-hidden="true" />
           </button>

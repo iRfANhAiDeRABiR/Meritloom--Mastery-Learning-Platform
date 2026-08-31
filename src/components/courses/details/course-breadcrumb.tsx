@@ -19,7 +19,7 @@ export function CourseBreadcrumb({
   courseTitle,
   category,
   className,
-  variant = "dark",
+  variant,
 }: CourseBreadcrumbProps) {
   const isDark = variant === "dark";
 
@@ -36,7 +36,7 @@ export function CourseBreadcrumb({
               "transition-colors",
               isDark
                 ? "text-white/60 hover:text-white"
-                : "text-muted hover:text-ink",
+                : "text-muted hover:text-ink dark:text-white/60 dark:hover:text-white",
             )}
           >
             Courses
@@ -49,7 +49,9 @@ export function CourseBreadcrumb({
               <ChevronRight
                 className={cn(
                   "size-3.5",
-                  isDark ? "text-white/40" : "text-muted/60",
+                  isDark
+                    ? "text-white/40"
+                    : "text-muted/60 dark:text-white/40",
                 )}
               />
             </li>
@@ -60,7 +62,7 @@ export function CourseBreadcrumb({
                   "transition-colors",
                   isDark
                     ? "text-white/60 hover:text-white"
-                    : "text-muted hover:text-ink",
+                    : "text-muted hover:text-ink dark:text-white/60 dark:hover:text-white",
                 )}
               >
                 {category.name}
@@ -73,7 +75,9 @@ export function CourseBreadcrumb({
           <ChevronRight
             className={cn(
               "size-3.5",
-              isDark ? "text-white/40" : "text-muted/60",
+              isDark
+                ? "text-white/40"
+                : "text-muted/60 dark:text-white/40",
             )}
           />
         </li>
@@ -82,7 +86,7 @@ export function CourseBreadcrumb({
           aria-current="page"
           className={cn(
             "max-w-[200px] truncate sm:max-w-md font-semibold",
-            isDark ? "text-white" : "text-ink",
+            isDark ? "text-white" : "text-ink dark:text-white",
           )}
         >
           {courseTitle}

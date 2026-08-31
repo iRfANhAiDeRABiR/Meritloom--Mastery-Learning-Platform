@@ -7,26 +7,26 @@ export function CourseDetailSkeleton() {
       <div className="h-16 w-full border-b border-line bg-background/80 lg:h-[72px]" />
 
       <main className="flex-1">
-        {/* Dark Hero Skeleton */}
-        <div className="relative overflow-hidden bg-[#0B1020] pb-12 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10">
+        {/* Hero Skeleton */}
+        <div className="relative overflow-hidden bg-surface dark:bg-[#0B1020] border-b border-line pb-12 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10">
           <div className="container-page flex flex-col gap-6">
             {/* Breadcrumb Skeleton */}
-            <div className="h-4 w-48 rounded bg-white/10 animate-pulse" />
+            <div className="h-4 w-48 rounded bg-line/60 dark:bg-white/10 animate-pulse" />
 
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)] lg:gap-12 lg:items-center">
               <div className="flex flex-col gap-4">
-                <div className="h-6 w-36 rounded-full bg-white/10 animate-pulse" />
-                <div className="h-12 w-4/5 rounded-xl bg-white/10 animate-pulse" />
-                <div className="h-5 w-full max-w-lg rounded bg-white/10 animate-pulse" />
-                <div className="h-5 w-3/4 max-w-md rounded bg-white/10 animate-pulse" />
+                <div className="h-6 w-36 rounded-full bg-line/60 dark:bg-white/10 animate-pulse" />
+                <div className="h-12 w-4/5 rounded-xl bg-line/60 dark:bg-white/10 animate-pulse" />
+                <div className="h-5 w-full max-w-lg rounded bg-line/60 dark:bg-white/10 animate-pulse" />
+                <div className="h-5 w-3/4 max-w-md rounded bg-line/60 dark:bg-white/10 animate-pulse" />
                 <div className="flex gap-4 pt-2">
-                  <div className="h-4 w-20 rounded bg-white/10 animate-pulse" />
-                  <div className="h-4 w-24 rounded bg-white/10 animate-pulse" />
-                  <div className="h-4 w-20 rounded bg-white/10 animate-pulse" />
+                  <div className="h-4 w-20 rounded bg-line/60 dark:bg-white/10 animate-pulse" />
+                  <div className="h-4 w-24 rounded bg-line/60 dark:bg-white/10 animate-pulse" />
+                  <div className="h-4 w-20 rounded bg-line/60 dark:bg-white/10 animate-pulse" />
                 </div>
               </div>
 
-              <div className="hidden lg:block aspect-[16/9] w-full rounded-container bg-white/10 animate-pulse" />
+              <div className="hidden lg:block aspect-[16/9] w-full rounded-container bg-line/40 dark:bg-white/10 animate-pulse" />
             </div>
           </div>
         </div>

@@ -7,13 +7,13 @@ export default function CoursesLoading() {
       <div className="h-16 w-full border-b border-line bg-background/80 lg:h-[72px]" />
 
       <main className="flex-1">
-        {/* Dark Hero Placeholder */}
-        <div className="relative overflow-hidden bg-[#0B1020] py-16 text-white sm:py-20 lg:py-24">
+        {/* Hero Placeholder */}
+        <div className="relative overflow-hidden bg-surface dark:bg-[#0B1020] border-b border-line py-14 sm:py-18 lg:py-20">
           <div className="container-page flex flex-col items-center text-center">
-            <div className="h-6 w-36 rounded-full bg-white/10 animate-pulse" />
-            <div className="mt-6 h-12 w-3/4 max-w-lg rounded-xl bg-white/10 animate-pulse" />
-            <div className="mt-4 h-5 w-2/3 max-w-md rounded-lg bg-white/10 animate-pulse" />
-            <div className="mt-8 h-13 w-full max-w-2xl rounded-full bg-white/10 animate-pulse" />
+            <div className="h-6 w-36 rounded-full bg-line/60 dark:bg-white/10 animate-pulse" />
+            <div className="mt-6 h-12 w-3/4 max-w-lg rounded-xl bg-line/60 dark:bg-white/10 animate-pulse" />
+            <div className="mt-4 h-5 w-2/3 max-w-md rounded-lg bg-line/60 dark:bg-white/10 animate-pulse" />
+            <div className="mt-8 h-13 w-full max-w-2xl rounded-full bg-line/60 dark:bg-white/10 animate-pulse" />
           </div>
         </div>
 
