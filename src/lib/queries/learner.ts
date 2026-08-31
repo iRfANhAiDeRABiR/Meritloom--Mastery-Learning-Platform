@@ -288,6 +288,7 @@ export async function getLearnerDashboardData(
           if (lessonCount === 0) {
             if (c.slug === "html-fundamentals") lessonCount = 23;
             else if (c.slug === "css-fundamentals") lessonCount = 18;
+            else if (c.slug === "javascript-fundamentals") lessonCount = 17;
           }
 
           return {
@@ -360,6 +361,7 @@ export async function getLearnerDashboardData(
             if (lessonCount === 0) {
               if (c.slug === "html-fundamentals") lessonCount = 23;
               else if (c.slug === "css-fundamentals") lessonCount = 18;
+              else if (c.slug === "javascript-fundamentals") lessonCount = 17;
             }
 
             return {
@@ -590,6 +592,12 @@ export async function getMyLearningCoursesData(
                   nextLessonTitle = "Introduction to CSS";
                   nextLessonSlug = "css-introduction";
                 }
+              } else if (course.slug === "javascript-fundamentals") {
+                totalLessons = 17;
+                if (!nextLessonTitle) {
+                  nextLessonTitle = "Introduction to JavaScript";
+                  nextLessonSlug = "javascript-introduction";
+                }
               }
             }
 
@@ -711,6 +719,7 @@ export async function getMyLearningCoursesData(
               if (lessonCount === 0) {
                 if (course.slug === "html-fundamentals") lessonCount = 23;
                 else if (course.slug === "css-fundamentals") lessonCount = 18;
+                else if (course.slug === "javascript-fundamentals") lessonCount = 17;
               }
 
               return {
@@ -1253,7 +1262,9 @@ export async function getLessonPlayerData(
     let sourceUrl: string | null = rawTargetLesson.source_url || null;
     let playlistId: string | null =
       rawTargetLesson.playlist_id ||
-      (courseSlug === "css-fundamentals"
+      (courseSlug === "javascript-fundamentals"
+        ? "PLP9IO4UYNF0WWmZpE3W33vVPRl2GvjEqz"
+        : courseSlug === "css-fundamentals"
         ? "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM"
         : "PLP9IO4UYNF0VdAajP_5pYG-jG2JRrG72s");
     let objectives: string[] = [];
@@ -1320,7 +1331,8 @@ export async function getLessonPlayerData(
 
     const staticLesson = ALL_LESSON_DETAILS_MAP[lessonSlug];
     if (staticLesson) {
-      if (!lessonContent) lessonContent = staticLesson.content;
+      if (!lessonContent && staticLesson.content)
+        lessonContent = staticLesson.content;
       if (!keyTakeaway) keyTakeaway = staticLesson.keyTakeaway;
       if (!videoUrl && staticLesson.videoUrl) videoUrl = staticLesson.videoUrl;
       if (!youtubeVideoId && staticLesson.youtubeVideoId) youtubeVideoId = staticLesson.youtubeVideoId;

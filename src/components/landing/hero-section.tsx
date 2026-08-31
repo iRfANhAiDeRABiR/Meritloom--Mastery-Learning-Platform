@@ -19,7 +19,7 @@ export function HeroSection({ user }: { user: LearnerProfile | null }) {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative overflow-hidden bg-surface transition-colors"
+      className="relative overflow-hidden bg-transparent transition-colors"
     >
       {/* 1. Soft animated brand ambient glow backdrops */}
       <div

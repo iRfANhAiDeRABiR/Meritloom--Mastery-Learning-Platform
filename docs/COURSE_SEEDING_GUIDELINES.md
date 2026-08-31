@@ -15,8 +15,12 @@ Use this reference whenever adding a new course (e.g., JavaScript Fundamentals, 
 | **`skills`** | `name, slug, is_active` | `(slug)` | **Never use `category` column**. For shared skills like `Web Development`, always use existing slug `web-development`. |
 | **`course_skills`** | `course_id, skill_id` | `(course_id, skill_id)` or `on conflict do nothing` | Always delete existing links first or use `on conflict do nothing`. |
 | **`course_modules`** | `course_id, slug, title, description, position, estimated_minutes, is_published` | `(course_id, slug)` | Composite unique constraint on `(course_id, slug)`. |
-| **`lessons`** | `module_id, slug, title, summary, key_takeaway, lesson_type, video_provider, video_url, youtube_video_id, source_channel, source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus, content` | `(slug)` | **`slug` is globally unique on `lessons`. NEVER use `(module_id, slug)`. Do NOT use `source_title`.** |
+| **`lessons`** | `module_id, slug, title, summary, key_takeaway, lesson_type, video_provider, video_url, youtube_video_id, source_channel, source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus` | `(slug)` | **`slug` is globally unique on `lessons`. NEVER use `(module_id, slug)`. Do NOT use `source_title`. Valid `lesson_type` values: `'video'`, `'article'`, `'exercise'`, `'practice'`, `'knowledge_check'` (use `'knowledge_check'` for quizzes, never `'quiz'`). Note: `content` column is type `jsonb`, do NOT insert raw markdown text into `content` (omit column or use JSON).** |
 | **`lesson_objectives`** | `lesson_id, objective, position` | *N/A* (Delete then insert) | Always `delete from lesson_objectives where lesson_id = v_lesson_id` first. |
+| **`practice_quizzes`** | `lesson_id, title, description, estimated_minutes, is_published` | *N/A* (Delete then insert) | `delete from practice_quizzes where lesson_id = v_lesson_id`. No `passing_score` or `is_active` column. |
+| **`practice_questions`** | `quiz_id, question_type, question_text, explanation, position` | *N/A* (Delete cascade) | `question_type` must be `'single_choice'`, `'multiple_choice'`, or `'true_false'`. |
+| **`practice_question_options`** | `question_id, option_text, position` | *N/A* (Delete cascade) | Options table. No `is_correct` column directly here. |
+| **`practice_question_correct_options`** | `question_id, option_id` | `(question_id, option_id)` | Junction table mapping correct answers. |
 
 ---
 

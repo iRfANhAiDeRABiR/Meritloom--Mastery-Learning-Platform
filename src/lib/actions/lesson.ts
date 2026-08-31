@@ -37,7 +37,11 @@ export async function toggleLessonProgressAction(
       .maybeSingle();
 
     if (courseError || !course) {
-      if (courseSlug === "css-fundamentals" || courseSlug === "html-fundamentals") {
+      if (
+        courseSlug === "javascript-fundamentals" ||
+        courseSlug === "css-fundamentals" ||
+        courseSlug === "html-fundamentals"
+      ) {
         revalidatePath(`/learn/courses/${courseSlug}`);
         revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
         return { success: true, completed };
@@ -80,7 +84,11 @@ export async function toggleLessonProgressAction(
     }
 
     if (!targetLessonId) {
-      if (courseSlug === "css-fundamentals" || courseSlug === "html-fundamentals") {
+      if (
+        courseSlug === "javascript-fundamentals" ||
+        courseSlug === "css-fundamentals" ||
+        courseSlug === "html-fundamentals"
+      ) {
         revalidatePath(`/learn/courses/${courseSlug}`);
         revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
         return { success: true, completed };

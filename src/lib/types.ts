@@ -138,6 +138,83 @@ export interface LearningPathSummary {
   roadmapPreview: string[];
 }
 
+export type LearningPathMilestoneStatus = "not_started" | "in_progress" | "completed";
+
+export interface LearningPathCourseItem {
+  id: string;
+  itemType: "course";
+  position: number;
+  stepNumber: number;
+  stepLabel: string;
+  courseId: string;
+  courseSlug: string;
+  title: string;
+  description: string;
+  iconName: "Code2" | "Palette" | "Braces" | "Rocket";
+  accentColor: "amber" | "cyan" | "gold" | "purple";
+  difficulty: CourseDifficulty;
+  lessonCount: number;
+  estimatedMinutes: number;
+  categoryName?: string | null;
+  status?: LearningPathMilestoneStatus;
+  completedLessons?: number;
+  totalLessons?: number;
+  progressPercent?: number;
+  lastLessonSlug?: string | null;
+  isCurrentStep?: boolean;
+}
+
+export interface LearningPathProjectItem {
+  id: string;
+  itemType: "project";
+  position: number;
+  stepNumber: number;
+  stepLabel: string;
+  title: string;
+  description: string;
+  iconName: "Rocket";
+  accentColor: "purple";
+  estimatedMinutes: number;
+  outcomes: string[];
+  projectUrl?: string | null;
+  status?: LearningPathMilestoneStatus;
+  isCurrentStep?: boolean;
+}
+
+export type LearningPathMilestone = LearningPathCourseItem | LearningPathProjectItem;
+
+export interface LearningPathCapability {
+  title: string;
+  description: string;
+  iconName: string;
+}
+
+export interface LearningPathLearnerProgress {
+  completedCourses: number;
+  totalCourses: number;
+  inProgressCourses: number;
+  overallPercent: number;
+  currentStepNumber: number;
+  pathStatus: LearningPathMilestoneStatus;
+}
+
+export interface LearningPathDetail {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  difficulty: CourseDifficulty;
+  estimatedMinutes: number;
+  courseCount: number;
+  isPublished: boolean;
+  coverImageUrl?: string | null;
+  items: LearningPathMilestone[];
+  skills: string[];
+  capabilities: LearningPathCapability[];
+  learnerProgress?: LearningPathLearnerProgress;
+}
+
 export interface LearnerProfile {
   id: string;
   name: string;

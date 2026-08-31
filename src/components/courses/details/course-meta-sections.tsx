@@ -21,6 +21,9 @@ export function CourseMetaSections({
 }: CourseMetaSectionsProps) {
   const isHtml = courseSlug.toLowerCase().includes("html");
   const isCss = courseSlug.toLowerCase().includes("css");
+  const isJs =
+    courseSlug.toLowerCase().includes("javascript") ||
+    courseSlug.toLowerCase().includes("js");
 
   const hasPrereqs = prerequisites && prerequisites.length > 0;
   const hasSkills = skills && skills.length > 0;
@@ -28,8 +31,8 @@ export function CourseMetaSections({
 
   return (
     <div className={cn("flex flex-col gap-8", className)}>
-      {/* 1. Prerequisites (Shown if available or for CSS) */}
-      {(hasPrereqs || isCss) && (
+      {/* 1. Prerequisites (Shown if available or for CSS / JS) */}
+      {(hasPrereqs || isCss || isJs) && (
         <section
           aria-labelledby="course-prereqs-heading"
           className="flex flex-col gap-4 rounded-card border border-line bg-card p-6 shadow-soft"
@@ -63,7 +66,7 @@ export function CourseMetaSections({
 
                 <Link
                   href="/courses/html-fundamentals"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-soft transition-all duration-150 hover:bg-primary-600 shrink-0"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-soft transition-all duration-150 hover:bg-primary-hover shrink-0"
                 >
                   <span>Review HTML Fundamentals</span>
                   <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -71,9 +74,48 @@ export function CourseMetaSections({
               </li>
             )}
 
+            {isJs && (
+              <>
+                <li className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-primary/20 bg-lavender/30 p-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-white mt-0.5 shadow-xs">
+                      <Check className="size-3.5" aria-hidden="true" />
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-ink">
+                        Recommended: HTML & CSS Fundamentals
+                      </span>
+                      <span className="text-xs text-muted">
+                        Understanding web structure and styling helps you build interactive UI components with JavaScript.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link
+                      href="/courses/html-fundamentals"
+                      className="inline-flex items-center justify-center gap-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:text-primary hover:border-primary/40 transition-colors"
+                    >
+                      <span>HTML</span>
+                    </Link>
+                    <Link
+                      href="/courses/css-fundamentals"
+                      className="inline-flex items-center justify-center gap-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:text-primary hover:border-primary/40 transition-colors"
+                    >
+                      <span>CSS</span>
+                    </Link>
+                  </div>
+                </li>
+              </>
+            )}
+
             {prerequisites &&
               prerequisites
-                .filter((p) => !p.toLowerCase().includes("html fundamentals"))
+                .filter(
+                  (p) =>
+                    !p.toLowerCase().includes("html fundamentals") &&
+                    !p.toLowerCase().includes("css fundamentals"),
+                )
                 .map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2.5 px-1">
                     <span className="grid size-4.5 shrink-0 place-items-center rounded-full bg-lavender text-primary mt-0.5">
@@ -131,7 +173,7 @@ export function CourseMetaSections({
                     HTML Fundamentals
                   </span>
                   <span className="text-[10px] text-muted font-medium">
-                    Prerequisite
+                    {isJs || isCss ? "Prerequisite" : "Step 1"}
                   </span>
                 </div>
               </div>
@@ -168,7 +210,7 @@ export function CourseMetaSections({
                     CSS Fundamentals
                   </span>
                   <span className="text-[10px] text-primary font-semibold">
-                    Next Course
+                    {isHtml ? "Next Course" : isJs ? "Prerequisite" : "Step 2"}
                   </span>
                 </div>
               </div>
@@ -177,19 +219,41 @@ export function CourseMetaSections({
           )}
 
           {/* Step 3: JavaScript Fundamentals */}
-          <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl border border-line/60 bg-surface/30 opacity-80">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="grid size-6 place-items-center rounded-full bg-surface text-muted text-xs font-bold border border-line">
+          {isJs ? (
+            <div className="flex items-center gap-2.5 p-3.5 rounded-xl border border-primary/40 bg-lavender/30">
+              <span className="grid size-6 place-items-center rounded-full bg-primary text-white text-xs font-bold shadow-xs">
                 3
               </span>
-              <span className="text-xs font-medium text-muted truncate">
-                JavaScript Fundamentals
-              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-extrabold text-ink truncate">
+                  JavaScript Fundamentals
+                </span>
+                <span className="text-[10px] text-primary font-bold">
+                  Current Course
+                </span>
+              </div>
             </div>
-            <Badge variant="neutral" className="text-[10px] font-medium text-muted shrink-0">
-              Coming later
-            </Badge>
-          </div>
+          ) : (
+            <Link
+              href="/courses/javascript-fundamentals"
+              className="flex items-center justify-between gap-2 p-3.5 rounded-xl border border-line bg-surface/60 hover:bg-surface transition-all duration-150 group hover:border-primary/30"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="grid size-6 place-items-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  3
+                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-ink group-hover:text-primary transition-colors truncate">
+                    JavaScript Fundamentals
+                  </span>
+                  <span className="text-[10px] text-primary font-semibold">
+                    Next Course
+                  </span>
+                </div>
+              </div>
+              <ArrowRight className="size-3.5 text-muted group-hover:text-primary transition-colors shrink-0" />
+            </Link>
+          )}
         </div>
       </section>
 

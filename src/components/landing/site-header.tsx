@@ -21,10 +21,14 @@ import type { LearnerProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Courses", href: routes.courses.index, isCourseRoute: true },
-  { label: "Learning Paths", href: `/${routes.anchors.paths}`, isCourseRoute: false },
-  { label: "How It Works", href: `/${routes.anchors.howItWorks}`, isCourseRoute: false },
-  { label: "About", href: `/${routes.anchors.about}`, isCourseRoute: false },
+  { label: "Courses", href: routes.courses.index, pathPrefix: "/courses" },
+  {
+    label: "Learning Paths",
+    href: routes.learningPaths.detail("web-development-foundations"),
+    pathPrefix: "/learning-paths",
+  },
+  { label: "How It Works", href: `/${routes.anchors.howItWorks}`, pathPrefix: "" },
+  { label: "About", href: `/${routes.anchors.about}`, pathPrefix: "" },
 ] as const;
 
 /**
@@ -50,7 +54,8 @@ export function SiteHeader({ user }: { user: LearnerProfile | null }) {
           <nav aria-label="Primary" className="hidden md:block">
             <ul className="flex items-center gap-1">
               {NAV_LINKS.map((link) => {
-                const isActive = link.isCourseRoute && pathname.startsWith("/courses");
+                const isActive =
+                  Boolean(link.pathPrefix) && pathname.startsWith(link.pathPrefix);
 
                 return (
                   <li key={link.label}>

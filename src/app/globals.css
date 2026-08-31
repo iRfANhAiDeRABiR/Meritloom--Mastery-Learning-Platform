@@ -234,6 +234,141 @@
   }
 }
 
+/* Formal Modern Aurora & Tech Mesh Animations */
+@keyframes aurora-mesh-1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.18;
+  }
+  33% {
+    transform: translate3d(40px, -30px, 0) scale(1.15);
+    opacity: 0.28;
+  }
+  66% {
+    transform: translate3d(-30px, 20px, 0) scale(0.95);
+    opacity: 0.22;
+  }
+}
+
+@keyframes aurora-mesh-2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.15;
+  }
+  33% {
+    transform: translate3d(-50px, 35px, 0) scale(1.18);
+    opacity: 0.25;
+  }
+  66% {
+    transform: translate3d(35px, -25px, 0) scale(0.9);
+    opacity: 0.18;
+  }
+}
+
+@keyframes aurora-mesh-3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.12;
+  }
+  50% {
+    transform: translate3d(25px, -45px, 0) scale(1.22);
+    opacity: 0.24;
+  }
+}
+
+@keyframes beam-sweep-h {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes beam-sweep-v {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-crosshair {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes laser-scan {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.animate-aurora-1 {
+  animation: aurora-mesh-1 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-aurora-2 {
+  animation: aurora-mesh-2 28s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-aurora-3 {
+  animation: aurora-mesh-3 32s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-beam-h {
+  animation: beam-sweep-h 14s ease-in-out infinite;
+}
+
+.animate-beam-v {
+  animation: beam-sweep-v 18s ease-in-out infinite;
+}
+
+.animate-crosshair {
+  animation: pulse-crosshair 6s ease-in-out infinite;
+}
+
+.animate-laser {
+  animation: laser-scan 16s ease-in-out infinite;
+}
+
 .animate-particle-1 {
   animation: float-particle-1 12s ease-in-out infinite;
 }

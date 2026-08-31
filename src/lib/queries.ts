@@ -3,6 +3,7 @@ import {
   HTML_FUNDAMENTALS_CATEGORY,
   HTML_FUNDAMENTALS_COURSE,
   CSS_FUNDAMENTALS_COURSE,
+  JAVASCRIPT_FUNDAMENTALS_COURSE,
   ALL_STATIC_SUMMARIES,
 } from "@/lib/data/static-courses";
 import type {
@@ -87,6 +88,7 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
       let count = 0;
       if (raw.slug === "html-fundamentals") count = 23;
       else if (raw.slug === "css-fundamentals") count = 18;
+      else if (raw.slug === "javascript-fundamentals") count = 17;
 
       return {
         id: raw.id as string,
@@ -248,6 +250,7 @@ export async function getCatalogCourses(
       let count = 0;
       if (raw.slug === "html-fundamentals") count = 23;
       else if (raw.slug === "css-fundamentals") count = 18;
+      else if (raw.slug === "javascript-fundamentals") count = 17;
 
       return {
         id: raw.id as string,
@@ -324,6 +327,8 @@ export async function getCourseDetailBySlug(
   if (!supabase) {
     if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
     if (cleanSlug === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
+    if (cleanSlug === "javascript-fundamentals")
+      return JAVASCRIPT_FUNDAMENTALS_COURSE;
     return null;
   }
 
@@ -391,6 +396,8 @@ export async function getCourseDetailBySlug(
       if (!fallbackData) {
         if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
         if (cleanSlug === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
+        if (cleanSlug === "javascript-fundamentals")
+          return JAVASCRIPT_FUNDAMENTALS_COURSE;
         return null;
       }
 
@@ -454,6 +461,8 @@ export async function getCourseDetailBySlug(
       if (modules.length === 0) {
         if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
         if (cleanSlug === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
+        if (cleanSlug === "javascript-fundamentals")
+          return JAVASCRIPT_FUNDAMENTALS_COURSE;
       }
 
       const allLessons = modules.flatMap((m) => m.lessons);
@@ -488,10 +497,38 @@ export async function getCourseDetailBySlug(
             }
           : null,
         instructor: null,
-        learningOutcomes: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.learningOutcomes : [],
-        prerequisites: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.prerequisites : [],
-        skills: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.skills : [],
-        targetAudience: cleanSlug === "html-fundamentals" ? HTML_FUNDAMENTALS_COURSE.targetAudience : [],
+        learningOutcomes:
+          cleanSlug === "html-fundamentals"
+            ? HTML_FUNDAMENTALS_COURSE.learningOutcomes
+            : cleanSlug === "css-fundamentals"
+            ? CSS_FUNDAMENTALS_COURSE.learningOutcomes
+            : cleanSlug === "javascript-fundamentals"
+            ? JAVASCRIPT_FUNDAMENTALS_COURSE.learningOutcomes
+            : [],
+        prerequisites:
+          cleanSlug === "html-fundamentals"
+            ? HTML_FUNDAMENTALS_COURSE.prerequisites
+            : cleanSlug === "css-fundamentals"
+            ? CSS_FUNDAMENTALS_COURSE.prerequisites
+            : cleanSlug === "javascript-fundamentals"
+            ? JAVASCRIPT_FUNDAMENTALS_COURSE.prerequisites
+            : [],
+        skills:
+          cleanSlug === "html-fundamentals"
+            ? HTML_FUNDAMENTALS_COURSE.skills
+            : cleanSlug === "css-fundamentals"
+            ? CSS_FUNDAMENTALS_COURSE.skills
+            : cleanSlug === "javascript-fundamentals"
+            ? JAVASCRIPT_FUNDAMENTALS_COURSE.skills
+            : [],
+        targetAudience:
+          cleanSlug === "html-fundamentals"
+            ? HTML_FUNDAMENTALS_COURSE.targetAudience
+            : cleanSlug === "css-fundamentals"
+            ? CSS_FUNDAMENTALS_COURSE.targetAudience
+            : cleanSlug === "javascript-fundamentals"
+            ? JAVASCRIPT_FUNDAMENTALS_COURSE.targetAudience
+            : [],
         modules,
       };
     }
@@ -644,6 +681,8 @@ export async function getCourseDetailBySlug(
           ? HTML_FUNDAMENTALS_COURSE.learningOutcomes
           : cleanSlug === "css-fundamentals"
           ? CSS_FUNDAMENTALS_COURSE.learningOutcomes
+          : cleanSlug === "javascript-fundamentals"
+          ? JAVASCRIPT_FUNDAMENTALS_COURSE.learningOutcomes
           : [],
       prerequisites:
         prerequisites.length > 0
@@ -652,6 +691,8 @@ export async function getCourseDetailBySlug(
           ? HTML_FUNDAMENTALS_COURSE.prerequisites
           : cleanSlug === "css-fundamentals"
           ? CSS_FUNDAMENTALS_COURSE.prerequisites
+          : cleanSlug === "javascript-fundamentals"
+          ? JAVASCRIPT_FUNDAMENTALS_COURSE.prerequisites
           : [],
       skills:
         skills.length > 0
@@ -660,6 +701,8 @@ export async function getCourseDetailBySlug(
           ? HTML_FUNDAMENTALS_COURSE.skills
           : cleanSlug === "css-fundamentals"
           ? CSS_FUNDAMENTALS_COURSE.skills
+          : cleanSlug === "javascript-fundamentals"
+          ? JAVASCRIPT_FUNDAMENTALS_COURSE.skills
           : [],
       targetAudience:
         targetAudience.length > 0
@@ -668,6 +711,8 @@ export async function getCourseDetailBySlug(
           ? HTML_FUNDAMENTALS_COURSE.targetAudience
           : cleanSlug === "css-fundamentals"
           ? CSS_FUNDAMENTALS_COURSE.targetAudience
+          : cleanSlug === "javascript-fundamentals"
+          ? JAVASCRIPT_FUNDAMENTALS_COURSE.targetAudience
           : [],
       modules:
         modules.length > 0
@@ -676,12 +721,16 @@ export async function getCourseDetailBySlug(
           ? HTML_FUNDAMENTALS_COURSE.modules
           : cleanSlug === "css-fundamentals"
           ? CSS_FUNDAMENTALS_COURSE.modules
+          : cleanSlug === "javascript-fundamentals"
+          ? JAVASCRIPT_FUNDAMENTALS_COURSE.modules
           : [],
     };
   } catch {
     const clean = slug.trim().toLowerCase();
     if (clean === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
     if (clean === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
+    if (clean === "javascript-fundamentals")
+      return JAVASCRIPT_FUNDAMENTALS_COURSE;
     return null;
   }
 }

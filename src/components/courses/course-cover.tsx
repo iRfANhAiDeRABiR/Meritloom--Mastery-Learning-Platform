@@ -8,6 +8,7 @@ import {
   BrainCircuit,
   ListChecks,
   Palette,
+  Terminal,
   UserRound,
 } from "lucide-react";
 
@@ -87,6 +88,9 @@ export function CourseCover({
   const safeSlug = categorySlug ?? "";
   const isHtmlCourse = title.toLowerCase().includes("html");
   const isCssCourse = title.toLowerCase().includes("css");
+  const isJsCourse =
+    title.toLowerCase().includes("javascript") ||
+    title.toLowerCase().includes("js");
 
   const theme = CATEGORY_THEMES[safeSlug] ?? {
     gradient: "from-primary via-primary-700 to-slate-900",
@@ -116,6 +120,52 @@ export function CourseCover({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
         />
+      ) : isJsCourse ? (
+        /* Meritloom JavaScript Fundamentals Distinctive Cover */
+        <div
+          role="img"
+          aria-label={`${title} cover`}
+          className="relative flex h-full w-full flex-col justify-between p-5 text-white bg-gradient-to-br from-[#0b0f19] via-[#1a1829] to-[#854d0e]"
+        >
+          {/* Subtle grid pattern */}
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#fbbf24_1px,transparent_1px)] [background-size:18px_18px]"
+            aria-hidden="true"
+          />
+
+          {/* Ambient Glows */}
+          <div
+            className="absolute -right-8 -top-8 size-36 rounded-full bg-amber-500/20 blur-2xl pointer-events-none"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute left-1/4 -bottom-10 size-40 rounded-full bg-yellow-600/20 blur-3xl pointer-events-none"
+            aria-hidden="true"
+          />
+
+          {/* Top Category and Stylized JS Icon */}
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="grid size-9 place-items-center rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-amber-300 shadow-xs">
+              <Terminal className="size-5" aria-hidden="true" />
+            </span>
+            <span className="text-[11px] font-mono font-semibold tracking-wider text-amber-200/80 uppercase">
+              {`() => { logic }`}
+            </span>
+          </div>
+
+          {/* Center/Bottom Typography Artwork */}
+          <div className="relative z-10 flex flex-col items-start">
+            <span className="text-2xl font-black tracking-tight text-white drop-shadow-sm flex items-center gap-1.5">
+              JavaScript
+              <span className="text-xs font-semibold uppercase tracking-widest text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-md">
+                Course 3
+              </span>
+            </span>
+            <span className="text-xs font-medium text-amber-100/70 tracking-wide">
+              Fundamentals
+            </span>
+          </div>
+        </div>
       ) : isCssCourse ? (
         /* Meritloom CSS Fundamentals Distinctive Cover */
         <div

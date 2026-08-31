@@ -102,15 +102,15 @@ export function CourseOverviewCard({ data }: CourseOverviewCardProps) {
                 </span>
                 <span className="text-[10px] text-primary font-semibold">Next</span>
               </Link>
-              <div className="flex items-center justify-between gap-2 p-2 rounded-lg opacity-60 border border-line/40 text-muted">
+              <Link href="/courses/javascript-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
                 <span className="text-xs flex items-center gap-1.5">
                   <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">3</span>
-                  JavaScript
+                  JavaScript Fundamentals
                 </span>
-                <span className="text-[9px]">Coming later</span>
-              </div>
+                <span className="text-[10px] text-muted font-medium">Course 3</span>
+              </Link>
             </>
-          ) : (
+          ) : course.slug === "css-fundamentals" ? (
             <>
               <Link href="/courses/html-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
                 <span className="text-xs flex items-center gap-1.5">
@@ -126,12 +126,36 @@ export function CourseOverviewCard({ data }: CourseOverviewCardProps) {
                 </span>
                 <span className="text-[10px] font-bold text-primary">Current</span>
               </div>
-              <div className="flex items-center justify-between gap-2 p-2 rounded-lg opacity-60 border border-line/40 text-muted">
+              <Link href="/courses/javascript-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
                 <span className="text-xs flex items-center gap-1.5">
                   <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">3</span>
-                  JavaScript
+                  JavaScript Fundamentals
                 </span>
-                <span className="text-[9px]">Coming later</span>
+                <span className="text-[10px] text-primary font-semibold">Next</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/courses/html-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
+                <span className="text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">1</span>
+                  HTML Fundamentals
+                </span>
+                <span className="text-[10px] text-muted font-medium">Prereq</span>
+              </Link>
+              <Link href="/courses/css-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
+                <span className="text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">2</span>
+                  CSS Fundamentals
+                </span>
+                <span className="text-[10px] text-muted font-medium">Prereq</span>
+              </Link>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-lavender/40 border border-primary/30">
+                <span className="font-bold text-ink text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-primary text-white text-[10px]">3</span>
+                  JavaScript Fundamentals
+                </span>
+                <span className="text-[10px] font-bold text-primary">Current</span>
               </div>
             </>
           )}
