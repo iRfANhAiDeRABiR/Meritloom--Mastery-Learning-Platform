@@ -856,3 +856,19 @@ begin
 
 end $$;
 
+-- =========================================================
+-- VERIFICATION QUERY
+-- Displays confirmation in Supabase SQL editor results
+-- =========================================================
+select 
+  c.slug as course_slug,
+  c.title as course_title,
+  count(distinct m.id) as total_modules,
+  count(distinct l.id) as total_lessons,
+  'Seeded Successfully' as status
+from public.courses c
+left join public.course_modules m on m.course_id = c.id
+left join public.lessons l on l.module_id = m.id
+where c.slug = 'css-fundamentals'
+group by c.id, c.slug, c.title;
+
