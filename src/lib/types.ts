@@ -1,3 +1,4 @@
+import type { LessonPracticeSessionData } from "@/lib/practice/queries";
 /**
  * Domain types for Meritloom's public content and learner data.
  *
@@ -417,6 +418,7 @@ export interface LessonPlayerData {
   isBonusLesson?: boolean;
   initialNote?: string | null;
   isBookmarked?: boolean;
+  practiceData?: LessonPracticeSessionData | null;
 }
 
 export interface ActiveEnrollment {

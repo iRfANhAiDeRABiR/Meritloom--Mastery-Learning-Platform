@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { getPracticeConfigForLesson } from "@/lib/practice/defaults";
 
 import { LessonBottomNav } from "@/components/lesson/lesson-bottom-nav";
 import { LessonContentRenderer } from "@/components/lesson/lesson-content-renderer";
@@ -9,6 +10,7 @@ import { LessonCourseOutline } from "@/components/lesson/lesson-course-outline";
 import { LessonMobileOutline } from "@/components/lesson/lesson-mobile-outline";
 import { LessonTopbar } from "@/components/lesson/lesson-topbar";
 import { LessonVideoPlayer } from "@/components/lesson/lesson-video-player";
+import { CodingPracticeWorkspace } from "@/components/practice/coding-practice-workspace";
 import { LearnerSidebar } from "@/components/learn/learner-sidebar";
 import type {
   LearnerProfile,
@@ -44,6 +46,18 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
   const [completedCount, setCompletedCount] = React.useState(
     initialCompletedCount,
   );
+
+  // Check if this lesson is a coding practice exercise
+  const isPractice = Boolean(
+    data.practiceData ||
+      currentLesson.lessonType === "practice" ||
+      currentLesson.lessonType === "exercise" ||
+      currentLesson.title.toLowerCase().includes("practice") ||
+      currentLesson.slug.toLowerCase().includes("practice")
+  );
+
+  const practiceConfig = data.practiceData?.config || getPracticeConfigForLesson(course.slug, currentLesson.slug, currentLesson.title, currentLesson.content);
+  const practiceInitialCode = data.practiceData?.initialCode || practiceConfig.starterCode;
 
   const handleCompletionChanged = (isCompleted: boolean) => {
     setCompletedLessonState(isCompleted);
@@ -103,19 +117,31 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
                 isFocusMode ? "max-w-4xl" : "max-w-3xl",
               )}
             >
-              {/* Video Player (If Video Lesson) */}
-              {currentLesson.lessonType === "video" && (
-                <LessonVideoPlayer
-                  videoId={currentLesson.youtubeVideoId}
-                  videoUrl={currentLesson.videoUrl}
-                  title={currentLesson.title}
-                  sourceChannel={currentLesson.sourceChannel}
-                  sourceUrl={currentLesson.sourceUrl}
+              {/* Practice Workspace (If Practice Lesson) */}
+              {isPractice ? (
+                <CodingPracticeWorkspace
+                  lessonId={currentLesson.id}
+                  lessonTitle={currentLesson.title}
+                  config={practiceConfig}
+                  initialCode={practiceInitialCode}
                 />
-              )}
+              ) : (
+                <>
+                  {/* Video Player (If Video Lesson) */}
+                  {currentLesson.lessonType === "video" && (
+                    <LessonVideoPlayer
+                      videoId={currentLesson.youtubeVideoId}
+                      videoUrl={currentLesson.videoUrl}
+                      title={currentLesson.title}
+                      sourceChannel={currentLesson.sourceChannel}
+                      sourceUrl={currentLesson.sourceUrl}
+                    />
+                  )}
 
-              {/* Lesson Text / Article / Code Content */}
-              <LessonContentRenderer lesson={currentLesson} isBookmarked={data.isBookmarked} />
+                  {/* Lesson Text / Article / Code Content */}
+                  <LessonContentRenderer lesson={currentLesson} isBookmarked={data.isBookmarked} />
+                </>
+              )}
 
               {/* Stacked Objectives & Resources on smaller screens / mobile */}
               <div className="flex flex-col gap-6 xl:hidden pt-4 border-t border-line">

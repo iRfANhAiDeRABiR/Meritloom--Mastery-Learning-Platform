@@ -63,7 +63,8 @@ When you are signed in, Meritloom records:
 - Lessons marked as completed
 - Your last viewed lesson, so you can resume where you stopped
 - Checkpoint quiz attempts, selected answers, and performance scores
-- Courses you have bookmarked or saved to your library
+- Courses and specific lessons you have bookmarked or saved to your library
+- Private lesson study notes and in-browser coding practice drafts so you can resume your work
 - Derived Learning Path completion milestones
 
 ### Onboarding & Learning Preferences

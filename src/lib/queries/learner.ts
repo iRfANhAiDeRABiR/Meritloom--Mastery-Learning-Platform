@@ -1,3 +1,4 @@
+import { getLessonPracticeData } from "@/lib/practice/queries";
 import { getCategories, getCourseDetailBySlug } from "@/lib/queries";
 import { ALL_LESSON_DETAILS_MAP } from "@/lib/data/static-courses";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -1442,9 +1443,29 @@ export async function getLessonPlayerData(
       module: targetModule,
     };
 
+    // 6. If practice lesson, fetch coding practice session data
+    let practiceData = null;
+    const isPracticeLesson =
+      rawTargetLesson.lessonType === "practice" ||
+      rawTargetLesson.lesson_type === "practice" ||
+      rawTargetLesson.slug.includes("practice") ||
+      rawTargetLesson.title.toLowerCase().includes("practice");
+
+    if (isPracticeLesson) {
+      practiceData = await getLessonPracticeData(
+        userId,
+        rawTargetLesson.id,
+        courseSlug,
+        lessonSlug,
+        rawTargetLesson.title,
+        lessonContent || rawTargetLesson.content,
+      );
+    }
+
     return {
       initialNote,
       isBookmarked,
+      practiceData,
       course: {
         id: course.id,
         slug: course.slug,
