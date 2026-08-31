@@ -12,11 +12,9 @@ interface LearnerLayoutProps {
 export function LearnerLayout({ user, children }: LearnerLayoutProps) {
   return (
     <div className="flex min-h-dvh bg-background text-ink transition-colors duration-300">
-      {/* Desktop Left Sidebar (250px) */}
-      <div className="hidden lg:block lg:w-[250px] shrink-0">
-        <div className="sticky top-0 h-screen w-full">
-          <LearnerSidebar user={user} />
-        </div>
+      {/* Desktop Left Sidebar (Collapsible) */}
+      <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-30">
+        <LearnerSidebar user={user} />
       </div>
 
       {/* Main Right Content Panel */}

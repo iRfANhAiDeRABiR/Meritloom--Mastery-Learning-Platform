@@ -61,7 +61,7 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
     <div className="flex min-h-dvh bg-background text-ink antialiased">
       {/* 1. Global Learner Sidebar (Hidden in Focus Mode or on Mobile) */}
       {!isFocusMode && (
-        <div className="hidden xl:block">
+        <div className="hidden xl:block shrink-0 sticky top-0 h-screen z-30">
           <LearnerSidebar user={user} />
         </div>
       )}

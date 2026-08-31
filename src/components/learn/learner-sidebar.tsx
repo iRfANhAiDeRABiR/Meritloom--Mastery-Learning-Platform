@@ -9,6 +9,8 @@ import {
   Compass,
   House,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   UserRound,
 } from "lucide-react";
 
@@ -20,6 +22,8 @@ import { cn } from "@/lib/utils";
 
 interface LearnerSidebarProps {
   user: LearnerProfile;
+  className?: string;
+  defaultCollapsed?: boolean;
 }
 
 const NAV_ITEMS = [
@@ -55,13 +59,42 @@ const NAV_ITEMS = [
   },
 ] as const;
 
-export function LearnerSidebar({ user }: LearnerSidebarProps) {
+export function LearnerSidebar({
+  user,
+  className,
+  defaultCollapsed = false,
+}: LearnerSidebarProps) {
   const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return defaultCollapsed;
+    try {
+      const saved = localStorage.getItem("meritloom_sidebar_collapsed");
+      return saved !== null ? saved === "true" : defaultCollapsed;
+    } catch {
+      return defaultCollapsed;
+    }
+  });
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("meritloom_sidebar_collapsed", String(next));
+      } catch {
+        // Ignore
+      }
+      return next;
+    });
+  };
 
   return (
     <aside
       aria-label="Learner navigation"
-      className="relative flex h-full w-[250px] flex-col justify-between overflow-hidden bg-[#10172A] p-5 text-white select-none border-r border-[#1E293B]"
+      className={cn(
+        "relative flex h-full flex-col justify-between overflow-hidden bg-[#10172A] text-white select-none border-r border-[#1E293B] transition-all duration-300 ease-in-out shrink-0",
+        isCollapsed ? "w-[76px] p-3" : "w-[250px] p-5",
+        className,
+      )}
     >
       {/* Subtle ambient glows */}
       <div
@@ -73,20 +106,63 @@ export function LearnerSidebar({ user }: LearnerSidebarProps) {
         className="pointer-events-none absolute -bottom-12 -right-12 size-40 rounded-full bg-mint/10 blur-[50px]"
       />
 
-      {/* Top: Brand Logo */}
-      <div className="relative z-10 px-2 pt-2">
+      {/* Top: Brand Logo & Collapse/Expand Toggle */}
+      <div
+        className={cn(
+          "relative z-10 flex items-center pt-2",
+          isCollapsed ? "flex-col gap-3 items-center" : "justify-between px-1",
+        )}
+      >
         <Link
           href={routes.home}
           aria-label="Meritloom home"
           className="inline-block rounded-xl text-white transition-opacity hover:opacity-90"
         >
-          <Logo />
+          {isCollapsed ? (
+            <span className="grid size-10 place-items-center rounded-[12px] bg-primary text-white shadow-soft">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M4 19V6.5C4 5.7 4.9 5.3 5.5 5.9L11 11.5 16.5 5.9C17.1 5.3 18 5.7 18 6.5V19"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 19h14"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+          ) : (
+            <Logo variant="light" />
+          )}
         </Link>
+
+        {/* Collapse / Expand Button */}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={cn(
+            "grid size-8 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer",
+            isCollapsed && "size-7 text-white/50",
+          )}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="size-4" aria-hidden="true" />
+          ) : (
+            <PanelLeftClose className="size-4" aria-hidden="true" />
+          )}
+        </button>
       </div>
 
-      {/* Center: Main Navigation List */}
-      <div className="relative z-10 my-auto py-6">
-        <nav aria-label="Main" className="flex flex-col gap-1.5">
+      {/* Center: Main Navigation List (Centered Vertically in the Middle) */}
+      <div className="relative z-10 flex flex-1 flex-col justify-center py-6">
+        <nav aria-label="Main" className="flex flex-col gap-2">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.exact
@@ -97,9 +173,14 @@ export function LearnerSidebar({ user }: LearnerSidebarProps) {
               <Link
                 key={item.label}
                 href={item.href}
+                title={isCollapsed ? item.label : undefined}
+                aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition-all duration-200",
+                  "flex items-center rounded-xl text-sm font-bold transition-all duration-200",
+                  isCollapsed
+                    ? "justify-center size-12 mx-auto"
+                    : "gap-3 px-3.5 py-2.5",
                   isActive
                     ? "bg-primary text-white shadow-[0_0_14px_rgba(109,74,255,0.45)]"
                     : "text-white/60 hover:bg-white/[0.06] hover:text-white",
@@ -107,12 +188,12 @@ export function LearnerSidebar({ user }: LearnerSidebarProps) {
               >
                 <Icon
                   className={cn(
-                    "size-4.5 transition-colors",
+                    "size-5 shrink-0 transition-colors",
                     isActive ? "text-white" : "text-white/50",
                   )}
                   aria-hidden="true"
                 />
-                <span>{item.label}</span>
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
           })}
@@ -120,19 +201,34 @@ export function LearnerSidebar({ user }: LearnerSidebarProps) {
       </div>
 
       {/* Bottom: Learner Profile & Sign Out */}
-      <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col gap-3">
-        <div className="flex items-center gap-3 px-2">
+      <div
+        className={cn(
+          "relative z-10 pt-4 border-t border-white/10 flex flex-col gap-3",
+          isCollapsed && "items-center px-0",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center",
+            isCollapsed
+              ? "flex-col gap-2 justify-center"
+              : "gap-3 px-2 justify-between",
+          )}
+        >
           <Avatar
             src={user.avatarUrl}
             name={user.name}
-            className="size-9 ring-2 ring-primary/30"
+            className="size-9 ring-2 ring-primary/30 shrink-0"
           />
-          <div className="flex flex-1 flex-col overflow-hidden text-left">
-            <span className="truncate text-xs font-bold text-white">
-              {user.name}
-            </span>
-            <span className="text-[11px] text-white/50">Learner</span>
-          </div>
+
+          {!isCollapsed && (
+            <div className="flex flex-1 flex-col overflow-hidden text-left">
+              <span className="truncate text-xs font-bold text-white">
+                {user.name}
+              </span>
+              <span className="text-[11px] text-white/50">Learner</span>
+            </div>
+          )}
 
           <form action="/auth/sign-out" method="POST">
             <button
