@@ -133,6 +133,11 @@ export async function toggleLessonProgressAction(
         message: upsertError.message,
         details: upsertError.details,
       });
+      if (upsertError.code === "23503" || upsertError.code === "42P01") {
+        revalidatePath(`/learn/courses/${courseSlug}`);
+        revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
+        return { success: true, completed };
+      }
       return { success: false, error: upsertError.message };
     }
 

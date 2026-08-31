@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   ArrowRight,
@@ -67,11 +68,13 @@ export function LearnerCourseCard({ course }: LearnerCourseCardProps) {
     setIsActionPending(false);
   };
 
+  const router = useRouter();
+
   const handleStartSaved = async () => {
     setIsActionPending(true);
     const res = await startSavedCourseAction(course.courseId);
     if (res.redirectUrl) {
-      window.location.href = res.redirectUrl;
+      router.push(res.redirectUrl);
     }
     setIsActionPending(false);
   };
