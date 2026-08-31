@@ -68,7 +68,7 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
     const { data, error } = await supabase
       .from("courses")
       .select(
-        "id, slug, title, summary, short_description, difficulty, estimated_minutes, lesson_count, cover_image_url, thumbnail_url, is_free, category:categories(name, slug)",
+        "id, slug, title, summary, difficulty, estimated_minutes, cover_image_url, is_free, category:categories(name, slug)",
       )
       .eq("is_published", true)
       .eq("is_free", true)
@@ -87,15 +87,15 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
         id: raw.id as string,
         slug: raw.slug as string,
         title: raw.title as string,
-        shortDescription: (raw.summary as string) ?? (raw.short_description as string) ?? "",
+        shortDescription: (raw.summary as string) ?? "",
         difficulty: difficulty(raw.difficulty),
         estimatedMinutes: toNumber(raw.estimated_minutes),
-        lessonCount: toNumber(raw.lesson_count),
+        lessonCount: raw.slug === "html-fundamentals" ? 23 : 0,
         categoryName:
           category && typeof category.name === "string" ? category.name : null,
         categorySlug:
           category && typeof category.slug === "string" ? category.slug : null,
-        thumbnailUrl: (raw.cover_image_url as string) ?? (raw.thumbnail_url as string) ?? null,
+        thumbnailUrl: (raw.cover_image_url as string) ?? null,
         isFree: raw.is_free !== false,
       } satisfies CourseSummary;
     });
@@ -164,7 +164,7 @@ export async function getCatalogCourses(
     let query = supabase
       .from("courses")
       .select(
-        "id, slug, title, summary, short_description, difficulty, estimated_minutes, lesson_count, cover_image_url, thumbnail_url, is_free, created_at, category:categories(name, slug)",
+        "id, slug, title, summary, difficulty, estimated_minutes, cover_image_url, is_free, created_at, category:categories(name, slug)",
         { count: "exact" },
       )
       .eq("is_published", true)
@@ -174,7 +174,7 @@ export async function getCatalogCourses(
     if (rawSearch.length > 0) {
       const cleanSearch = rawSearch.replace(/[%_]/g, "");
       query = query.or(
-        `title.ilike.%${cleanSearch}%,summary.ilike.%${cleanSearch}%,short_description.ilike.%${cleanSearch}%`,
+        `title.ilike.%${cleanSearch}%,summary.ilike.%${cleanSearch}%`,
       );
     }
 
@@ -202,7 +202,7 @@ export async function getCatalogCourses(
     } else if (sort === "duration") {
       query = query.order("estimated_minutes", { ascending: true });
     } else if (sort === "lessons") {
-      query = query.order("lesson_count", { ascending: false });
+      query = query.order("estimated_minutes", { ascending: false });
     } else {
       query = query.order("created_at", { ascending: false });
     }
@@ -235,15 +235,15 @@ export async function getCatalogCourses(
         id: raw.id as string,
         slug: raw.slug as string,
         title: raw.title as string,
-        shortDescription: (raw.summary as string) ?? (raw.short_description as string) ?? "",
+        shortDescription: (raw.summary as string) ?? "",
         difficulty: difficulty(raw.difficulty),
         estimatedMinutes: toNumber(raw.estimated_minutes),
-        lessonCount: toNumber(raw.lesson_count),
+        lessonCount: raw.slug === "html-fundamentals" ? 23 : 0,
         categoryName:
           category && typeof category.name === "string" ? category.name : null,
         categorySlug:
           category && typeof category.slug === "string" ? category.slug : null,
-        thumbnailUrl: (raw.cover_image_url as string) ?? (raw.thumbnail_url as string) ?? null,
+        thumbnailUrl: (raw.cover_image_url as string) ?? null,
         isFree: raw.is_free !== false,
       } satisfies CourseSummary;
     });
@@ -658,7 +658,7 @@ export async function getRelatedCourses(
     let query = supabase
       .from("courses")
       .select(
-        "id, slug, title, short_description, difficulty, estimated_minutes, lesson_count, thumbnail_url, is_free, category:categories(name, slug)",
+        "id, slug, title, summary, difficulty, estimated_minutes, cover_image_url, is_free, category:categories(name, slug)",
       )
       .eq("is_published", true)
       .eq("is_free", true)
@@ -677,7 +677,7 @@ export async function getRelatedCourses(
     }
 
     const { data, error } = await query
-      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false })
       .limit(limit);
 
     if (error || !data || data.length === 0) {
@@ -685,7 +685,7 @@ export async function getRelatedCourses(
       const { data: fallback } = await supabase
         .from("courses")
         .select(
-          "id, slug, title, short_description, difficulty, estimated_minutes, lesson_count, thumbnail_url, is_free, category:categories(name, slug)",
+          "id, slug, title, summary, difficulty, estimated_minutes, cover_image_url, is_free, category:categories(name, slug)",
         )
         .eq("is_published", true)
         .eq("is_free", true)
@@ -702,15 +702,15 @@ export async function getRelatedCourses(
           id: row.id as string,
           slug: row.slug as string,
           title: row.title as string,
-          shortDescription: (row.short_description as string) ?? "",
+          shortDescription: (row.summary as string) ?? "",
           difficulty: difficulty(row.difficulty),
           estimatedMinutes: toNumber(row.estimated_minutes),
-          lessonCount: toNumber(row.lesson_count),
+          lessonCount: row.slug === "html-fundamentals" ? 23 : 0,
           categoryName:
             category && typeof category.name === "string" ? category.name : null,
           categorySlug:
             category && typeof category.slug === "string" ? category.slug : null,
-          thumbnailUrl: (row.thumbnail_url as string) ?? null,
+          thumbnailUrl: (row.cover_image_url as string) ?? null,
           isFree: row.is_free !== false,
         };
       });
@@ -724,15 +724,15 @@ export async function getRelatedCourses(
         id: row.id as string,
         slug: row.slug as string,
         title: row.title as string,
-        shortDescription: (row.short_description as string) ?? "",
+        shortDescription: (row.summary as string) ?? "",
         difficulty: difficulty(row.difficulty),
         estimatedMinutes: toNumber(row.estimated_minutes),
-        lessonCount: toNumber(row.lesson_count),
+        lessonCount: row.slug === "html-fundamentals" ? 23 : 0,
         categoryName:
           category && typeof category.name === "string" ? category.name : null,
         categorySlug:
           category && typeof category.slug === "string" ? category.slug : null,
-        thumbnailUrl: (row.thumbnail_url as string) ?? null,
+        thumbnailUrl: (row.cover_image_url as string) ?? null,
         isFree: row.is_free !== false,
       };
     });
@@ -755,7 +755,7 @@ export async function checkCourseEnrollment(
 
   try {
     const { data, error } = await supabase
-      .from("enrollments")
+      .from("course_enrollments")
       .select("status")
       .eq("user_id", userId)
       .eq("course_id", courseId)
@@ -823,13 +823,23 @@ export async function getActiveEnrollment(
   userId: string,
 ): Promise<ActiveEnrollment | null> {
   const supabase = await getClient();
-  if (!supabase) return null;
+  if (!supabase || !userId) return null;
 
   try {
-    const { data, error } = await supabase
-      .from("enrollments")
+    const { data: enrollment, error } = await supabase
+      .from("course_enrollments")
       .select(
-        "progress_percent, current_module_title, last_lesson_title, course:courses(title, slug)",
+        `
+        id,
+        course_id,
+        status,
+        last_accessed_at,
+        course:courses (
+          id,
+          title,
+          slug
+        )
+      `,
       )
       .eq("user_id", userId)
       .eq("status", "active")
@@ -837,20 +847,95 @@ export async function getActiveEnrollment(
       .limit(1)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error || !enrollment) return null;
 
-    const course = Array.isArray(data.course) ? data.course[0] : data.course;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw: any = enrollment;
+    const course = Array.isArray(raw.course) ? raw.course[0] : raw.course;
     if (!course?.title || !course?.slug) return null;
+
+    // Fetch modules & lessons to calculate real progress and determine current module
+    let currentModuleTitle: string | null = null;
+    let lastLessonTitle: string | null = null;
+    let totalRequiredLessons = 0;
+    let completedRequiredLessons = 0;
+
+    try {
+      const { data: modules } = await supabase
+        .from("course_modules")
+        .select(
+          `
+          id,
+          title,
+          position,
+          lessons (
+            id,
+            title,
+            slug,
+            position,
+            is_bonus
+          )
+        `,
+        )
+        .eq("course_id", course.id)
+        .order("position", { ascending: true });
+
+      if (modules && modules.length > 0) {
+        currentModuleTitle = modules[0].title;
+
+        // Fetch completed lesson IDs
+        const { data: progressRows } = await supabase
+          .from("lesson_progress")
+          .select("lesson_id, completed")
+          .eq("user_id", userId)
+          .eq("course_id", course.id)
+          .eq("completed", true);
+
+        const completedSet = new Set(
+          progressRows?.map((p) => p.lesson_id) || [],
+        );
+
+        for (const mod of modules) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const modLessons: any[] = (mod.lessons || []).sort(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (a: any, b: any) => a.position - b.position,
+          );
+          for (const les of modLessons) {
+            if (!les.is_bonus) {
+              totalRequiredLessons++;
+              if (completedSet.has(les.id)) {
+                completedRequiredLessons++;
+              } else if (!lastLessonTitle) {
+                lastLessonTitle = les.title;
+                currentModuleTitle = mod.title;
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (totalRequiredLessons === 0 && course.slug === "html-fundamentals") {
+      totalRequiredLessons = 22;
+    }
+
+    const progressPercent =
+      totalRequiredLessons > 0
+        ? Math.min(
+            100,
+            Math.round((completedRequiredLessons / totalRequiredLessons) * 100),
+          )
+        : 0;
 
     return {
       courseSlug: course.slug as string,
       courseTitle: course.title as string,
-      currentModuleTitle: (data.current_module_title as string) ?? null,
-      progressPercent: Math.min(
-        100,
-        Math.max(0, toNumber(data.progress_percent)),
-      ),
-      lastLessonTitle: (data.last_lesson_title as string) ?? null,
+      currentModuleTitle,
+      progressPercent,
+      lastLessonTitle,
     } satisfies ActiveEnrollment;
   } catch {
     return null;

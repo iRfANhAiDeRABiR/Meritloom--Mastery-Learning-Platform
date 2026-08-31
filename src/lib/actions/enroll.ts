@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface EnrollResult {
@@ -10,11 +11,11 @@ export interface EnrollResult {
 
 /**
  * Server action to enroll an authenticated learner in a free course.
- * Idempotent: checks for existing enrollment to avoid duplicates.
+ * Idempotent: checks for existing enrollment and handles concurrent requests.
  */
 export async function enrollInCourseAction(
-  courseId: string,
-  courseSlug: string,
+  courseIdOrSlug: string,
+  optionalSlug?: string,
 ): Promise<EnrollResult> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -25,58 +26,180 @@ export async function enrollInCourseAction(
   }
 
   try {
+    // 1. Verify authenticated user
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      const redirectSlug = optionalSlug || courseIdOrSlug;
       return {
         success: false,
         error: "Please sign in to start this course.",
-        redirectUrl: `/auth/sign-in?next=/courses/${courseSlug}`,
+        redirectUrl: `/auth/sign-in?next=/courses/${encodeURIComponent(redirectSlug)}`,
       };
     }
 
-    // Check if already enrolled
-    const { data: existing } = await supabase
-      .from("enrollments")
+    // 2. Verify profile row exists (foreign key requirement for course_enrollments.user_id)
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!profile) {
+        const fullName =
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email?.split("@")[0] ||
+          "Learner";
+        const avatarUrl = user.user_metadata?.avatar_url || null;
+
+        await supabase.from("profiles").upsert(
+          {
+            id: user.id,
+            full_name: fullName,
+            avatar_url: avatarUrl,
+          },
+          { onConflict: "id" },
+        );
+      }
+    } catch (profileErr) {
+      console.warn("[enrollInCourseAction] Profile verification notice:", profileErr);
+    }
+
+    // 3. Find course in database by ID or Slug
+    let targetCourseId = courseIdOrSlug;
+    let targetCourseSlug = optionalSlug || courseIdOrSlug;
+
+    // Check if courseIdOrSlug is a UUID
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        courseIdOrSlug,
+      );
+
+    let courseQuery = supabase
+      .from("courses")
+      .select("id, slug, is_free, is_published");
+
+    if (isUuid) {
+      courseQuery = courseQuery.eq("id", courseIdOrSlug);
+    } else {
+      courseQuery = courseQuery.eq("slug", courseIdOrSlug);
+    }
+
+    const { data: courseData, error: courseError } = await courseQuery.maybeSingle();
+
+    if (courseError) {
+      console.error("[enrollInCourseAction] Course lookup error:", {
+        code: courseError.code,
+        message: courseError.message,
+        details: courseError.details,
+      });
+    }
+
+    if (courseData) {
+      targetCourseId = courseData.id;
+      targetCourseSlug = courseData.slug;
+    } else if (optionalSlug && !isUuid) {
+      // Fallback query with optionalSlug
+      const { data: bySlug } = await supabase
+        .from("courses")
+        .select("id, slug, is_free, is_published")
+        .eq("slug", optionalSlug)
+        .maybeSingle();
+
+      if (bySlug) {
+        targetCourseId = bySlug.id;
+        targetCourseSlug = bySlug.slug;
+      }
+    }
+
+    // 4. Check existing enrollment
+    const { data: existing, error: existingError } = await supabase
+      .from("course_enrollments")
       .select("id, status")
       .eq("user_id", user.id)
-      .eq("course_id", courseId)
+      .eq("course_id", targetCourseId)
       .maybeSingle();
 
+    if (existingError && existingError.code !== "PGRST116") {
+      console.warn("[enrollInCourseAction] Existing enrollment query notice:", existingError);
+    }
+
     if (existing) {
+      // Update last_accessed_at
+      await supabase
+        .from("course_enrollments")
+        .update({ last_accessed_at: new Date().toISOString() })
+        .eq("id", existing.id);
+
+      revalidatePath(`/courses/${targetCourseSlug}`);
+      revalidatePath("/learn");
+      revalidatePath("/learn/courses");
+      revalidatePath(`/learn/courses/${targetCourseSlug}`);
+
       return {
         success: true,
-        redirectUrl: `/courses/${courseSlug}`,
+        redirectUrl: `/learn/courses/${targetCourseSlug}`,
       };
     }
 
-    // Create new enrollment record
+    // 5. Insert new course enrollment record
     const { error: insertError } = await supabase
-      .from("enrollments")
+      .from("course_enrollments")
       .insert({
         user_id: user.id,
-        course_id: courseId,
+        course_id: targetCourseId,
         status: "active",
-        progress_percent: 0,
-        enrolled_at: new Date().toISOString(),
         last_accessed_at: new Date().toISOString(),
       });
 
     if (insertError) {
+      // If code 23505 (unique violation), handle race condition gracefully
+      if (insertError.code === "23505") {
+        revalidatePath(`/courses/${targetCourseSlug}`);
+        revalidatePath("/learn");
+        revalidatePath("/learn/courses");
+        revalidatePath(`/learn/courses/${targetCourseSlug}`);
+
+        return {
+          success: true,
+          redirectUrl: `/learn/courses/${targetCourseSlug}`,
+        };
+      }
+
+      console.error("[enrollInCourseAction] enrollment insert failed", {
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
+        userId: user.id,
+        courseId: targetCourseId,
+        courseSlug: targetCourseSlug,
+      });
+
       return {
         success: false,
         error: "We couldn't start this course. Please try again.",
       };
     }
 
+    // 6. Revalidate routes and return success redirect
+    revalidatePath(`/courses/${targetCourseSlug}`);
+    revalidatePath("/learn");
+    revalidatePath("/learn/courses");
+    revalidatePath(`/learn/courses/${targetCourseSlug}`);
+
     return {
       success: true,
-      redirectUrl: `/courses/${courseSlug}`,
+      redirectUrl: `/learn/courses/${targetCourseSlug}`,
     };
-  } catch {
+  } catch (err: unknown) {
+    const error = err as { message?: string; code?: string };
+    console.error("[enrollInCourseAction] Unexpected exception:", error?.message || err);
     return {
       success: false,
       error: "We couldn't start this course. Please try again.",

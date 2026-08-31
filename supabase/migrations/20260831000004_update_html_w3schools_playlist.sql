@@ -438,3 +438,4 @@ begin
     (v_lesson_id, 'Enjoy behind-the-scenes moments from the W3Schools HTML tutorial recording', 1);
 
 end $$;
+
