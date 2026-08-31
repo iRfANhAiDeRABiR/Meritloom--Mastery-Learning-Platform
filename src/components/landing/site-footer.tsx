@@ -7,17 +7,17 @@ const FOOTER_NAV = [
   {
     heading: "Learn",
     links: [
-      { label: "Courses", href: routes.anchors.courses },
-      { label: "Learning Paths", href: routes.anchors.paths },
-      { label: "How It Works", href: routes.anchors.howItWorks },
+      { label: "Courses", href: routes.courses.index },
+      { label: "Learning Paths", href: routes.learningPaths.index },
+      { label: "How It Works", href: routes.howItWorks },
     ],
   },
   {
     heading: "Platform",
     links: [
-      { label: "About", href: routes.anchors.about },
-      { label: "Help", href: "#" },
-      { label: "Contact", href: "#" },
+      { label: "About", href: routes.about },
+      { label: "Help", href: routes.howItWorks },
+      { label: "Contact", href: routes.about },
     ],
   },
   {

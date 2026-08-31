@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
 import { TestimonialsSection } from "@/components/home/testimonials/testimonials-section";
 import { FormalModernBackground } from "@/components/home/background/formal-modern-background";
+import { LearningPathsHomeSection } from "@/components/home/learning-paths-home-section";
 import { getCurrentUser } from "@/lib/auth";
 import { getFeaturedCourses } from "@/lib/queries";
 
@@ -33,6 +34,7 @@ export default async function LandingPage() {
         <HeroSection user={user} />
         <LearnerFeatures />
         <FeaturedCourses courses={courses} />
+        <LearningPathsHomeSection />
         <HowItWorks />
         <TestimonialsSection />
         <FinalCTA user={user} />

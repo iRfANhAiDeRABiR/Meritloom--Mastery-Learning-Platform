@@ -24,11 +24,11 @@ const NAV_LINKS = [
   { label: "Courses", href: routes.courses.index, pathPrefix: "/courses" },
   {
     label: "Learning Paths",
-    href: routes.learningPaths.detail("web-development-foundations"),
+    href: routes.learningPaths.index,
     pathPrefix: "/learning-paths",
   },
-  { label: "How It Works", href: `/${routes.anchors.howItWorks}`, pathPrefix: "" },
-  { label: "About", href: `/${routes.anchors.about}`, pathPrefix: "" },
+  { label: "How It Works", href: routes.howItWorks, pathPrefix: "/how-it-works" },
+  { label: "About", href: routes.about, pathPrefix: "/about" },
 ] as const;
 
 /**

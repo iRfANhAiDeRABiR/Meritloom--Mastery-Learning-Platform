@@ -13,6 +13,151 @@ import type {
 } from "@/lib/types";
 
 /**
+ * Helper to enrich a LearningPathDetail with authenticated learner enrollment and progress data.
+ */
+async function enrichPathWithLearnerProgress(
+  pathDetail: LearningPathDetail,
+  userId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+): Promise<LearningPathDetail> {
+  try {
+    const courseItems = pathDetail.items.filter(
+      (i): i is LearningPathCourseItem => i.itemType === "course",
+    );
+
+    let completedCourseCount = 0;
+    let inProgressCourseCount = 0;
+    let totalPercentSum = 0;
+    let foundCurrentStep = false;
+    let currentCourseTitle: string | null = null;
+
+    for (let idx = 0; idx < pathDetail.items.length; idx++) {
+      const item = pathDetail.items[idx];
+
+      if (item.itemType === "course") {
+        let status: LearningPathMilestoneStatus = "not_started";
+        let completedLessons = 0;
+        const totalLessons = item.lessonCount || 20;
+
+        // Check course enrollment
+        const { data: enrollment } = await supabase
+          .from("course_enrollments")
+          .select("id, status")
+          .eq("user_id", userId)
+          .eq("course_id", item.courseId)
+          .maybeSingle();
+
+        // Query completed lessons for this course
+        const { count: completedCount } = await supabase
+          .from("lesson_progress")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("is_completed", true)
+          .in(
+            "lesson_id",
+            (
+              await supabase
+                .from("lessons")
+                .select("id")
+                .in(
+                  "module_id",
+                  (
+                    await supabase
+                      .from("course_modules")
+                      .select("id")
+                      .eq("course_id", item.courseId)
+                  ).data?.map((m: { id: string }) => m.id) ?? [],
+                )
+            ).data?.map((l: { id: string }) => l.id) ?? [],
+          );
+
+        completedLessons = completedCount ?? 0;
+
+        if (
+          enrollment?.status === "completed" ||
+          (completedLessons > 0 && completedLessons >= totalLessons)
+        ) {
+          status = "completed";
+          completedCourseCount++;
+          totalPercentSum += 100;
+        } else if (enrollment || completedLessons > 0) {
+          status = "in_progress";
+          inProgressCourseCount++;
+          const pct = Math.round((completedLessons / totalLessons) * 100);
+          totalPercentSum += pct;
+          if (!currentCourseTitle) {
+            currentCourseTitle = item.title;
+          }
+        } else {
+          status = "not_started";
+          if (!currentCourseTitle && inProgressCourseCount === 0) {
+            currentCourseTitle = item.title;
+          }
+        }
+
+        const progressPercent =
+          status === "completed"
+            ? 100
+            : Math.round((completedLessons / totalLessons) * 100);
+
+        let isCurrentStep = false;
+        if (!foundCurrentStep && status !== "completed") {
+          isCurrentStep = true;
+          foundCurrentStep = true;
+        }
+
+        (item as LearningPathCourseItem).status = status;
+        (item as LearningPathCourseItem).completedLessons = completedLessons;
+        (item as LearningPathCourseItem).totalLessons = totalLessons;
+        (item as LearningPathCourseItem).progressPercent = progressPercent;
+        (item as LearningPathCourseItem).isCurrentStep = isCurrentStep;
+      } else if (item.itemType === "project") {
+        const allCoursesDone =
+          courseItems.length > 0 &&
+          completedCourseCount === courseItems.length;
+
+        const isCurrentStep = !foundCurrentStep && allCoursesDone;
+        (item as LearningPathProjectItem).status = allCoursesDone
+          ? "in_progress"
+          : "not_started";
+        (item as LearningPathProjectItem).isCurrentStep = isCurrentStep;
+      }
+    }
+
+    // Calculate path overall progress
+    const totalCourses = courseItems.length;
+    const overallPercent =
+      totalCourses > 0
+        ? Math.round(totalPercentSum / totalCourses)
+        : 0;
+
+    let pathStatus: LearningPathMilestoneStatus = "not_started";
+    if (completedCourseCount === totalCourses && totalCourses > 0) {
+      pathStatus = "completed";
+    } else if (inProgressCourseCount > 0 || completedCourseCount > 0) {
+      pathStatus = "in_progress";
+    }
+
+    const currentItem = pathDetail.items.find((i) => i.isCurrentStep);
+    const currentStepNumber = currentItem ? currentItem.stepNumber : 1;
+
+    pathDetail.learnerProgress = {
+      completedCourses: completedCourseCount,
+      totalCourses,
+      inProgressCourses: inProgressCourseCount,
+      overallPercent,
+      currentStepNumber,
+      pathStatus,
+    };
+  } catch (e) {
+    console.warn("Error enriching path with learner progress:", e);
+  }
+
+  return pathDetail;
+}
+
+/**
  * Fetch detailed learning path by its slug, merging dynamic Supabase data,
  * course relationships, and individual learner progress when authenticated.
  */
@@ -72,11 +217,12 @@ export async function getLearningPathBySlug(
         .single();
 
       if (pathData && !pathError) {
-        // Map database path items
         const rawItems = Array.isArray(pathData.items) ? pathData.items : [];
         const sortedItems = [...rawItems].sort(
           (a, b) => (a.position ?? 0) - (b.position ?? 0),
         );
+
+        let totalEstimatedMinutes = 0;
 
         const items: LearningPathMilestone[] = sortedItems.map(
           (rawItem, index) => {
@@ -89,6 +235,8 @@ export async function getLearningPathBySlug(
               let lessonCount = 20;
               let iconName: "Code2" | "Palette" | "Braces" | "Rocket" = "Code2";
               let accentColor: "amber" | "cyan" | "gold" | "purple" = "amber";
+              const estMins = Number(courseObj.estimated_minutes) || 90;
+              totalEstimatedMinutes += estMins;
 
               if (courseObj.slug === "html-fundamentals") {
                 lessonCount = 23;
@@ -129,19 +277,21 @@ export async function getLearningPathBySlug(
                 difficulty:
                   (courseObj.difficulty as CourseDifficulty) || "beginner",
                 lessonCount,
-                estimatedMinutes: Number(courseObj.estimated_minutes) || 90,
+                estimatedMinutes: estMins,
                 categoryName,
               };
               return courseItem;
             } else {
-              // Project Item
+              totalEstimatedMinutes += 30; // 30 min final project estimate
               const projectItem: LearningPathProjectItem = {
                 id: rawItem.id as string,
                 itemType: "project",
                 position: rawItem.position ?? index + 1,
                 stepNumber: index + 1,
                 stepLabel: rawItem.step_label || "FINAL PROJECT",
-                title: (rawItem.title as string) || "Build an Interactive Personal Website",
+                title:
+                  (rawItem.title as string) ||
+                  "Build an Interactive Personal Website",
                 description:
                   (rawItem.description as string) ||
                   "Combine HTML structure, CSS styling, and JavaScript behavior into one complete frontend project.",
@@ -176,12 +326,15 @@ export async function getLearningPathBySlug(
             "",
           difficulty: (pathData.difficulty as CourseDifficulty) || "beginner",
           estimatedMinutes:
-            Number(pathData.estimated_minutes) ||
-            staticPath?.estimatedMinutes ||
-            305,
+            totalEstimatedMinutes > 0
+              ? totalEstimatedMinutes
+              : Number(pathData.estimated_minutes) ||
+                staticPath?.estimatedMinutes ||
+                335,
           courseCount:
+            items.filter((i) => i.itemType === "course").length ||
             Number(pathData.course_count) ||
-            items.filter((i) => i.itemType === "course").length,
+            3,
           isPublished: pathData.is_published !== false,
           coverImageUrl: (pathData.cover_image_url as string) ?? null,
           items: items.length > 0 ? items : (staticPath?.items ?? []),
@@ -239,136 +392,54 @@ export async function getLearningPathBySlug(
 
   if (!pathDetail) return null;
 
-  // 2. Fetch and merge authenticated learner progress if userId is provided
   if (userId && supabase) {
-    try {
-      const courseItems = pathDetail.items.filter(
-        (i): i is LearningPathCourseItem => i.itemType === "course",
-      );
-
-      let completedCourseCount = 0;
-      let inProgressCourseCount = 0;
-      let totalPercentSum = 0;
-      let foundCurrentStep = false;
-
-      for (let idx = 0; idx < pathDetail.items.length; idx++) {
-        const item = pathDetail.items[idx];
-
-        if (item.itemType === "course") {
-          let status: LearningPathMilestoneStatus = "not_started";
-          let completedLessons = 0;
-          const totalLessons = item.lessonCount || 20;
-
-          // Check course enrollment
-          const { data: enrollment } = await supabase
-            .from("course_enrollments")
-            .select("id, status")
-            .eq("user_id", userId)
-            .eq("course_id", item.courseId)
-            .maybeSingle();
-
-          // Query completed lessons for this course
-          const { count: completedCount } = await supabase
-            .from("lesson_progress")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", userId)
-            .eq("is_completed", true)
-            .in(
-              "lesson_id",
-              (
-                await supabase
-                  .from("lessons")
-                  .select("id")
-                  .in(
-                    "module_id",
-                    (
-                      await supabase
-                        .from("course_modules")
-                        .select("id")
-                        .eq("course_id", item.courseId)
-                    ).data?.map((m) => m.id) ?? [],
-                  )
-              ).data?.map((l) => l.id) ?? [],
-            );
-
-          completedLessons = completedCount ?? 0;
-
-          if (
-            enrollment?.status === "completed" ||
-            (completedLessons > 0 && completedLessons >= totalLessons)
-          ) {
-            status = "completed";
-            completedCourseCount++;
-            totalPercentSum += 100;
-          } else if (enrollment || completedLessons > 0) {
-            status = "in_progress";
-            inProgressCourseCount++;
-            const pct = Math.round((completedLessons / totalLessons) * 100);
-            totalPercentSum += pct;
-          } else {
-            status = "not_started";
-          }
-
-          const progressPercent =
-            status === "completed"
-              ? 100
-              : Math.round((completedLessons / totalLessons) * 100);
-
-          let isCurrentStep = false;
-          if (!foundCurrentStep && status !== "completed") {
-            isCurrentStep = true;
-            foundCurrentStep = true;
-          }
-
-          (item as LearningPathCourseItem).status = status;
-          (item as LearningPathCourseItem).completedLessons = completedLessons;
-          (item as LearningPathCourseItem).totalLessons = totalLessons;
-          (item as LearningPathCourseItem).progressPercent = progressPercent;
-          (item as LearningPathCourseItem).isCurrentStep = isCurrentStep;
-        } else if (item.itemType === "project") {
-          // If all courses completed, project is the current step
-          const allCoursesDone =
-            courseItems.length > 0 &&
-            completedCourseCount === courseItems.length;
-
-          const isCurrentStep = !foundCurrentStep && allCoursesDone;
-          (item as LearningPathProjectItem).status = allCoursesDone
-            ? "in_progress"
-            : "not_started";
-          (item as LearningPathProjectItem).isCurrentStep = isCurrentStep;
-        }
-      }
-
-      // Calculate path overall progress
-      const totalCourses = courseItems.length;
-      const overallPercent =
-        totalCourses > 0
-          ? Math.round(totalPercentSum / totalCourses)
-          : 0;
-
-      let pathStatus: LearningPathMilestoneStatus = "not_started";
-      if (completedCourseCount === totalCourses && totalCourses > 0) {
-        pathStatus = "completed";
-      } else if (inProgressCourseCount > 0 || completedCourseCount > 0) {
-        pathStatus = "in_progress";
-      }
-
-      // Find current step number
-      const currentItem = pathDetail.items.find((i) => i.isCurrentStep);
-      const currentStepNumber = currentItem ? currentItem.stepNumber : 1;
-
-      pathDetail.learnerProgress = {
-        completedCourses: completedCourseCount,
-        totalCourses,
-        inProgressCourses: inProgressCourseCount,
-        overallPercent,
-        currentStepNumber,
-        pathStatus,
-      };
-    } catch (e) {
-      console.warn("Error calculating learning path learner progress:", e);
-    }
+    pathDetail = await enrichPathWithLearnerProgress(pathDetail, userId, supabase);
   }
 
   return pathDetail;
+}
+
+/**
+ * Fetch all published learning paths for the explorer page.
+ */
+export async function getAllPublishedLearningPaths(
+  userId?: string | null,
+): Promise<LearningPathDetail[]> {
+  const supabase = await createSupabaseServerClient();
+  const results: LearningPathDetail[] = [];
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("learning_paths")
+        .select("slug")
+        .eq("is_published", true)
+        .order("position", { ascending: true });
+
+      if (data && !error && data.length > 0) {
+        for (const row of data) {
+          const detail = await getLearningPathBySlug(row.slug, userId);
+          if (detail && detail.isPublished) {
+            results.push(detail);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not query published learning paths from Supabase:", e);
+    }
+  }
+
+  // Fallback to static paths if no database results
+  if (results.length === 0) {
+    for (const staticPath of ALL_STATIC_LEARNING_PATHS) {
+      const pathCopy = JSON.parse(JSON.stringify(staticPath));
+      if (userId && supabase) {
+        results.push(await enrichPathWithLearnerProgress(pathCopy, userId, supabase));
+      } else {
+        results.push(pathCopy);
+      }
+    }
+  }
+
+  return results;
 }

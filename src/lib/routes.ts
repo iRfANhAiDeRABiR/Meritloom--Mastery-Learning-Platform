@@ -29,6 +29,8 @@ export const routes = {
     index: "/categories",
     detail: (slug: string) => `/categories/${slug}`,
   },
+  howItWorks: "/how-it-works",
+  about: "/about",
   myLearning: "/learn",
   // In-page anchors used by the landing navigation.
   anchors: {

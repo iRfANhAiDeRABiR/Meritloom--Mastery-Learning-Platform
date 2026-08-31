@@ -1,5 +1,8 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/landing/section-heading";
 import { howItWorksData } from "@/lib/content/landing";
+import { routes } from "@/lib/routes";
 
 /**
  * Three-step "How Meritloom Works" section.
@@ -18,6 +21,15 @@ export function HowItWorks() {
           eyebrow="Simple Process"
           title={howItWorksData.heading}
           description={howItWorksData.support}
+          action={
+            <Link
+              href={routes.howItWorks}
+              className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-primary hover:text-primary-600 transition-colors"
+            >
+              See full how it works guide
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          }
         />
 
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
