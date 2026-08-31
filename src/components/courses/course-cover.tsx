@@ -85,6 +85,9 @@ export function CourseCover({
   className,
 }: CourseCoverProps) {
   const safeSlug = categorySlug ?? "";
+  const isHtmlCourse = title.toLowerCase().includes("html");
+  const isCssCourse = title.toLowerCase().includes("css");
+
   const theme = CATEGORY_THEMES[safeSlug] ?? {
     gradient: "from-primary via-primary-700 to-slate-900",
     pattern: "bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:16px_16px]",
@@ -113,6 +116,89 @@ export function CourseCover({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
         />
+      ) : isCssCourse ? (
+        /* Meritloom CSS Fundamentals Distinctive Cover */
+        <div
+          role="img"
+          aria-label={`${title} cover`}
+          className="relative flex h-full w-full flex-col justify-between p-5 text-white bg-gradient-to-br from-[#0c1322] via-[#102447] to-[#0369a1]"
+        >
+          {/* Abstract styling layers / brackets pattern */}
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:18px_18px]"
+            aria-hidden="true"
+          />
+
+          {/* Ambient Glows */}
+          <div
+            className="absolute -right-8 -top-8 size-36 rounded-full bg-cyan-500/20 blur-2xl pointer-events-none"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute left-1/4 -bottom-10 size-40 rounded-full bg-blue-600/20 blur-3xl pointer-events-none"
+            aria-hidden="true"
+          />
+
+          {/* Top Category and Stylized CSS Icon */}
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="grid size-9 place-items-center rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-cyan-300 shadow-xs">
+              <Layers className="size-5" aria-hidden="true" />
+            </span>
+            <span className="text-[11px] font-mono font-semibold tracking-wider text-cyan-200/80 uppercase">
+              {`{ styles }`}
+            </span>
+          </div>
+
+          {/* Center/Bottom Typography Artwork */}
+          <div className="relative z-10 flex flex-col items-start">
+            <span className="text-2xl font-black tracking-tight text-white drop-shadow-sm flex items-center gap-1.5">
+              CSS
+              <span className="text-xs font-semibold uppercase tracking-widest text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 px-2 py-0.5 rounded-md">
+                Course 2
+              </span>
+            </span>
+            <span className="text-xs font-medium text-slate-300 tracking-wide">
+              Fundamentals
+            </span>
+          </div>
+        </div>
+      ) : isHtmlCourse ? (
+        /* Meritloom HTML Fundamentals Cover */
+        <div
+          role="img"
+          aria-label={`${title} cover`}
+          className="relative flex h-full w-full flex-col justify-between p-5 text-white bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4338ca]"
+        >
+          <div
+            className="absolute inset-0 opacity-25 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -right-8 -top-8 size-32 rounded-full bg-purple-400/20 blur-2xl pointer-events-none"
+            aria-hidden="true"
+          />
+
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="grid size-9 place-items-center rounded-xl bg-white/15 backdrop-blur-md text-amber-300 shadow-xs">
+              <Code2 className="size-5" aria-hidden="true" />
+            </span>
+            <span className="text-[11px] font-mono font-semibold tracking-wider text-purple-200/80 uppercase">
+              {`<structure />`}
+            </span>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-start">
+            <span className="text-2xl font-black tracking-tight text-white drop-shadow-sm flex items-center gap-1.5">
+              HTML
+              <span className="text-xs font-semibold uppercase tracking-widest text-purple-300 bg-purple-950/60 border border-purple-500/30 px-2 py-0.5 rounded-md">
+                Course 1
+              </span>
+            </span>
+            <span className="text-xs font-medium text-purple-200 tracking-wide">
+              Fundamentals
+            </span>
+          </div>
+        </div>
       ) : (
         /* Designed category-based fallback cover */
         <div

@@ -1207,3 +1207,1061 @@ This bonus lesson features fun outtakes and behind-the-scenes bloopers recorded 
 Now that you have mastered HTML tags, attributes, formatting, tables, lists, layouts, and forms, you are ready to style your pages in **Course 2: CSS Fundamentals**!`,
   },
 };
+
+export const CSS_FUNDAMENTALS_SUMMARY: CourseSummary = {
+  id: "course-css-fundamentals",
+  slug: "css-fundamentals",
+  title: "CSS Fundamentals",
+  shortDescription:
+    "Learn how to style modern web pages with CSS, from selectors, colors and the box model to layout, Flexbox, responsive design and practical styling.",
+  difficulty: "beginner",
+  estimatedMinutes: 65,
+  lessonCount: 18,
+  categoryName: "Web Development",
+  categorySlug: "web-development",
+  thumbnailUrl: null,
+  isFree: true,
+  instructorName: "W3Schools.com",
+};
+
+export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
+  id: "course-css-fundamentals",
+  slug: "css-fundamentals",
+  title: "CSS Fundamentals",
+  summary:
+    "Learn how to style modern web pages with CSS, from selectors, colors and the box model to layout, Flexbox, responsive design and practical styling.",
+  description:
+    "CSS controls how web pages look and feel. In this beginner-friendly course, you'll learn how to transform plain HTML into attractive, organized and responsive web pages. Starting with CSS syntax and selectors, the course gradually introduces colors, backgrounds, borders, spacing, typography, layout and modern CSS techniques. The video lessons come from the W3Schools CSS tutorial series and are organized inside Meritloom with structured modules, lesson summaries, practice activities and progress tracking. A basic understanding of HTML is recommended before starting this course.",
+  difficulty: "beginner",
+  language: "English",
+  estimatedMinutes: 65,
+  lessonCount: 18,
+  requiredLessonsCount: 18,
+  bonusLessonsCount: 0,
+  moduleCount: 4,
+  isFree: true,
+  isPublished: true,
+  thumbnailUrl: null,
+  category: {
+    id: "cat-web-dev",
+    name: "Web Development",
+    slug: "web-development",
+  },
+  instructor: {
+    id: "inst-w3schools",
+    name: "W3Schools.com",
+    title: "Web Learning Platform",
+    avatarUrl: null,
+    bio: "W3Schools is the world's largest web developer learning platform, creating concise, practical web tutorials.",
+  },
+  learningOutcomes: [
+    "Explain how CSS styles HTML documents and separates structure from presentation",
+    "Write valid CSS rules using selectors, properties, and values",
+    "Apply external, internal, and inline CSS to HTML pages",
+    "Use element, class, ID, and universal selectors effectively",
+    "Work with color names, RGB, RGBA, HEX, and HSL color formats",
+    "Style background colors, images, position, repeat, and attachment",
+    "Write clean background shorthand declarations to streamline stylesheets",
+    "Combine HTML and CSS into a complete, attractively styled personal website",
+  ],
+  prerequisites: [
+    "Recommended before starting: HTML Fundamentals (/courses/html-fundamentals)",
+    "A modern web browser (Chrome, Firefox, Safari, or Edge)",
+    "A text editor such as VS Code, Notepad, or TextEdit",
+  ],
+  skills: [
+    "CSS",
+    "CSS Selectors",
+    "CSS Colors",
+    "CSS Backgrounds",
+    "Web Styling",
+    "Web Development",
+  ],
+  targetAudience: [
+    "Beginners who want to learn how to make websites look beautiful and professional",
+    "Learners who completed HTML Fundamentals and want to style their markup",
+    "Anyone looking for a structured, hands-on video series in CSS styling",
+  ],
+  modules: [
+    {
+      id: "mod-css-1",
+      title: "Getting Started with CSS",
+      description:
+        "Understand what CSS is, learn the syntax of rules and declaration blocks, explore simple selectors, and discover the three ways to add CSS to HTML.",
+      position: 1,
+      estimatedMinutes: 19,
+      lessonCount: 6,
+      isBonus: false,
+      lessons: [
+        {
+          id: "les-css-1-1",
+          slug: "css-introduction",
+          title: "Introduction to CSS",
+          lessonType: "video",
+          position: 1,
+          estimatedMinutes: 2,
+          isPreview: true,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "AGDDdsiZ0Ko",
+        },
+        {
+          id: "les-css-1-2",
+          slug: "css-syntax",
+          title: "CSS Syntax & Declarations",
+          lessonType: "video",
+          position: 2,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "G8r00ZNopTE",
+        },
+        {
+          id: "les-css-1-3",
+          slug: "css-selectors",
+          title: "CSS Simple Selectors",
+          lessonType: "video",
+          position: 3,
+          estimatedMinutes: 3,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "ZNskBxLVOfs",
+        },
+        {
+          id: "les-css-1-4",
+          slug: "css-how-to",
+          title: "How to Add CSS to HTML",
+          lessonType: "video",
+          position: 4,
+          estimatedMinutes: 3,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "VSwaoQ3TFkQ",
+        },
+        {
+          id: "les-css-1-5",
+          slug: "css-comments",
+          title: "CSS Comments",
+          lessonType: "video",
+          position: 5,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "uVtEJD3vBEs",
+        },
+        {
+          id: "les-css-1-6",
+          slug: "practice-first-stylesheet",
+          title: "Practice — Connect & Write Your First CSS",
+          lessonType: "practice",
+          position: 6,
+          estimatedMinutes: 8,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
+      ],
+    },
+    {
+      id: "mod-css-2",
+      title: "Colors & Color Formats",
+      description:
+        "Master the web color system: named colors, RGB, RGBA with opacity, Hexadecimal color codes, and intuitive HSL / HSLA coordinates.",
+      position: 2,
+      estimatedMinutes: 20,
+      lessonCount: 5,
+      isBonus: false,
+      lessons: [
+        {
+          id: "les-css-2-1",
+          slug: "css-colors-intro",
+          title: "Introduction to CSS Colors",
+          lessonType: "video",
+          position: 1,
+          estimatedMinutes: 4,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "q0uWmobMf6I",
+        },
+        {
+          id: "les-css-2-2",
+          slug: "css-colors-rgb",
+          title: "RGB & RGBA Color Values",
+          lessonType: "video",
+          position: 2,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "6tbUo6PXc88",
+        },
+        {
+          id: "les-css-2-3",
+          slug: "css-colors-hex",
+          title: "HEX Color Codes",
+          lessonType: "video",
+          position: 3,
+          estimatedMinutes: 3,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "LLmCr_201GU",
+        },
+        {
+          id: "les-css-2-4",
+          slug: "css-colors-hsl",
+          title: "HSL & HSLA Color Values",
+          lessonType: "video",
+          position: 4,
+          estimatedMinutes: 3,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "Vilk0BFQZ4Y",
+        },
+        {
+          id: "les-css-2-5",
+          slug: "practice-color-palette",
+          title: "Practice — Build a Brand Color Palette",
+          lessonType: "practice",
+          position: 5,
+          estimatedMinutes: 8,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
+      ],
+    },
+    {
+      id: "mod-css-3",
+      title: "CSS Backgrounds",
+      description:
+        "Learn all aspects of CSS backgrounds: background colors, background images, repeat modes, positioning, attachment scrolling, and shorthand notation.",
+      position: 3,
+      estimatedMinutes: 19,
+      lessonCount: 6,
+      isBonus: false,
+      lessons: [
+        {
+          id: "les-css-3-1",
+          slug: "css-background-colors",
+          title: "CSS Background Colors",
+          lessonType: "video",
+          position: 1,
+          estimatedMinutes: 3,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "-itttmX6HX0",
+        },
+        {
+          id: "les-css-3-2",
+          slug: "css-background-images",
+          title: "CSS Background Images",
+          lessonType: "video",
+          position: 2,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "FMyU_h8m-0c",
+        },
+        {
+          id: "les-css-3-3",
+          slug: "css-background-repeat-position",
+          title: "Background Repeat & Position",
+          lessonType: "video",
+          position: 3,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "k9dNFtC2F8A",
+        },
+        {
+          id: "les-css-3-4",
+          slug: "css-background-attachment",
+          title: "Background Attachment & Scrolling",
+          lessonType: "video",
+          position: 4,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "lXs8BRnrW_M",
+        },
+        {
+          id: "les-css-3-5",
+          slug: "css-background-shorthand",
+          title: "CSS Background Shorthand",
+          lessonType: "video",
+          position: 5,
+          estimatedMinutes: 2,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+          youtubeVideoId: "rSEKmi5tR9E",
+        },
+        {
+          id: "les-css-3-6",
+          slug: "practice-hero-banner",
+          title: "Practice — Style a Hero Banner with Backgrounds",
+          lessonType: "practice",
+          position: 6,
+          estimatedMinutes: 8,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
+      ],
+    },
+    {
+      id: "mod-css-4",
+      title: "Applied Styling & Projects",
+      description:
+        "Synthesize all CSS fundamentals into a complete, beautifully styled multi-section personal website.",
+      position: 4,
+      estimatedMinutes: 15,
+      lessonCount: 1,
+      isBonus: false,
+      lessons: [
+        {
+          id: "les-css-4-1",
+          slug: "project-style-personal-site",
+          title: "Final Project — Style Your Personal Website",
+          lessonType: "practice",
+          position: 1,
+          estimatedMinutes: 15,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
+      ],
+    },
+  ],
+};
+
+export const CSS_LESSON_DETAILS_MAP: Record<
+  string,
+  {
+    videoPosition: number;
+    youtubeVideoId: string | null;
+    videoUrl: string | null;
+    sourceUrl: string | null;
+    sourceChannel: string | null;
+    playlistId: string | null;
+    isBonus: boolean;
+    keyTakeaway: string;
+    summary: string;
+    objectives: string[];
+    content: string;
+  }
+> = {
+  "css-introduction": {
+    videoPosition: 1,
+    youtubeVideoId: "AGDDdsiZ0Ko",
+    videoUrl: "https://www.youtube.com/watch?v=AGDDdsiZ0Ko",
+    sourceUrl: "https://www.youtube.com/watch?v=AGDDdsiZ0Ko",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "CSS (Cascading Style Sheets) describes how HTML elements are to be displayed on screen, paper, or in other media.",
+    summary:
+      "Learn what CSS is, how it works with HTML, and why separating structure from presentation makes web pages easier to style and maintain.",
+    objectives: [
+      "Understand what CSS stands for and its core role in web development",
+      "Learn why CSS saves massive work by controlling layout across multiple pages",
+      "Identify the relationship between HTML structure and CSS presentation",
+    ],
+    content: `## What is CSS?
+
+**CSS** stands for **Cascading Style Sheets**. While HTML provides the skeleton and semantic structure of a web page, CSS describes how HTML elements should be styled and displayed.
+
+### Why Use CSS?
+
+- **Separate content from design**: Keep your HTML files clean and focus on content structure while your CSS handles appearance.
+- **Site-wide consistency**: Style thousands of web pages using a single shared stylesheet.
+- **Device adaptability**: Format pages for mobile phones, tablets, laptops, and print layouts without touching HTML markup.
+
+\`\`\`css
+/* Example CSS styling */
+body {
+  background-color: #f7f8fc;
+  font-family: Arial, sans-serif;
+  color: #172033;
+}
+
+h1 {
+  color: #4338ca;
+  text-align: center;
+}
+\`\`\``,
+  },
+  "css-syntax": {
+    videoPosition: 2,
+    youtubeVideoId: "G8r00ZNopTE",
+    videoUrl: "https://www.youtube.com/watch?v=G8r00ZNopTE",
+    sourceUrl: "https://www.youtube.com/watch?v=G8r00ZNopTE",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "A CSS rule consists of a selector and a declaration block containing property-value pairs separated by semicolons.",
+    summary:
+      "Understand selectors, properties, values, and declaration blocks—the core building blocks of every CSS rule.",
+    objectives: [
+      "Identify CSS selectors and declaration blocks",
+      "Write clean property-value pairs with colons and semicolons",
+      "Format CSS rules with curly braces for readability",
+    ],
+    content: `## CSS Syntax & Rules
+
+A CSS rule consists of a **selector** and a **declaration block**:
+
+\`\`\`css
+selector {
+  property: value;
+  property: value;
+}
+\`\`\`
+
+### Parts of a CSS Rule:
+
+1. **Selector**: Points to the HTML element you want to style (e.g. \`h1\`, \`p\`, \`.card\`).
+2. **Declaration Block**: Enclosed in curly braces \`{ ... }\`, containing one or more declarations separated by semicolons.
+3. **Property**: The style attribute you want to change (e.g., \`color\`, \`font-size\`, \`background-color\`).
+4. **Value**: The setting you want to apply to that property (e.g., \`blue\`, \`16px\`, \`#ffffff\`).`,
+  },
+  "css-selectors": {
+    videoPosition: 3,
+    youtubeVideoId: "ZNskBxLVOfs",
+    videoUrl: "https://www.youtube.com/watch?v=ZNskBxLVOfs",
+    sourceUrl: "https://www.youtube.com/watch?v=ZNskBxLVOfs",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "CSS simple selectors find elements by name, id, or class to apply targeted styles.",
+    summary:
+      "Master targeting HTML elements using element type selectors, class selectors (.class), ID selectors (#id), and the universal selector (*).",
+    objectives: [
+      "Target elements by HTML tag name (e.g. p, h1)",
+      "Use class selectors (.classname) to style multiple elements",
+      "Use ID selectors (#idname) to target a specific unique element",
+      "Group multiple selectors using commas to share styles",
+    ],
+    content: `## CSS Selectors
+
+CSS selectors are used to "find" (or select) the HTML elements you want to style.
+
+### 1. Element Selector
+Targets all elements with the specified tag name:
+\`\`\`css
+p {
+  text-align: center;
+  color: #333333;
+}
+\`\`\`
+
+### 2. Class Selector (\`.\`)
+Targets elements with a specific \`class\` attribute:
+\`\`\`css
+.highlight {
+  background-color: #fef08a;
+  font-weight: bold;
+}
+\`\`\`
+
+### 3. ID Selector (\`#\`)
+Targets a single element with a unique \`id\` attribute:
+\`\`\`css
+#main-header {
+  border-bottom: 2px solid #6366f1;
+}
+\`\`\`
+
+### 4. Grouping Selectors (\`,\`)
+\`\`\`css
+h1, h2, p {
+  text-align: center;
+}
+\`\`\``,
+  },
+  "css-how-to": {
+    videoPosition: 4,
+    youtubeVideoId: "VSwaoQ3TFkQ",
+    videoUrl: "https://www.youtube.com/watch?v=VSwaoQ3TFkQ",
+    sourceUrl: "https://www.youtube.com/watch?v=VSwaoQ3TFkQ",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "External stylesheets are the industry standard for production websites because they allow one file to style an entire site.",
+    summary:
+      "Explore the three ways to insert CSS into web pages: External CSS files (<link>), Internal style blocks (<style>), and Inline style attributes.",
+    objectives: [
+      "Link an external .css stylesheet inside the HTML <head>",
+      "Write internal CSS within a <style> tag",
+      "Apply inline CSS using the HTML style attribute",
+      "Understand cascading priority when multiple styles apply",
+    ],
+    content: `## Three Ways to Add CSS
+
+### 1. External CSS (Recommended)
+Add a \`<link>\` element inside your HTML \`<head>\`:
+\`\`\`html
+<head>
+  <link rel="stylesheet" href="styles.css">
+</head>
+\`\`\`
+
+### 2. Internal CSS
+Use a \`<style>\` block inside the HTML \`<head>\`:
+\`\`\`html
+<head>
+  <style>
+    body { background-color: #fafafa; }
+    h1 { color: #1e293b; }
+  </style>
+</head>
+\`\`\`
+
+### 3. Inline CSS
+Use the \`style\` attribute directly on an HTML element:
+\`\`\`html
+<h1 style="color: blue; text-align: center;">Welcome</h1>
+\`\`\``,
+  },
+  "css-comments": {
+    videoPosition: 5,
+    youtubeVideoId: "uVtEJD3vBEs",
+    videoUrl: "https://www.youtube.com/watch?v=uVtEJD3vBEs",
+    sourceUrl: "https://www.youtube.com/watch?v=uVtEJD3vBEs",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "CSS comments begin with /* and end with */, and are completely ignored by browsers.",
+    summary:
+      "Learn how CSS comments (/* ... */) help document stylesheets, organize sections, and temporarily disable rules during debugging.",
+    objectives: [
+      "Write single-line and multi-line comments in CSS",
+      "Use comments to section and organize large stylesheets",
+      "Temporarily disable CSS declarations while troubleshooting",
+    ],
+    content: `## CSS Comments
+
+CSS comments are notes written inside stylesheets that are completely ignored by web browsers.
+
+\`\`\`css
+/* This is a single-line CSS comment */
+
+/* =========================================================
+   HEADER SECTION STYLES
+   ========================================================= */
+header {
+  padding: 1.5rem;
+  background-color: #1e1b4b;
+}
+
+/* Temporarily disable a property while debugging:
+p {
+  color: red;
+}
+*/
+\`\`\``,
+  },
+  "practice-first-stylesheet": {
+    videoPosition: 6,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway:
+      "Structuring CSS into an external file and using descriptive class names creates clean, maintainable code.",
+    summary:
+      "Create an external stylesheet, link it to an HTML document, and apply element, class, and ID rules.",
+    objectives: [
+      "Create a styles.css file and link it using <link rel='stylesheet'>",
+      "Apply background and text styles across multiple tags",
+      "Use class and ID selectors to create distinct card layouts",
+    ],
+    content: `## Practice Activity: Your First CSS Stylesheet
+
+### Challenge Instructions:
+
+1. Create an HTML file with a header, paragraph, and two cards.
+2. Create a \`styles.css\` file and link it inside the HTML \`<head>\`.
+3. Apply element selectors to set body typography and background.
+4. Use \`.card\` class to style containers and \`#featured\` for a special highlight.
+
+\`\`\`html
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CSS Practice</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Welcome to CSS</h1>
+  <div class="card" id="featured">Featured Card</div>
+  <div class="card">Regular Card</div>
+</body>
+</html>
+\`\`\`
+
+\`\`\`css
+/* styles.css */
+body {
+  font-family: system-ui, sans-serif;
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+#featured {
+  border-left: 4px solid #6366f1;
+}
+\`\`\``,
+  },
+  "css-colors-intro": {
+    videoPosition: 7,
+    youtubeVideoId: "q0uWmobMf6I",
+    videoUrl: "https://www.youtube.com/watch?v=q0uWmobMf6I",
+    sourceUrl: "https://www.youtube.com/watch?v=q0uWmobMf6I",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "Colors in CSS can be set using standard color names or specific numerical color formats.",
+    summary:
+      "Discover standard predefined color names, foreground text colors with the color property, background colors, and border colors.",
+    objectives: [
+      "Set text color using the color property",
+      "Apply background colors to containers and headings",
+      "Style border colors on elements",
+    ],
+    content: `## Introduction to CSS Colors
+
+CSS supports 140+ standard color names (such as \`Tomato\`, \`DodgerBlue\`, \`MediumSeaGreen\`, \`SlateGray\`).
+
+\`\`\`css
+h1 {
+  color: DodgerBlue; /* Text color */
+}
+
+div.banner {
+  background-color: Tomato; /* Background */
+  border: 2px solid SlateGray; /* Border color */
+}
+\`\`\`
+
+### Accessibility Note:
+Always ensure sufficient color contrast between text and its background so all users can read your content comfortably.`,
+  },
+  "css-colors-rgb": {
+    videoPosition: 8,
+    youtubeVideoId: "6tbUo6PXc88",
+    videoUrl: "https://www.youtube.com/watch?v=6tbUo6PXc88",
+    sourceUrl: "https://www.youtube.com/watch?v=6tbUo6PXc88",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "An RGB color value represents RED, GREEN, and BLUE light sources; RGBA adds an Alpha channel (0.0 to 1.0) for opacity.",
+    summary:
+      "Specify precise colors using Red, Green, and Blue channels from 0 to 255, and add transparency with alpha channels in RGBA.",
+    objectives: [
+      "Define colors with rgb(red, green, blue) syntax",
+      "Control opacity and background transparency with rgba(r, g, b, a)",
+      "Understand how color channels combine to create millions of colors",
+    ],
+    content: `## RGB and RGBA Colors
+
+An **RGB** color value represents the intensity of Red, Green, and Blue light sources:
+
+\`\`\`css
+/* rgb(red, green, blue) - values from 0 to 255 */
+.pure-red { color: rgb(255, 0, 0); }
+.pure-green { color: rgb(0, 255, 0); }
+.pure-blue { color: rgb(0, 0, 255); }
+.dark-slate { color: rgb(30, 41, 59); }
+\`\`\`
+
+### RGBA with Alpha Transparency:
+The **alpha** parameter is a number between \`0.0\` (fully transparent) and \`1.0\` (fully opaque):
+
+\`\`\`css
+.card-overlay {
+  background-color: rgba(0, 0, 0, 0.5); /* 50% translucent black */
+}
+\`\`\``,
+  },
+  "css-colors-hex": {
+    videoPosition: 9,
+    youtubeVideoId: "LLmCr_201GU",
+    videoUrl: "https://www.youtube.com/watch?v=LLmCr_201GU",
+    sourceUrl: "https://www.youtube.com/watch?v=LLmCr_201GU",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "A hexadecimal color is specified with: #RRGGBB, where the RR (red), GG (green) and BB (blue) are hex values between 00 and FF.",
+    summary:
+      "Master hexadecimal color codes (#RRGGBB) used by designers and developers worldwide for web color definitions.",
+    objectives: [
+      "Read and write 6-digit hex color codes",
+      "Use 3-digit shorthand hex codes (e.g. #fff, #f00)",
+      "Pick and integrate design palette hex codes into stylesheets",
+    ],
+    content: `## HEX Color Codes
+
+Hexadecimal colors use base-16 notation (\`0-9\` and \`A-F\`) prefixed by a hash (\`#\`):
+
+\`\`\`css
+/* #RRGGBB */
+.primary-brand { color: #4f46e5; }
+.neutral-bg { background-color: #f8fafc; }
+.accent-border { border-color: #06b6d4; }
+\`\`\`
+
+### 3-Digit Shorthand:
+When both characters of each pair are identical, you can use the 3-digit shortcut:
+- \`#ff0000\` → \`#f00\`
+- \`#ffffff\` → \`#fff\`
+- \`#000000\` → \`#000\``,
+  },
+  "css-colors-hsl": {
+    videoPosition: 10,
+    youtubeVideoId: "Vilk0BFQZ4Y",
+    videoUrl: "https://www.youtube.com/watch?v=Vilk0BFQZ4Y",
+    sourceUrl: "https://www.youtube.com/watch?v=Vilk0BFQZ4Y",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "HSL stands for Hue (0-360 degree color wheel), Saturation (0-100% grayness), and Lightness (0-100% brightness).",
+    summary:
+      "Understand Hue, Saturation, and Lightness (HSL)—an intuitive way to create tints, shades, and complementary color palettes.",
+    objectives: [
+      "Navigate the 360-degree color wheel using Hue",
+      "Adjust Saturation and Lightness to create lighter/darker color variations",
+      "Use HSLA to add transparency to HSL colors",
+    ],
+    content: `## HSL & HSLA Color Format
+
+**HSL** represents colors based on human color perception:
+
+- **Hue**: Degree on the color wheel from 0 to 360 (0 = red, 120 = green, 240 = blue).
+- **Saturation**: Percentage from 0% (shade of gray) to 100% (full vibrant color).
+- **Lightness**: Percentage from 0% (pitch black) to 50% (normal) to 100% (pure white).
+
+\`\`\`css
+/* hsl(hue, saturation, lightness) */
+.brand-btn {
+  background-color: hsl(240, 80%, 60%);
+}
+
+.brand-btn:hover {
+  background-color: hsl(240, 80%, 45%); /* Easily darkened */
+}
+\`\`\``,
+  },
+  "practice-color-palette": {
+    videoPosition: 11,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway:
+      "Using consistent color formats and verifying contrast ratios ensures an accessible, attractive visual hierarchy.",
+    summary:
+      "Build a cohesive color palette for a web project using HEX, RGBA for translucent overlays, and HSL for hover states.",
+    objectives: [
+      "Define primary, secondary, and neutral colors with HEX",
+      "Create frosted translucent card backgrounds with RGBA",
+      "Create lighter and darker button hover states using HSL Lightness",
+    ],
+    content: `## Practice: Build a Brand Color Palette
+
+### Task:
+Create a complete color system for a technology startup landing page:
+
+1. **Brand Primary (HEX)**: \`#4338ca\`
+2. **Background Neutral (HEX)**: \`#0f172a\`
+3. **Card Glassmorphism (RGBA)**: \`rgba(255, 255, 255, 0.08)\`
+4. **Interactive Action Button (HSL)**: \`hsl(199, 89%, 48%)\` with \`hsl(199, 89%, 40%)\` hover state.`,
+  },
+  "css-background-colors": {
+    videoPosition: 12,
+    youtubeVideoId: "-itttmX6HX0",
+    videoUrl: "https://www.youtube.com/watch?v=-itttmX6HX0",
+    sourceUrl: "https://www.youtube.com/watch?v=-itttmX6HX0",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "The background-color property specifies the background color of an element.",
+    summary:
+      "Apply background colors to full page bodies, hero sections, cards, and buttons with good contrast for text readability.",
+    objectives: [
+      "Set page-wide background colors on <body>",
+      "Apply distinct backgrounds to cards and navigation bars",
+      "Ensure accessible contrast between background-color and text color",
+    ],
+    content: `## CSS Background Colors
+
+The \`background-color\` property sets the background color of an element.
+
+\`\`\`css
+body {
+  background-color: #0b0f19;
+  color: #f3f4f6;
+}
+
+header {
+  background-color: #1e293b;
+}
+
+.badge {
+  background-color: #10b981;
+  color: #ffffff;
+}
+\`\`\``,
+  },
+  "css-background-images": {
+    videoPosition: 13,
+    youtubeVideoId: "FMyU_h8m-0c",
+    videoUrl: "https://www.youtube.com/watch?v=FMyU_h8m-0c",
+    sourceUrl: "https://www.youtube.com/watch?v=FMyU_h8m-0c",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "The background-image property sets an image as the background of an element.",
+    summary:
+      "Embed background images using url() and understand how browsers tile images horizontally and vertically by default.",
+    objectives: [
+      "Specify background image URLs with url('image.jpg')",
+      "Understand default repeating behavior of background images",
+      "Choose appropriate imagery for hero banners and cards",
+    ],
+    content: `## CSS Background Images
+
+The \`background-image\` property specifies an image to use as the background of an element:
+
+\`\`\`css
+body {
+  background-image: url("paper.gif");
+}
+
+.hero {
+  background-image: url("mountains.jpg");
+}
+\`\`\`
+
+By default, the image is repeated so it covers the entire element.`,
+  },
+  "css-background-repeat-position": {
+    videoPosition: 14,
+    youtubeVideoId: "k9dNFtC2F8A",
+    videoUrl: "https://www.youtube.com/watch?v=k9dNFtC2F8A",
+    sourceUrl: "https://www.youtube.com/watch?v=k9dNFtC2F8A",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "Combine no-repeat with background-position (center, top right, etc.) to place hero graphics and background accents accurately.",
+    summary:
+      "Control whether images tile with background-repeat (no-repeat, repeat-x, repeat-y) and align backgrounds with background-position.",
+    objectives: [
+      "Prevent image tiling using background-repeat: no-repeat",
+      "Repeat images along a single axis (repeat-x or repeat-y)",
+      "Position background graphics using keywords and pixel/percentage offsets",
+    ],
+    content: `## Background Repeat & Position
+
+### 1. \`background-repeat\`
+- \`repeat\`: Default tiles in both directions.
+- \`repeat-x\`: Tiles horizontally only.
+- \`repeat-y\`: Tiles vertically only.
+- \`no-repeat\`: Shows image only once.
+
+### 2. \`background-position\`
+Positions the image inside its container:
+\`\`\`css
+.hero {
+  background-image: url("logo.png");
+  background-repeat: no-repeat;
+  background-position: right top; /* Or center center, 50% 50% */
+}
+\`\`\``,
+  },
+  "css-background-attachment": {
+    videoPosition: 15,
+    youtubeVideoId: "lXs8BRnrW_M",
+    videoUrl: "https://www.youtube.com/watch?v=lXs8BRnrW_M",
+    sourceUrl: "https://www.youtube.com/watch?v=lXs8BRnrW_M",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "background-attachment: fixed keeps the background in place while page content scrolls over it, creating a parallax effect.",
+    summary:
+      "Learn how background-attachment controls whether a background scrolls with the rest of the page or remains fixed in place.",
+    objectives: [
+      "Use background-attachment: scroll (default behavior)",
+      "Apply background-attachment: fixed for stationary backgrounds",
+      "Understand visual impact and mobile considerations",
+    ],
+    content: `## Background Attachment
+
+The \`background-attachment\` property sets whether a background image scrolls with the rest of the page, or is fixed:
+
+\`\`\`css
+body {
+  background-image: url("sky.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed; /* Image stays in viewport */
+}
+\`\`\``,
+  },
+  "css-background-shorthand": {
+    videoPosition: 16,
+    youtubeVideoId: "rSEKmi5tR9E",
+    videoUrl: "https://www.youtube.com/watch?v=rSEKmi5tR9E",
+    sourceUrl: "https://www.youtube.com/watch?v=rSEKmi5tR9E",
+    sourceChannel: "W3Schools.com",
+    playlistId: "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM",
+    isBonus: false,
+    keyTakeaway:
+      "The background shorthand property lets you specify all background properties in one line.",
+    summary:
+      "Condense multiple background properties (color, image, repeat, attachment, position) into a single concise background declaration.",
+    objectives: [
+      "Write valid background shorthand rules",
+      "Memorize the standard property order for shorthand syntax",
+      "Refactor verbose background declarations into clean shorthand",
+    ],
+    content: `## CSS Background Shorthand
+
+Instead of writing 5 separate declarations:
+\`\`\`css
+body {
+  background-color: #ffffff;
+  background-image: url("img_tree.png");
+  background-repeat: no-repeat;
+  background-position: right top;
+}
+\`\`\`
+
+You can write them all in a single \`background\` shorthand rule:
+\`\`\`css
+body {
+  background: #ffffff url("img_tree.png") no-repeat right top;
+}
+\`\`\`
+
+### Shorthand Property Order:
+1. \`background-color\`
+2. \`background-image\`
+3. \`background-repeat\`
+4. \`background-attachment\`
+5. \`background-position\``,
+  },
+  "practice-hero-banner": {
+    videoPosition: 17,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway:
+      "Combining background-image, background-position, and background-repeat shorthand produces polished, responsive banners.",
+    summary:
+      "Design a full-width hero header with a centered background image, translucent overlay, and crisp typography.",
+    objectives: [
+      "Set a background image centered with no-repeat",
+      "Apply background shorthand for clean stylesheet rules",
+      "Add high-contrast typography over background visuals",
+    ],
+    content: `## Practice: Style a Hero Banner
+
+### Challenge:
+Build a hero banner section with:
+1. A dark background fallback color (\`#090d16\`).
+2. A hero background image centered with \`no-repeat\`.
+3. High contrast white headline text and an accent button.`,
+  },
+  "project-style-personal-site": {
+    videoPosition: 18,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway:
+      "Clean CSS organization and consistent design tokens turn plain HTML markup into professional web experiences.",
+    summary:
+      "Transform your HTML website from Course 1 into a modern styled portfolio with external CSS, custom typography, brand colors, and layered backgrounds.",
+    objectives: [
+      "Structure an external CSS stylesheet linked to your HTML portfolio",
+      "Apply an accessible color system using HEX, RGB, and HSL",
+      "Style headers, navigation bars, cards, and footer sections with backgrounds",
+      "Prepare your styled layout for interactive JavaScript in the upcoming course",
+    ],
+    content: `## Final Project: Style Your Personal Website
+
+Congratulations on completing **CSS Fundamentals**!
+
+### Your Project Mission:
+Take the multi-page or single-page website you built in **HTML Fundamentals (Course 1)** and style it with professional CSS!
+
+### Project Requirements:
+1. **External Stylesheet**: Connect an external \`styles.css\` file to all HTML pages using \`<link rel="stylesheet">\`.
+2. **Color Palette**: Establish primary, secondary, text, and background colors using HEX, RGB, and HSL.
+3. **Typography**: Define clean font families, hierarchy, and readable line heights.
+4. **Card & Header Backgrounds**: Style hero sections and portfolio cards using background colors, images, and shorthand syntax.
+5. **Clean Selectors**: Use semantic element, class (\`.btn\`, \`.card\`), and ID selectors without unnecessary repetition.
+
+### What's Next?
+In **Course 3: JavaScript Fundamentals**, you will bring your styled site to life with dynamic interactivity, event listeners, and live DOM manipulation!`,
+  },
+};
+
+export const ALL_STATIC_COURSES: CourseDetail[] = [
+  HTML_FUNDAMENTALS_COURSE,
+  CSS_FUNDAMENTALS_COURSE,
+];
+
+export const ALL_STATIC_SUMMARIES: CourseSummary[] = [
+  HTML_FUNDAMENTALS_SUMMARY,
+  CSS_FUNDAMENTALS_SUMMARY,
+];
+
+export const ALL_LESSON_DETAILS_MAP = {
+  ...HTML_LESSON_DETAILS_MAP,
+  ...CSS_LESSON_DETAILS_MAP,
+};
+

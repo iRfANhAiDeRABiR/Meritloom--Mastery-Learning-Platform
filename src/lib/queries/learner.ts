@@ -1,5 +1,5 @@
 import { getCategories, getCourseDetailBySlug } from "@/lib/queries";
-import { HTML_LESSON_DETAILS_MAP } from "@/lib/data/static-courses";
+import { ALL_LESSON_DETAILS_MAP } from "@/lib/data/static-courses";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ActiveEnrollmentDetail,
@@ -285,7 +285,10 @@ export async function getLearnerDashboardData(
               }
             }
           }
-          if (lessonCount === 0 && c.slug === "html-fundamentals") lessonCount = 22;
+          if (lessonCount === 0) {
+            if (c.slug === "html-fundamentals") lessonCount = 23;
+            else if (c.slug === "css-fundamentals") lessonCount = 18;
+          }
 
           return {
             id: c.id,
@@ -354,7 +357,10 @@ export async function getLearnerDashboardData(
                 }
               }
             }
-            if (lessonCount === 0 && c.slug === "html-fundamentals") lessonCount = 22;
+            if (lessonCount === 0) {
+              if (c.slug === "html-fundamentals") lessonCount = 23;
+              else if (c.slug === "css-fundamentals") lessonCount = 18;
+            }
 
             return {
               id: c.id,
@@ -571,11 +577,19 @@ export async function getMyLearningCoursesData(
               completedLessons = 0;
             }
 
-            if (totalLessons === 0 && course.slug === "html-fundamentals") {
-              totalLessons = 22;
-              if (!nextLessonTitle) {
-                nextLessonTitle = "HTML - Introduction";
-                nextLessonSlug = "html-introduction";
+            if (totalLessons === 0) {
+              if (course.slug === "html-fundamentals") {
+                totalLessons = 23;
+                if (!nextLessonTitle) {
+                  nextLessonTitle = "HTML - Introduction";
+                  nextLessonSlug = "html-introduction";
+                }
+              } else if (course.slug === "css-fundamentals") {
+                totalLessons = 18;
+                if (!nextLessonTitle) {
+                  nextLessonTitle = "Introduction to CSS";
+                  nextLessonSlug = "css-introduction";
+                }
               }
             }
 
@@ -694,7 +708,10 @@ export async function getMyLearningCoursesData(
                   }
                 }
               }
-              if (lessonCount === 0 && course.slug === "html-fundamentals") lessonCount = 22;
+              if (lessonCount === 0) {
+                if (course.slug === "html-fundamentals") lessonCount = 23;
+                else if (course.slug === "css-fundamentals") lessonCount = 18;
+              }
 
               return {
                 id: `saved-${course.id}`,
@@ -1234,7 +1251,11 @@ export async function getLessonPlayerData(
     let videoProvider: string = rawTargetLesson.video_provider || "youtube";
     let sourceChannel: string = rawTargetLesson.source_channel || "W3Schools.com";
     let sourceUrl: string | null = rawTargetLesson.source_url || null;
-    let playlistId: string | null = rawTargetLesson.playlist_id || "PLP9IO4UYNF0VdAajP_5pYG-jG2JRrG72s";
+    let playlistId: string | null =
+      rawTargetLesson.playlist_id ||
+      (courseSlug === "css-fundamentals"
+        ? "PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM"
+        : "PLP9IO4UYNF0VdAajP_5pYG-jG2JRrG72s");
     let objectives: string[] = [];
     let resources: LessonResource[] = [];
 
@@ -1297,7 +1318,7 @@ export async function getLessonPlayerData(
       // Ignore
     }
 
-    const staticLesson = HTML_LESSON_DETAILS_MAP[lessonSlug];
+    const staticLesson = ALL_LESSON_DETAILS_MAP[lessonSlug];
     if (staticLesson) {
       if (!lessonContent) lessonContent = staticLesson.content;
       if (!keyTakeaway) keyTakeaway = staticLesson.keyTakeaway;

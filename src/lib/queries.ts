@@ -2,7 +2,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   HTML_FUNDAMENTALS_CATEGORY,
   HTML_FUNDAMENTALS_COURSE,
-  HTML_FUNDAMENTALS_SUMMARY,
+  CSS_FUNDAMENTALS_COURSE,
+  ALL_STATIC_SUMMARIES,
 } from "@/lib/data/static-courses";
 import type {
   ActiveEnrollment,
@@ -62,7 +63,7 @@ function toNumber(value: unknown, fallback = 0): number {
 
 export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
   const supabase = await getClient();
-  if (!supabase) return [HTML_FUNDAMENTALS_SUMMARY];
+  if (!supabase) return ALL_STATIC_SUMMARIES;
 
   try {
     const { data, error } = await supabase
@@ -75,7 +76,7 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    if (error || !data || data.length === 0) return [HTML_FUNDAMENTALS_SUMMARY];
+    if (error || !data || data.length === 0) return ALL_STATIC_SUMMARIES;
 
     return data.map((row) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +84,10 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
       const category = Array.isArray(raw.category)
         ? raw.category[0]
         : raw.category;
+      let count = 0;
+      if (raw.slug === "html-fundamentals") count = 23;
+      else if (raw.slug === "css-fundamentals") count = 18;
+
       return {
         id: raw.id as string,
         slug: raw.slug as string,
@@ -90,7 +95,7 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
         shortDescription: (raw.summary as string) ?? "",
         difficulty: difficulty(raw.difficulty),
         estimatedMinutes: toNumber(raw.estimated_minutes),
-        lessonCount: raw.slug === "html-fundamentals" ? 23 : 0,
+        lessonCount: count,
         categoryName:
           category && typeof category.name === "string" ? category.name : null,
         categorySlug:
@@ -100,7 +105,7 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
       } satisfies CourseSummary;
     });
   } catch {
-    return [HTML_FUNDAMENTALS_SUMMARY];
+    return ALL_STATIC_SUMMARIES;
   }
 }
 
@@ -231,6 +236,10 @@ export async function getCatalogCourses(
       const category = Array.isArray(raw.category)
         ? raw.category[0]
         : raw.category;
+      let count = 0;
+      if (raw.slug === "html-fundamentals") count = 23;
+      else if (raw.slug === "css-fundamentals") count = 18;
+
       return {
         id: raw.id as string,
         slug: raw.slug as string,
@@ -238,7 +247,7 @@ export async function getCatalogCourses(
         shortDescription: (raw.summary as string) ?? "",
         difficulty: difficulty(raw.difficulty),
         estimatedMinutes: toNumber(raw.estimated_minutes),
-        lessonCount: raw.slug === "html-fundamentals" ? 23 : 0,
+        lessonCount: count,
         categoryName:
           category && typeof category.name === "string" ? category.name : null,
         categorySlug:
@@ -253,19 +262,29 @@ export async function getCatalogCourses(
       const cat = (params.category ?? "all").toLowerCase();
       const lev = (params.level ?? "all").toLowerCase();
 
-      const matchesQ = !q || "html fundamentals web development".includes(q);
-      const matchesCat = cat === "all" || cat === "web-development";
-      const matchesLev = lev === "all" || lev === "beginner";
-
-      if (matchesQ && matchesCat && matchesLev) {
-        return {
-          courses: [HTML_FUNDAMENTALS_SUMMARY],
-          totalCount: 1,
-          page: 1,
-          totalPages: 1,
-          pageSize,
-        };
+      let fallbackList = ALL_STATIC_SUMMARIES;
+      if (q) {
+        fallbackList = fallbackList.filter(
+          (c) =>
+            c.title.toLowerCase().includes(q) ||
+            c.shortDescription.toLowerCase().includes(q) ||
+            (c.categoryName && c.categoryName.toLowerCase().includes(q)),
+        );
       }
+      if (cat !== "all") {
+        fallbackList = fallbackList.filter((c) => c.categorySlug === cat);
+      }
+      if (lev !== "all") {
+        fallbackList = fallbackList.filter((c) => c.difficulty === lev);
+      }
+
+      return {
+        courses: fallbackList,
+        totalCount: fallbackList.length,
+        page: 1,
+        totalPages: 1,
+        pageSize,
+      };
     }
 
     return {
@@ -277,8 +296,8 @@ export async function getCatalogCourses(
     };
   } catch {
     return {
-      courses: [HTML_FUNDAMENTALS_SUMMARY],
-      totalCount: 1,
+      courses: ALL_STATIC_SUMMARIES,
+      totalCount: ALL_STATIC_SUMMARIES.length,
       page: 1,
       totalPages: 1,
       pageSize,
@@ -293,10 +312,15 @@ export async function getCourseDetailBySlug(
   slug: string,
 ): Promise<CourseDetail | null> {
   const supabase = await getClient();
-  if (!supabase) return null;
+  const cleanSlug = slug.trim().toLowerCase();
+
+  if (!supabase) {
+    if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
+    if (cleanSlug === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
+    return null;
+  }
 
   try {
-    const cleanSlug = slug.trim().toLowerCase();
     const { data, error } = await supabase
       .from("courses")
       .select(
@@ -359,6 +383,7 @@ export async function getCourseDetailBySlug(
 
       if (!fallbackData) {
         if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
+        if (cleanSlug === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
         return null;
       }
 
@@ -419,8 +444,9 @@ export async function getCourseDetailBySlug(
         // Ignore
       }
 
-      if (modules.length === 0 && cleanSlug === "html-fundamentals") {
-        return HTML_FUNDAMENTALS_COURSE;
+      if (modules.length === 0) {
+        if (cleanSlug === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
+        if (cleanSlug === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
       }
 
       const allLessons = modules.flatMap((m) => m.lessons);
@@ -609,36 +635,46 @@ export async function getCourseDetailBySlug(
           ? learningOutcomes
           : cleanSlug === "html-fundamentals"
           ? HTML_FUNDAMENTALS_COURSE.learningOutcomes
+          : cleanSlug === "css-fundamentals"
+          ? CSS_FUNDAMENTALS_COURSE.learningOutcomes
           : [],
       prerequisites:
         prerequisites.length > 0
           ? prerequisites
           : cleanSlug === "html-fundamentals"
           ? HTML_FUNDAMENTALS_COURSE.prerequisites
+          : cleanSlug === "css-fundamentals"
+          ? CSS_FUNDAMENTALS_COURSE.prerequisites
           : [],
       skills:
         skills.length > 0
           ? skills
           : cleanSlug === "html-fundamentals"
           ? HTML_FUNDAMENTALS_COURSE.skills
+          : cleanSlug === "css-fundamentals"
+          ? CSS_FUNDAMENTALS_COURSE.skills
           : [],
       targetAudience:
         targetAudience.length > 0
           ? targetAudience
           : cleanSlug === "html-fundamentals"
           ? HTML_FUNDAMENTALS_COURSE.targetAudience
+          : cleanSlug === "css-fundamentals"
+          ? CSS_FUNDAMENTALS_COURSE.targetAudience
           : [],
       modules:
         modules.length > 0
           ? modules
           : cleanSlug === "html-fundamentals"
           ? HTML_FUNDAMENTALS_COURSE.modules
+          : cleanSlug === "css-fundamentals"
+          ? CSS_FUNDAMENTALS_COURSE.modules
           : [],
     };
   } catch {
-    if (slug.trim().toLowerCase() === "html-fundamentals") {
-      return HTML_FUNDAMENTALS_COURSE;
-    }
+    const clean = slug.trim().toLowerCase();
+    if (clean === "html-fundamentals") return HTML_FUNDAMENTALS_COURSE;
+    if (clean === "css-fundamentals") return CSS_FUNDAMENTALS_COURSE;
     return null;
   }
 }
