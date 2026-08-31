@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
+  StickyNote,
   UserRound,
 } from "lucide-react";
 
@@ -51,6 +52,12 @@ const NAV_ITEMS = [
     label: "Saved",
     href: routes.learnSaved,
     icon: Bookmark,
+    exact: false,
+  },
+  {
+    label: "Notes",
+    href: "/learn/notes",
+    icon: StickyNote,
     exact: false,
   },
   {

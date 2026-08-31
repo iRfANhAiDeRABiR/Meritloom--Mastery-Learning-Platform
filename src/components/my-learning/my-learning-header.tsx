@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass } from "lucide-react";
+import { Compass, StickyNote } from "lucide-react";
 
 import { routes } from "@/lib/routes";
 
@@ -15,12 +15,19 @@ export function MyLearningHeader() {
         </p>
       </div>
 
-      <div className="shrink-0">
+      <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <Link
+          href="/learn/notes"
+          className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2 text-xs font-bold text-ink shadow-xs transition-all duration-200 hover:border-primary/40 hover:text-primary"
+        >
+          <StickyNote className="size-3.5 text-primary" aria-hidden="true" />
+          <span>My notes & bookmarks</span>
+        </Link>
         <Link
           href={routes.courses.index}
-          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover"
         >
-          <Compass className="size-4" aria-hidden="true" />
+          <Compass className="size-3.5" aria-hidden="true" />
           <span>Explore courses</span>
         </Link>
       </div>

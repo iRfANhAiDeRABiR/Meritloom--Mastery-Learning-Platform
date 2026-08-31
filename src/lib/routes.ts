@@ -16,6 +16,7 @@ export const routes = {
   learn: "/learn",
   learnCourses: "/learn/courses",
   learnSaved: "/learn/saved",
+  learnNotes: "/learn/notes",
   profile: "/profile",
   courses: {
     index: "/courses",

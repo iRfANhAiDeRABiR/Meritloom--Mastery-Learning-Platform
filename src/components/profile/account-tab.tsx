@@ -23,6 +23,7 @@ import {
 import { deleteAccountAction, updatePasswordAction } from "@/lib/actions/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { routes } from "@/lib/routes";
+import { notify } from "@/lib/notifications/toast";
 import type { ProfileSettingsData } from "@/lib/types";
 
 interface AccountTabProps {
@@ -76,10 +77,13 @@ export function AccountTab({ profile, provider }: AccountTabProps) {
       setPasswordStatus("success");
       setNewPassword("");
       setConfirmPassword("");
+      notify.success({ title: "Password updated" });
       setTimeout(() => setPasswordStatus("idle"), 3000);
     } else {
       setPasswordStatus("error");
-      setPasswordError(result.error || "Failed to update password.");
+      const msg = result.error || "Failed to update password.";
+      setPasswordError(msg);
+      notify.error({ title: msg });
     }
 
     setIsUpdatingPassword(false);
@@ -105,10 +109,13 @@ export function AccountTab({ profile, provider }: AccountTabProps) {
     const result = await deleteAccountAction({ confirmationText: deleteConfirmText });
 
     if (result.success) {
+      notify.success({ title: "Account deleted" });
       router.push("/");
       router.refresh();
     } else {
-      setDeleteError(result.error || "Failed to delete account.");
+      const msg = result.error || "Failed to delete account.";
+      setDeleteError(msg);
+      notify.error({ title: msg });
       setIsDeleting(false);
     }
   };

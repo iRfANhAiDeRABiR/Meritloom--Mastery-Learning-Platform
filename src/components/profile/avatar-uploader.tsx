@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Camera, Loader2, Trash2 } from "lucide-react";
 
 import { removeAvatarAction, uploadAvatarAction } from "@/lib/actions/profile";
+import { notify } from "@/lib/notifications/toast";
 
 interface AvatarUploaderProps {
   currentAvatarUrl: string | null;
@@ -39,12 +40,16 @@ export function AvatarUploader({
     // Client-side validation
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      setErrorMessage("Please select a JPG, PNG, or WebP image.");
+      const msg = "Please select a JPG, PNG, or WebP image.";
+      setErrorMessage(msg);
+      notify.error({ title: msg });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("Image must be 5 MB or smaller.");
+      const msg = "Image must be 5 MB or smaller.";
+      setErrorMessage(msg);
+      notify.error({ title: msg });
       return;
     }
 
@@ -56,8 +61,11 @@ export function AvatarUploader({
 
     if (result.success && result.avatarUrl) {
       onAvatarChange(result.avatarUrl);
+      notify.success({ title: "Profile photo updated" });
     } else {
-      setErrorMessage(result.error || "Failed to upload image.");
+      const msg = result.error || "Failed to upload image.";
+      setErrorMessage(msg);
+      notify.error({ title: msg });
     }
 
     setIsUploading(false);
@@ -74,8 +82,11 @@ export function AvatarUploader({
     const result = await removeAvatarAction();
     if (result.success) {
       onAvatarChange(null);
+      notify.success({ title: "Profile photo removed" });
     } else {
-      setErrorMessage(result.error || "Failed to remove photo.");
+      const msg = result.error || "Failed to remove photo.";
+      setErrorMessage(msg);
+      notify.error({ title: msg });
     }
     setIsUploading(false);
   };

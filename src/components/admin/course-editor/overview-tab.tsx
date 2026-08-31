@@ -4,6 +4,7 @@ import * as React from "react";
 import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { updateCourseOverviewAction } from "@/lib/actions/admin";
+import { notify } from "@/lib/notifications/toast";
 import type { AdminCourseDetail, Category, CourseDifficulty } from "@/lib/types";
 
 interface OverviewTabProps {
@@ -43,12 +44,15 @@ export function OverviewTab({ course, categories }: OverviewTabProps) {
 
       if (!res.success) {
         setMsg({ type: "error", text: res.error || "Failed to update course." });
+        notify.error({ title: res.error || "Failed to update course." });
       } else {
         setMsg({ type: "success", text: "Course overview saved successfully." });
+        notify.success({ title: "Course saved" });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "An error occurred.";
       setMsg({ type: "error", text: msg });
+      notify.error({ title: msg });
     } finally {
       setIsSaving(false);
     }

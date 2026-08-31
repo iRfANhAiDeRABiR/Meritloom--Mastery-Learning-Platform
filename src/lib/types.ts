@@ -415,6 +415,8 @@ export interface LessonPlayerData {
   requiredLessonsCount?: number;
   bonusLessonsCount?: number;
   isBonusLesson?: boolean;
+  initialNote?: string | null;
+  isBookmarked?: boolean;
 }
 
 export interface ActiveEnrollment {
@@ -791,4 +793,112 @@ export interface YouTubePlaylistItemParsed {
   playlistId: string;
   isBonus: boolean;
   isAlreadyImported?: boolean;
+}
+
+export interface AdminLearningPathListItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  difficulty: CourseDifficulty;
+  isPublished: boolean;
+  position: number;
+  courseCount: number;
+  stepCount: number;
+  estimatedMinutes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminLearningPathItemDetail {
+  id: string;
+  learningPathId: string;
+  courseId: string | null;
+  itemType: "course" | "project";
+  title: string | null;
+  description: string | null;
+  stepLabel: string | null;
+  position: number;
+  isRequired: boolean;
+  estimatedMinutes?: number | null;
+  course?: {
+    id: string;
+    slug: string;
+    title: string;
+    summary: string | null;
+    difficulty: CourseDifficulty;
+    isPublished: boolean;
+    lessonCount: number;
+    estimatedMinutes: number | null;
+    categoryName: string | null;
+    coverImageUrl: string | null;
+  } | null;
+}
+
+export interface AdminLearningPathDetail {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  summary: string | null;
+  description: string | null;
+  difficulty: CourseDifficulty;
+  estimatedMinutes: number;
+  courseCount: number;
+  coverImageUrl: string | null;
+  isPublished: boolean;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+  items: AdminLearningPathItemDetail[];
+}
+
+export interface AvailableCourseForPath {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  difficulty: CourseDifficulty;
+  isPublished: boolean;
+  categoryName: string | null;
+  lessonCount: number;
+  estimatedMinutes: number | null;
+  coverImageUrl: string | null;
+}
+
+export interface LearnerLessonNoteItem {
+  id: string;
+  lessonId: string;
+  lessonSlug: string;
+  lessonTitle: string;
+  lessonType: LessonType;
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  moduleTitle: string;
+  content: string;
+  updatedAt: string;
+  isBookmarked: boolean;
+}
+
+export interface LearnerLessonBookmarkItem {
+  id: string;
+  lessonId: string;
+  lessonSlug: string;
+  lessonTitle: string;
+  lessonType: LessonType;
+  estimatedMinutes: number | null;
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  moduleTitle: string;
+  isCompleted: boolean;
+  hasNote: boolean;
+  bookmarkedAt: string;
+}
+
+export interface MyNotesPageData {
+  notes: LearnerLessonNoteItem[];
+  bookmarks: LearnerLessonBookmarkItem[];
+  availableCourses: { slug: string; title: string }[];
 }

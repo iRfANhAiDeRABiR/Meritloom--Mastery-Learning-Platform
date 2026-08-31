@@ -10,6 +10,7 @@ import { QuizAnswerReview } from "@/components/quiz-results/quiz-answer-review";
 import { QuizRecommendationSection } from "@/components/quiz-results/quiz-recommendation-section";
 import { QuizResultHero } from "@/components/quiz-results/quiz-result-hero";
 import { retryQuizAttemptAction } from "@/lib/actions/quiz";
+import { notify } from "@/lib/notifications/toast";
 import type { QuizResultsPageData } from "@/lib/types";
 
 interface QuizResultsContainerProps {
@@ -41,6 +42,8 @@ export function QuizResultsContainer({ data }: QuizResultsContainerProps) {
     const res = await retryQuizAttemptAction(quiz.id, course.slug, lesson.slug);
     if (res.success) {
       router.push(`/learn/courses/${course.slug}/lessons/${lesson.slug}`);
+    } else {
+      notify.error({ title: res.error || "Could not restart the quiz." });
     }
   };
 

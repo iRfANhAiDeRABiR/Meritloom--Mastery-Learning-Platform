@@ -17,6 +17,7 @@ import {
 
 import { CourseCover } from "@/components/courses/course-cover";
 import { startSavedCourseAction, toggleSaveCourseAction } from "@/lib/actions/my-learning";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import type { SavedCourseItem } from "@/lib/types";
 import { cn, formatDifficulty, formatDuration } from "@/lib/utils";
@@ -49,7 +50,10 @@ export function SavedCourseCard({
     const res = await toggleSaveCourseAction(course.courseId);
     if (!res.success) {
       // Revert if server failed
+      notify.error({ title: res.error || "Could not remove saved course." });
       router.refresh();
+    } else {
+      notify.success({ title: "Removed from saved" });
     }
   };
 
@@ -62,6 +66,7 @@ export function SavedCourseCard({
     if (res.success && res.redirectUrl) {
       router.push(res.redirectUrl);
     } else {
+      notify.error({ title: res.error || "Could not start this course." });
       setIsStarting(false);
     }
   };

@@ -23,6 +23,7 @@ import {
   startSavedCourseAction,
   toggleSaveCourseAction,
 } from "@/lib/actions/my-learning";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import type { LearnerCourseItem } from "@/lib/types";
 import { cn, formatDifficulty, formatDuration } from "@/lib/utils";
@@ -57,14 +58,24 @@ export function LearnerCourseCard({ course }: LearnerCourseCardProps) {
   const handleArchive = async () => {
     setIsActionPending(true);
     setIsMenuOpen(false);
-    await archiveCourseAction(course.id);
+    const res = await archiveCourseAction(course.id);
+    if (res.success) {
+      notify.success({ title: "Course archived" });
+    } else {
+      notify.error({ title: res.error || "Could not archive course." });
+    }
     setIsActionPending(false);
   };
 
   const handleRemoveSaved = async () => {
     setIsActionPending(true);
     setIsMenuOpen(false);
-    await toggleSaveCourseAction(course.courseId);
+    const res = await toggleSaveCourseAction(course.courseId);
+    if (res.success) {
+      notify.success({ title: "Removed from saved" });
+    } else {
+      notify.error({ title: res.error || "Could not remove from saved." });
+    }
     setIsActionPending(false);
   };
 
@@ -75,6 +86,8 @@ export function LearnerCourseCard({ course }: LearnerCourseCardProps) {
     const res = await startSavedCourseAction(course.courseId);
     if (res.redirectUrl) {
       router.push(res.redirectUrl);
+    } else {
+      notify.error({ title: res.error || "Could not start this course." });
     }
     setIsActionPending(false);
   };

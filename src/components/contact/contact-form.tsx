@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { submitSupportMessage, type SupportActionState } from "@/lib/actions/support";
+import { notify } from "@/lib/notifications/toast";
 import type { LearnerProfile } from "@/lib/types";
 
 const TOPIC_OPTIONS = [
@@ -26,6 +27,14 @@ export function ContactForm({ user }: { user: LearnerProfile | null }) {
   );
 
   const [message, setMessage] = React.useState("");
+
+  React.useEffect(() => {
+    if (state.success) {
+      notify.success({ title: "Message sent", description: "We'll get back to you soon." });
+    } else if (state.error) {
+      notify.error({ title: state.error });
+    }
+  }, [state.success, state.error]);
 
   if (state.success) {
     return (

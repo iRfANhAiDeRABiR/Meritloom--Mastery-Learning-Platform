@@ -12,6 +12,8 @@ import { StepInterests } from "@/components/onboarding/step-interests";
 import { StepLearningStyle } from "@/components/onboarding/step-learning-style";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { saveOnboardingAction } from "@/lib/actions/onboarding";
+import { getUserFacingError } from "@/lib/errors/user-facing-errors";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import type {
   Category,
@@ -135,8 +137,20 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
         // Ignore
       }
       setIsSuccess(true);
+      notify.success({
+        title: "Preferences saved",
+        description: "Your learning profile is ready.",
+      });
     } else {
       setIsLoading(false);
+      const { title, description } = getUserFacingError(
+        res.error,
+        "Continuing to your courses instead."
+      );
+      notify.warning({
+        title: title || "Couldn't save preferences",
+        description,
+      });
       router.push(routes.learn);
     }
   };

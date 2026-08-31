@@ -7,6 +7,10 @@ import type {
   AdminModuleDetail,
   AdminQuestionDetail,
   AdminQuizDetail,
+  AdminLearningPathDetail,
+  AdminLearningPathItemDetail,
+  AdminLearningPathListItem,
+  AvailableCourseForPath,
   Category,
   CourseDifficulty,
   LessonType,
@@ -610,6 +614,422 @@ export async function getAdminSkills(): Promise<
       description: row.description,
       courseCount: Array.isArray(row.course_skills) ? row.course_skills.length : 0,
     }));
+  } catch {
+    return [];
+  }
+}
+
+interface RawPathListRow {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  difficulty: string | null;
+  is_published: boolean | null;
+  position: number | null;
+  estimated_minutes: number | null;
+  created_at: string;
+  updated_at: string;
+  items?: {
+    id: string;
+    item_type: string;
+    estimated_minutes: number | null;
+    course?: { estimated_minutes: number | null } | { estimated_minutes: number | null }[] | null;
+  }[] | null;
+}
+
+/**
+ * Fetch all learning paths for Admin Learning Paths list with search & filter.
+ */
+export async function getAdminLearningPathsList(params: {
+  q?: string;
+  status?: string;
+}): Promise<AdminLearningPathListItem[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("learning_paths")
+      .select(`
+        id,
+        slug,
+        title,
+        summary,
+        difficulty,
+        is_published,
+        position,
+        estimated_minutes,
+        created_at,
+        updated_at,
+        items:learning_path_items (
+          id,
+          item_type,
+          estimated_minutes,
+          course:courses (
+            estimated_minutes
+          )
+        )
+      `)
+      .order("position", { ascending: true })
+      .order("updated_at", { ascending: false });
+
+    const q = (params.q ?? "").trim().toLowerCase();
+    if (q) {
+      const clean = q.replace(/[%_]/g, "");
+      query = query.or(`title.ilike.%${clean}%,slug.ilike.%${clean}%,summary.ilike.%${clean}%`);
+    }
+
+    const status = (params.status ?? "all").toLowerCase().trim();
+    if (status === "published") {
+      query = query.eq("is_published", true);
+    } else if (status === "draft") {
+      query = query.eq("is_published", false);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) return [];
+
+    return (data as unknown as RawPathListRow[]).map((row) => {
+      const items = Array.isArray(row.items) ? row.items : [];
+      const courseItems = items.filter((i) => i.item_type === "course");
+
+      let totalDuration = 0;
+      items.forEach((it) => {
+        if (it.item_type === "course") {
+          const c = Array.isArray(it.course) ? it.course[0] : it.course;
+          totalDuration += Number(c?.estimated_minutes) || 0;
+        } else {
+          totalDuration += Number(it.estimated_minutes) || 30;
+        }
+      });
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        summary: row.summary,
+        difficulty: (row.difficulty || "beginner") as CourseDifficulty,
+        isPublished: Boolean(row.is_published),
+        position: row.position ?? 0,
+        courseCount: courseItems.length,
+        stepCount: items.length,
+        estimatedMinutes: totalDuration || Number(row.estimated_minutes) || 0,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+interface RawAdminPathDetailRow {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  summary: string | null;
+  description: string | null;
+  difficulty: string | null;
+  estimated_minutes: number | null;
+  course_count: number | null;
+  cover_image_url: string | null;
+  is_published: boolean | null;
+  position: number | null;
+  created_at: string;
+  updated_at: string;
+  items?: {
+    id: string;
+    learning_path_id: string;
+    course_id: string | null;
+    item_type: string;
+    title: string | null;
+    description: string | null;
+    step_label: string | null;
+    position: number;
+    is_required: boolean | null;
+    estimated_minutes: number | null;
+    course?: {
+      id: string;
+      slug: string;
+      title: string;
+      summary: string | null;
+      difficulty: string | null;
+      is_published: boolean | null;
+      estimated_minutes: number | null;
+      cover_image_url: string | null;
+      category?: { name?: string } | { name?: string }[] | null;
+      modules?: { id: string; lessons?: { id: string }[] }[] | null;
+    } | {
+      id: string;
+      slug: string;
+      title: string;
+      summary: string | null;
+      difficulty: string | null;
+      is_published: boolean | null;
+      estimated_minutes: number | null;
+      cover_image_url: string | null;
+      category?: { name?: string } | { name?: string }[] | null;
+      modules?: { id: string; lessons?: { id: string }[] }[] | null;
+    }[] | null;
+  }[] | null;
+}
+
+/**
+ * Fetch full learning path structure for Admin Editor.
+ */
+export async function getAdminLearningPathDetail(
+  pathIdOrSlug: string,
+): Promise<AdminLearningPathDetail | null> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      pathIdOrSlug,
+    );
+
+    let query = supabase
+      .from("learning_paths")
+      .select(`
+        id,
+        slug,
+        title,
+        subtitle,
+        summary,
+        description,
+        difficulty,
+        estimated_minutes,
+        course_count,
+        cover_image_url,
+        is_published,
+        position,
+        created_at,
+        updated_at,
+        items:learning_path_items (
+          id,
+          learning_path_id,
+          course_id,
+          item_type,
+          title,
+          description,
+          step_label,
+          position,
+          is_required,
+          estimated_minutes,
+          course:courses (
+            id,
+            slug,
+            title,
+            summary,
+            difficulty,
+            is_published,
+            estimated_minutes,
+            cover_image_url,
+            category:categories (name),
+            modules:course_modules (
+              id,
+              lessons:lessons (id)
+            )
+          )
+        )
+      `);
+
+    if (isUuid) {
+      query = query.eq("id", pathIdOrSlug);
+    } else {
+      query = query.eq("slug", pathIdOrSlug);
+    }
+
+    const { data, error } = await query.maybeSingle();
+    if (error || !data) return null;
+
+    const row = data as unknown as RawAdminPathDetailRow;
+    const rawItems = Array.isArray(row.items) ? row.items : [];
+    const sortedItems = [...rawItems].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+    let totalDuration = 0;
+    const items: AdminLearningPathItemDetail[] = sortedItems.map((it) => {
+      const c = Array.isArray(it.course) ? it.course[0] : it.course;
+      let courseObj = null;
+
+      if (it.item_type === "course" && c) {
+        const cat = Array.isArray(c.category) ? c.category[0] : c.category;
+        const modules = Array.isArray(c.modules) ? c.modules : [];
+        let totalLessons = 0;
+        modules.forEach((m) => {
+          if (Array.isArray(m.lessons)) totalLessons += m.lessons.length;
+        });
+
+        const est = Number(c.estimated_minutes) || 0;
+        totalDuration += est;
+
+        courseObj = {
+          id: c.id,
+          slug: c.slug,
+          title: c.title,
+          summary: c.summary,
+          difficulty: (c.difficulty || "beginner") as CourseDifficulty,
+          isPublished: Boolean(c.is_published),
+          lessonCount: totalLessons,
+          estimatedMinutes: c.estimated_minutes,
+          categoryName: cat?.name ?? null,
+          coverImageUrl: c.cover_image_url,
+        };
+      } else if (it.item_type === "project") {
+        totalDuration += Number(it.estimated_minutes) || 30;
+      }
+
+      return {
+        id: it.id,
+        learningPathId: it.learning_path_id,
+        courseId: it.course_id,
+        itemType: (it.item_type === "project" ? "project" : "course") as "course" | "project",
+        title: it.title,
+        description: it.description,
+        stepLabel: it.step_label,
+        position: it.position,
+        isRequired: it.is_required !== false,
+        estimatedMinutes: it.estimated_minutes,
+        course: courseObj,
+      };
+    });
+
+    const courseCount = items.filter((i) => i.itemType === "course").length;
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      subtitle: row.subtitle,
+      summary: row.summary,
+      description: row.description,
+      difficulty: (row.difficulty || "beginner") as CourseDifficulty,
+      estimatedMinutes: totalDuration || Number(row.estimated_minutes) || 0,
+      courseCount,
+      coverImageUrl: row.cover_image_url,
+      isPublished: Boolean(row.is_published),
+      position: row.position ?? 0,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      items,
+    };
+  } catch {
+    return null;
+  }
+}
+
+interface RawAvailableCourseRow {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  difficulty: string | null;
+  is_published: boolean | null;
+  estimated_minutes: number | null;
+  cover_image_url: string | null;
+  category?: { name?: string } | { name?: string }[] | null;
+  modules?: { id: string; lessons?: { id: string }[] }[] | null;
+}
+
+/**
+ * Fetch all available courses for CoursePicker in Learning Path editor.
+ */
+export async function getAdminAvailableCoursesForPath(): Promise<AvailableCourseForPath[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("courses")
+      .select(`
+        id,
+        slug,
+        title,
+        summary,
+        difficulty,
+        is_published,
+        estimated_minutes,
+        cover_image_url,
+        category:categories (name),
+        modules:course_modules (
+          id,
+          lessons:lessons (id)
+        )
+      `)
+      .order("title", { ascending: true });
+
+    if (error || !data) return [];
+
+    return (data as unknown as RawAvailableCourseRow[]).map((c) => {
+      const cat = Array.isArray(c.category) ? c.category[0] : c.category;
+      const modules = Array.isArray(c.modules) ? c.modules : [];
+      let totalLessons = 0;
+      modules.forEach((m) => {
+        if (Array.isArray(m.lessons)) totalLessons += m.lessons.length;
+      });
+
+      return {
+        id: c.id,
+        slug: c.slug,
+        title: c.title,
+        summary: c.summary,
+        difficulty: (c.difficulty || "beginner") as CourseDifficulty,
+        isPublished: Boolean(c.is_published),
+        categoryName: cat?.name ?? null,
+        lessonCount: totalLessons,
+        estimatedMinutes: c.estimated_minutes,
+        coverImageUrl: c.cover_image_url,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch learning paths that contain a specific course.
+ */
+export async function getAdminCourseLearningPaths(
+  courseId: string,
+): Promise<{ id: string; slug: string; title: string; stepLabel: string | null; isPublished: boolean }[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("learning_path_items")
+      .select(`
+        step_label,
+        path:learning_paths (
+          id,
+          slug,
+          title,
+          is_published
+        )
+      `)
+      .eq("course_id", courseId);
+
+    if (error || !data) return [];
+
+    interface RawPathMembership {
+      step_label: string | null;
+      path?: { id: string; slug: string; title: string; is_published: boolean } | { id: string; slug: string; title: string; is_published: boolean }[] | null;
+    }
+
+    return (data as unknown as RawPathMembership[])
+      .filter((d) => d.path)
+      .map((d) => {
+        const p = Array.isArray(d.path) ? d.path[0] : d.path;
+        return {
+          id: p!.id,
+          slug: p!.slug,
+          title: p!.title,
+          stepLabel: d.step_label,
+          isPublished: Boolean(p!.is_published),
+        };
+      });
   } catch {
     return [];
   }

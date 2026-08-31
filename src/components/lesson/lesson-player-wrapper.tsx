@@ -115,11 +115,11 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
               )}
 
               {/* Lesson Text / Article / Code Content */}
-              <LessonContentRenderer lesson={currentLesson} />
+              <LessonContentRenderer lesson={currentLesson} isBookmarked={data.isBookmarked} />
 
               {/* Stacked Objectives & Resources on smaller screens / mobile */}
               <div className="flex flex-col gap-6 xl:hidden pt-4 border-t border-line">
-                <LessonContextPanel lesson={currentLesson} />
+                <LessonContextPanel lesson={currentLesson} courseTitle={course.title} initialNote={data.initialNote || ""} />
               </div>
 
               {/* Lesson Bottom Navigation & Completion CTA */}
@@ -138,7 +138,7 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
           {/* Right Context Panel: Objectives & Resources (Desktop only, hidden in Focus Mode) */}
           {!isFocusMode && (
             <aside className="hidden xl:flex w-[280px] 2xl:w-[310px] shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden border-l border-line p-4 lg:p-5 bg-card/30">
-              <LessonContextPanel lesson={currentLesson} />
+              <LessonContextPanel lesson={currentLesson} courseTitle={course.title} initialNote={data.initialNote || ""} />
             </aside>
           )}
         </div>

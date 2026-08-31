@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   ChevronRight,
+  DatabaseBackup,
   Layers,
   LayoutDashboard,
+  Route,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,6 +24,18 @@ const NAV_ITEMS = [
     label: "Courses",
     href: "/admin/courses",
     icon: BookOpen,
+    exact: false,
+  },
+  {
+    label: "Learning Paths",
+    href: "/admin/learning-paths",
+    icon: Route,
+    exact: false,
+  },
+  {
+    label: "Content Tools",
+    href: "/admin/content-tools",
+    icon: DatabaseBackup,
     exact: false,
   },
   {

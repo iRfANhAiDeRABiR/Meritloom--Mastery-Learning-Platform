@@ -504,3 +504,88 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Meritloom Global Toast System (Sonner) ────────────────────────────── */
+
+/* Base toast card: neutral elevated card, semantic accent via icon only */
+.meritloom-toast {
+  --normal-bg: #ffffff !important;
+  --normal-border: #e5e9f2 !important;
+  --normal-border-hover: #dce1ed !important;
+}
+:where(.dark) .meritloom-toast,
+[data-theme="dark"] .meritloom-toast {
+  --normal-bg: #151d31 !important;
+  --normal-border: #29334a !important;
+  --normal-border-hover: #33405f !important;
+}
+.meritloom-toast {
+  width: 360px !important;
+  max-width: calc(100vw - 24px) !important;
+  background: var(--normal-bg) !important;
+  border-color: var(--normal-border) !important;
+  color: var(--text-primary) !important;
+}
+.meritloom-toast [data-description] {
+  color: var(--text-secondary) !important;
+}
+/* Sonner assigns data-rich-colors; we keep card neutral with icon accent */
+.meritloom-toast[data-type="success"] [data-icon] {
+  color: #19b99a !important;
+}
+.meritloom-toast[data-type="error"] [data-icon] {
+  color: #ef4444 !important;
+}
+.meritloom-toast[data-type="warning"] [data-icon] {
+  color: #f59e0b !important;
+}
+.meritloom-toast[data-type="info"] [data-icon] {
+  color: #6d4aff !important;
+}
+:where(.dark) .meritloom-toast[data-type="info"] [data-icon] {
+  color: #7c5cff !important;
+}
+.meritloom-toast [data-icon] > svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Icon surface dot for non-loading types */
+.meritloom-toast[data-type="success"],
+.meritloom-toast[data-type="error"],
+.meritloom-toast[data-type="warning"],
+.meritloom-toast[data-type="info"] {
+  --icon-bg: transparent;
+}
+
+/* Desktop: top-right already via Sonner offset. Mobile: shift to bottom-center */
+@media (max-width: 640px) {
+  [data-sonner-toaster][data-x-position="right"] {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+    top: auto !important;
+    width: calc(100vw - 24px) !important;
+    max-width: 420px !important;
+    justify-content: center !important;
+  }
+  /* Each toast takes full available width on mobile */
+  [data-sonner-toaster][data-x-position="right"] [data-sonner-toast] {
+    width: calc(100vw - 24px) !important;
+    max-width: 420px !important;
+  }
+}
+
+/* Ensure toaster never clips action/dismiss on 360px screens */
+.meritloom-toast [data-button] {
+  min-height: 32px;
+}
+
+/* Sonner animation respects prefers-reduced-motion automatically;
+   this forces a clean fade-only when the user prefers reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toaster] [data-sonner-toast] {
+    animation: none !important;
+  }
+}

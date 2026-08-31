@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -72,6 +73,7 @@ export default function RootLayout({
             Skip to main content
           </a>
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

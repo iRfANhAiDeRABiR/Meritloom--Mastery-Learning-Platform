@@ -1117,6 +1117,31 @@ export async function getLessonPlayerData(
       // Ignore
     }
 
+    // 2.5 Query private note & bookmark state
+    let initialNote = "";
+    let isBookmarked = false;
+    try {
+      const [noteRes, bookmarkRes] = await Promise.all([
+        supabase
+          .from("lesson_notes")
+          .select("content")
+          .eq("user_id", userId)
+          .eq("lesson_id", rawTargetLesson.id)
+          .maybeSingle(),
+        supabase
+          .from("lesson_bookmarks")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("lesson_id", rawTargetLesson.id)
+          .maybeSingle(),
+      ]);
+
+      initialNote = noteRes.data?.content || "";
+      isBookmarked = Boolean(bookmarkRes.data);
+    } catch {
+      // Ignore
+    }
+
     // 3. Query lesson progress & update last_viewed_at
     const completedLessonIds = new Set<string>();
     let currentLessonCompleted = false;

@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { enrollInCourseAction } from "@/lib/actions/enroll";
+import { notify } from "@/lib/notifications/toast";
 import type { CourseDetail, CourseEnrollmentStatus, LearnerProfile } from "@/lib/types";
 import { cn, formatDifficulty, formatDuration } from "@/lib/utils";
 
@@ -56,9 +57,11 @@ export function CourseStartCard({
     startTransition(async () => {
       const res = await enrollInCourseAction(course.id, course.slug);
       if (res.success) {
+        notify.success({ title: "Enrolled!", description: "Starting your course..." });
         router.push(res.redirectUrl || `/learn/courses/${course.slug}`);
       } else if (res.error) {
         setErrorMsg(res.error);
+        notify.error({ title: res.error });
       }
     });
   };

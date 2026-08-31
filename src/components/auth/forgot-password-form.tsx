@@ -7,6 +7,8 @@ import { ArrowLeft, ArrowRight, Loader2, Mail } from "lucide-react";
 import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
 import { Button } from "@/components/ui/button";
 import { formatAuthError } from "@/lib/auth-helpers";
+import { getUserFacingError } from "@/lib/errors/user-facing-errors";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -40,15 +42,23 @@ export function ForgotPasswordForm() {
 
       if (error) {
         setIsLoading(false);
-        setErrorMessage(formatAuthError(error));
+        const { title, description } = getUserFacingError(error, formatAuthError(error));
+        setErrorMessage(title);
+        notify.error({ title, description });
         return;
       }
 
       setIsLoading(false);
       setIsSuccess(true);
-    } catch {
+      notify.success({
+        title: "Reset link sent",
+        description: "Check your email for a password reset link.",
+      });
+    } catch (err) {
       setIsLoading(false);
-      setErrorMessage("Unable to send reset link right now. Please try again.");
+      const { title, description } = getUserFacingError(err);
+      setErrorMessage(title);
+      notify.error({ title, description });
     }
   };
 

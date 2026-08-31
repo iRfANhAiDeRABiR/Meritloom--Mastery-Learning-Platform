@@ -5,6 +5,8 @@ import { Check, Loader2 } from "lucide-react";
 
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { updateProfileNameAction } from "@/lib/actions/profile";
+import { getUserFacingError } from "@/lib/errors/user-facing-errors";
+import { notify } from "@/lib/notifications/toast";
 import type { ProfileSettingsData } from "@/lib/types";
 
 interface ProfileTabProps {
@@ -32,10 +34,14 @@ export function ProfileTab({ profile }: ProfileTabProps) {
 
     if (result.success) {
       setSaveStatus("success");
+      notify.success({ title: "Profile updated" });
       setTimeout(() => setSaveStatus("idle"), 3000);
     } else {
       setSaveStatus("error");
-      setErrorMessage(result.error || "We couldn't save your profile. Please try again.");
+      const title = result.error || "We couldn't save your profile. Please try again.";
+      setErrorMessage(title);
+      const { description } = getUserFacingError(result.error, title);
+      notify.error({ title, description });
     }
 
     setIsSaving(false);

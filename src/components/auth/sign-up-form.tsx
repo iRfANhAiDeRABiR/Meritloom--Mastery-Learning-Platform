@@ -11,6 +11,8 @@ import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
+import { getUserFacingError } from "@/lib/errors/user-facing-errors";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -93,25 +95,32 @@ export function SignUpForm() {
 
       if (error) {
         setIsLoading(false);
-        setErrorMessage(formatAuthError(error));
+        const { title, description } = getUserFacingError(error, formatAuthError(error));
+        setErrorMessage(title);
+        notify.error({ title, description });
         return;
       }
 
       // Check if session was created directly or if email confirmation is pending
       if (data?.session) {
+        notify.success({ title: "Account created", description: "Welcome to Meritloom!" });
         router.push(safeNext);
         router.refresh();
       } else if (data?.user && !data.user.confirmed_at) {
         setIsLoading(false);
         setNeedsVerification(true);
         setResendCooldown(60);
+        notify.success({ title: "Check your email", description: "We sent a verification link to your inbox." });
       } else {
+        notify.success({ title: "Account created" });
         router.push(safeNext);
         router.refresh();
       }
-    } catch {
+    } catch (err) {
       setIsLoading(false);
-      setErrorMessage("Unable to create account right now. Please try again.");
+      const { title, description } = getUserFacingError(err);
+      setErrorMessage(title);
+      notify.error({ title, description });
     }
   };
 
@@ -134,13 +143,18 @@ export function SignUpForm() {
       });
 
       if (error) {
-        setResendMessage(formatAuthError(error));
+        const { title, description } = getUserFacingError(error, formatAuthError(error));
+        setResendMessage(title);
+        notify.error({ title, description });
       } else {
         setResendMessage("Verification email resent. Please check your inbox.");
         setResendCooldown(60);
+        notify.success({ title: "Verification email sent" });
       }
-    } catch {
-      setResendMessage("Could not resend email. Please try again later.");
+    } catch (err) {
+      const { title, description } = getUserFacingError(err);
+      setResendMessage(title);
+      notify.error({ title, description });
     }
   };
 

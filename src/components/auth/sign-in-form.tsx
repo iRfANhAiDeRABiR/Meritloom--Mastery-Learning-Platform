@@ -10,6 +10,8 @@ import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
+import { getUserFacingError } from "@/lib/errors/user-facing-errors";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -53,15 +55,20 @@ export function SignInForm() {
 
       if (error) {
         setIsLoading(false);
-        setErrorMessage(formatAuthError(error));
+        const { title, description } = getUserFacingError(error, formatAuthError(error));
+        setErrorMessage(title);
+        notify.error({ title, description });
         return;
       }
 
+      notify.success({ title: "Signed in", description: "Welcome back!" });
       router.push(safeNext);
       router.refresh();
-    } catch {
+    } catch (err) {
       setIsLoading(false);
-      setErrorMessage("Unable to sign in right now. Please try again.");
+      const { title, description } = getUserFacingError(err);
+      setErrorMessage(title);
+      notify.error({ title, description });
     }
   };
 

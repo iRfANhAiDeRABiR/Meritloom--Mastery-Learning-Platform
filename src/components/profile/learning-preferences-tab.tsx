@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { updateLearningPreferencesAction } from "@/lib/actions/profile";
+import { notify } from "@/lib/notifications/toast";
 import type {
   Category,
   ContentPreference,
@@ -184,10 +185,13 @@ export function LearningPreferencesTab({
 
     if (result.success) {
       setSaveStatus("success");
+      notify.success({ title: "Preferences saved" });
       setTimeout(() => setSaveStatus("idle"), 3000);
     } else {
       setSaveStatus("error");
-      setErrorMessage(result.error || "We couldn't update your learning preferences.");
+      const title = result.error || "We couldn't update your learning preferences.";
+      setErrorMessage(title);
+      notify.error({ title });
     }
 
     setIsSaving(false);

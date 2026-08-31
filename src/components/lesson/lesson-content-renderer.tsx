@@ -2,14 +2,16 @@
 
 import * as React from "react";
 import { Check, Copy, Lightbulb } from "lucide-react";
+import { LessonBookmarkButton } from "@/components/lesson/lesson-bookmark-button";
 
 import type { FullLessonDetail } from "@/lib/types";
 
 interface LessonContentRendererProps {
   lesson: FullLessonDetail;
+  isBookmarked?: boolean;
 }
 
-export function LessonContentRenderer({ lesson }: LessonContentRendererProps) {
+export function LessonContentRenderer({ lesson, isBookmarked = false }: LessonContentRendererProps) {
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
 
   const handleCopyCode = (codeText: string, index: number) => {
@@ -131,7 +133,8 @@ export function LessonContentRenderer({ lesson }: LessonContentRendererProps) {
     <article className="flex flex-col gap-5">
       {/* Lesson Meta Badges & Heading */}
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
           {lesson.isBonus ? (
             <span className="rounded-md bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-500 border border-amber-500/30">
               Bonus lesson
@@ -144,6 +147,8 @@ export function LessonContentRenderer({ lesson }: LessonContentRendererProps) {
           <span className="rounded-md bg-surface px-2.5 py-0.5 text-xs font-semibold text-muted border border-line">
             Module {lesson.module.position}: {lesson.module.title}
           </span>
+          </div>
+          <LessonBookmarkButton lessonId={lesson.id} initialIsBookmarked={isBookmarked} />
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-[32px] leading-tight">

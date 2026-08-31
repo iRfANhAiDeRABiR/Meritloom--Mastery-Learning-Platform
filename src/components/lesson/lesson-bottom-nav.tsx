@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { toggleLessonProgressAction } from "@/lib/actions/lesson";
+import { notify } from "@/lib/notifications/toast";
 import type { LessonNavigationItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +61,9 @@ export function LessonBottomNav({
       // Rollback on failure
       setCompleted(!nextState);
       onCompletionChanged?.(!nextState);
+      notify.error({ title: result.error || "Could not update progress." });
+    } else if (nextState) {
+      notify.success({ title: "Lesson marked complete" });
     }
     setIsPending(false);
   };

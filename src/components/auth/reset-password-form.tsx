@@ -9,6 +9,8 @@ import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { formatAuthError } from "@/lib/auth-helpers";
+import { getUserFacingError } from "@/lib/errors/user-facing-errors";
+import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -45,19 +47,27 @@ export function ResetPasswordForm() {
 
       if (error) {
         setIsLoading(false);
-        setErrorMessage(formatAuthError(error));
+        const { title, description } = getUserFacingError(error, formatAuthError(error));
+        setErrorMessage(title);
+        notify.error({ title, description });
         return;
       }
 
       setIsLoading(false);
       setIsSuccess(true);
+      notify.success({
+        title: "Password updated",
+        description: "Redirecting you to your courses...",
+      });
       setTimeout(() => {
         router.push(routes.courses.index);
         router.refresh();
       }, 2000);
-    } catch {
+    } catch (err) {
       setIsLoading(false);
-      setErrorMessage("Unable to update password right now. Please try again.");
+      const { title, description } = getUserFacingError(err);
+      setErrorMessage(title);
+      notify.error({ title, description });
     }
   };
 

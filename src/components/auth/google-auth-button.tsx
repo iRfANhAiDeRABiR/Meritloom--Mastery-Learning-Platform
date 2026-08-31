@@ -4,6 +4,7 @@ import * as React from "react";
 import { Loader2 } from "lucide-react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { notify } from "@/lib/notifications/toast";
 import { cn } from "@/lib/utils";
 
 interface GoogleAuthButtonProps {
@@ -37,11 +38,15 @@ export function GoogleAuthButton({
 
       if (error) {
         setIsLoading(false);
-        onError?.(error.message || "Google sign-in could not be initiated.");
+        const msg = error.message || "Google sign-in could not be initiated.";
+        onError?.(msg);
+        notify.error({ title: msg });
       }
     } catch {
       setIsLoading(false);
-      onError?.("Google sign-in could not be completed. Please try again.");
+      const msg = "Google sign-in could not be completed. Please try again.";
+      onError?.(msg);
+      notify.error({ title: msg });
     }
   };
 

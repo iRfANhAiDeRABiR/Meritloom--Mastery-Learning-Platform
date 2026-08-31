@@ -12,6 +12,7 @@ import {
   startQuizAttemptAction,
   submitPracticeAnswerAction,
 } from "@/lib/actions/quiz";
+import { notify } from "@/lib/notifications/toast";
 import type {
   PracticeQuizData,
   QuizAttemptAnswer,
@@ -132,6 +133,8 @@ export function PracticeQuiz({ data }: PracticeQuizProps) {
         ...prev,
         [currentQuestion.id]: submittedAnswer,
       }));
+    } else {
+      notify.error({ title: result.error || "Could not submit answer." });
     }
 
     setIsSubmitting(false);
@@ -166,6 +169,9 @@ export function PracticeQuiz({ data }: PracticeQuizProps) {
     const res = await retryQuizAttemptAction(quizId, courseSlug, lessonSlug);
     if (res.success && res.attemptId) {
       setAttemptId(res.attemptId);
+      notify.success({ title: "Quiz restarted" });
+    } else {
+      notify.error({ title: res.error || "Could not restart the quiz." });
     }
     setAnswers({});
     setSelectedMap({});
