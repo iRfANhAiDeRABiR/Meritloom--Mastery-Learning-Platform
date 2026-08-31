@@ -104,32 +104,32 @@ begin
   -- 5. UPSERT SKILLS & COURSE_SKILLS
   insert into public.skills (name, slug, is_active) values
     ('CSS', 'css', true)
-  on conflict (slug) do update set name = excluded.name
+  on conflict (slug) do update set is_active = true
   returning id into v_skill_css_id;
 
   insert into public.skills (name, slug, is_active) values
     ('CSS Selectors', 'css-selectors', true)
-  on conflict (slug) do update set name = excluded.name
+  on conflict (slug) do update set is_active = true
   returning id into v_skill_sel_id;
 
   insert into public.skills (name, slug, is_active) values
     ('CSS Colors', 'css-colors', true)
-  on conflict (slug) do update set name = excluded.name
+  on conflict (slug) do update set is_active = true
   returning id into v_skill_col_id;
 
   insert into public.skills (name, slug, is_active) values
     ('CSS Backgrounds', 'css-backgrounds', true)
-  on conflict (slug) do update set name = excluded.name
+  on conflict (slug) do update set is_active = true
   returning id into v_skill_bg_id;
 
   insert into public.skills (name, slug, is_active) values
     ('Web Styling', 'web-styling', true)
-  on conflict (slug) do update set name = excluded.name
+  on conflict (slug) do update set is_active = true
   returning id into v_skill_style_id;
 
   insert into public.skills (name, slug, is_active) values
-    ('Web Development', 'web-development-skill', true)
-  on conflict (slug) do update set name = excluded.name
+    ('Web Development', 'web-development', true)
+  on conflict (slug) do update set is_active = true
   returning id into v_skill_webdev_id;
 
   delete from public.course_skills where course_id = v_course_id;
