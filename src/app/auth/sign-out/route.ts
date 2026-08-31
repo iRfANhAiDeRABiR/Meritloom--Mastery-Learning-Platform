@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function GET(request: NextRequest) {
+async function handleSignOut(request: NextRequest, statusCode = 302) {
   const { origin } = new URL(request.url);
   const supabase = await createSupabaseServerClient();
 
@@ -9,6 +10,25 @@ export async function GET(request: NextRequest) {
     await supabase.auth.signOut();
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  revalidatePath("/", "layout");
+
+  const response = NextResponse.redirect(`${origin}/`, {
+    status: statusCode,
+  });
+
+  response.headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
+  );
+
+  return response;
+}
+
+export async function GET(request: NextRequest) {
+  return handleSignOut(request, 302);
+}
+
+export async function POST(request: NextRequest) {
+  return handleSignOut(request, 303);
 }
 

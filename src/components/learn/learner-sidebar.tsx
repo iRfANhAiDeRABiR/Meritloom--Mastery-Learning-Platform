@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bookmark,
   BookOpen,
@@ -11,12 +11,14 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  ShieldCheck,
   UserRound,
 } from "lucide-react";
 
 import { Logo } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { routes } from "@/lib/routes";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { LearnerProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +67,7 @@ export function LearnerSidebar({
   defaultCollapsed = false,
 }: LearnerSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = React.useState<boolean>(() => {
     if (typeof window === "undefined") return defaultCollapsed;
     try {
@@ -197,6 +200,22 @@ export function LearnerSidebar({
               </Link>
             );
           })}
+
+          {user.role === "admin" && (
+            <Link
+              href="/admin"
+              title={isCollapsed ? "Admin Panel" : undefined}
+              className={cn(
+                "flex items-center rounded-xl text-sm font-bold transition-all duration-200 mt-2 border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-white",
+                isCollapsed
+                  ? "justify-center size-12 mx-auto"
+                  : "gap-3 px-3.5 py-2.5",
+              )}
+            >
+              <ShieldCheck className="size-5 shrink-0 text-purple-400" aria-hidden="true" />
+              {!isCollapsed && <span className="truncate">Admin Panel</span>}
+            </Link>
+          )}
         </nav>
       </div>
 
@@ -230,16 +249,22 @@ export function LearnerSidebar({
             </div>
           )}
 
-          <form action="/auth/sign-out" method="POST">
-            <button
-              type="submit"
-              title="Sign out"
-              aria-label="Sign out"
-              className="grid size-8 place-items-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={async () => {
+              const supabase = createSupabaseBrowserClient();
+              if (supabase) {
+                await supabase.auth.signOut();
+              }
+              router.push("/");
+              router.refresh();
+            }}
+            title="Sign out"
+            aria-label="Sign out"
+            className="grid size-8 place-items-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+          >
+            <LogOut className="size-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </aside>

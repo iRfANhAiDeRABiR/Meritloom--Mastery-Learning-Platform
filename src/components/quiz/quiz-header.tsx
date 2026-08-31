@@ -43,9 +43,15 @@ export function QuizHeader({
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
             {title}
           </h1>
-          <p className="text-xs sm:text-sm text-muted">
-            Check your understanding and review anything that feels unclear. You can retry anytime.
-          </p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted">
+            <span>Check your understanding and review anything that feels unclear. You can retry anytime.</span>
+            <Link
+              href="/help#knowledge-checks"
+              className="font-semibold text-primary hover:underline"
+            >
+              How do knowledge checks work?
+            </Link>
+          </div>
         </div>
       </div>
     </header>

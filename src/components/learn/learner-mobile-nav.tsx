@@ -2,13 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bookmark,
   BookOpen,
   Compass,
   House,
   LogOut,
+  ShieldCheck,
   UserRound,
   X,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { routes } from "@/lib/routes";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { LearnerProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +66,7 @@ export function LearnerMobileNav({
   onClose,
 }: LearnerMobileNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Close drawer when pressing Escape
   React.useEffect(() => {
@@ -145,6 +148,17 @@ export function LearnerMobileNav({
                 </Link>
               );
             })}
+
+            {user.role === "admin" && (
+              <Link
+                href="/admin"
+                onClick={onClose}
+                className="flex items-center gap-3.5 rounded-xl border border-purple-500/30 bg-purple-500/10 px-4 py-3 text-sm font-bold text-purple-300 hover:bg-purple-500/20 hover:text-white transition-all mt-2"
+              >
+                <ShieldCheck className="size-5 text-purple-400" aria-hidden="true" />
+                <span>Admin Panel</span>
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -164,15 +178,22 @@ export function LearnerMobileNav({
             </div>
           </div>
 
-          <form action="/auth/sign-out" method="POST">
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              <span>Sign out</span>
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={async () => {
+              const supabase = createSupabaseBrowserClient();
+              if (supabase) {
+                await supabase.auth.signOut();
+              }
+              onClose();
+              router.push("/");
+              router.refresh();
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+          >
+            <LogOut className="size-4" aria-hidden="true" />
+            <span>Sign out</span>
+          </button>
         </div>
       </div>
     </div>

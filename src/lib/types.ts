@@ -46,6 +46,8 @@ export interface Category {
   id: string;
   slug: string;
   name: string;
+  iconName?: string;
+  description?: string;
   /** Count of published courses in this category (may be 0). */
   courseCount: number;
 }
@@ -221,6 +223,7 @@ export interface LearnerProfile {
   avatarUrl: string | null;
   email?: string | null;
   onboardingCompleted?: boolean;
+  role?: "learner" | "admin";
 }
 
 export interface ActiveEnrollmentDetail {
@@ -656,3 +659,136 @@ export interface SavedCoursesPageData {
 
 
 
+
+// =========================================================
+// ADMIN CONTENT MANAGEMENT TYPES
+// =========================================================
+
+export interface AdminDashboardMetrics {
+  publishedCoursesCount: number;
+  draftCoursesCount: number;
+  publishedLessonsCount: number;
+  categoriesCount: number;
+  recentCourses: AdminCourseListItem[];
+}
+
+export interface AdminCourseListItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  difficulty: CourseDifficulty;
+  isPublished: boolean;
+  isFree: boolean;
+  publishedAt: string | null;
+  updatedAt: string;
+  createdAt: string;
+  coverImageUrl: string | null;
+  moduleCount: number;
+  lessonCount: number;
+  estimatedMinutes: number | null;
+}
+
+export interface AdminCourseDetail {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  difficulty: CourseDifficulty;
+  language: string;
+  estimatedMinutes: number | null;
+  coverImageUrl: string | null;
+  isFree: boolean;
+  isPublished: boolean;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  modules: AdminModuleDetail[];
+  learningOutcomes: { id: string; outcomeText: string; position: number }[];
+  prerequisites: { id: string; prerequisiteText: string; position: number }[];
+  skills: { id: string; name: string; slug: string }[];
+  learningPathName?: string | null;
+  learningPathSlug?: string | null;
+}
+
+export interface AdminModuleDetail {
+  id: string;
+  courseId: string;
+  slug: string | null;
+  title: string;
+  description: string | null;
+  position: number;
+  estimatedMinutes: number | null;
+  isPublished: boolean;
+  lessons: AdminLessonDetail[];
+}
+
+export interface AdminLessonDetail {
+  id: string;
+  moduleId: string;
+  courseId: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  lessonType: LessonType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content: any;
+  videoUrl: string | null;
+  videoProvider: string | null;
+  youtubeVideoId: string | null;
+  sourceChannel: string | null;
+  sourceUrl: string | null;
+  playlistId: string | null;
+  keyTakeaway: string | null;
+  estimatedMinutes: number | null;
+  position: number;
+  isPreview: boolean;
+  isBonus: boolean;
+  isPublished: boolean;
+  objectives: { id: string; text: string; position: number }[];
+  resources: { id: string; label: string; resourceType: string; url: string | null; position: number }[];
+  quiz?: AdminQuizDetail | null;
+}
+
+export interface AdminQuizDetail {
+  id: string;
+  lessonId: string;
+  title: string;
+  description: string | null;
+  estimatedMinutes: number;
+  isPublished: boolean;
+  questions: AdminQuestionDetail[];
+}
+
+export interface AdminQuestionDetail {
+  id: string;
+  quizId: string;
+  questionType: "single_choice" | "multiple_choice" | "true_false";
+  questionText: string;
+  topic: string | null;
+  codeContent: string | null;
+  codeLanguage: string | null;
+  explanation: string | null;
+  position: number;
+  options: { id: string; text: string; position: number; isCorrect?: boolean }[];
+}
+
+export interface YouTubePlaylistItemParsed {
+  position: number;
+  title: string;
+  cleanTitle: string;
+  slug: string;
+  videoId: string;
+  durationMinutes: number;
+  channelTitle: string;
+  videoUrl: string;
+  playlistId: string;
+  isBonus: boolean;
+  isAlreadyImported?: boolean;
+}

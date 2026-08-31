@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ChevronDown, LayoutDashboard, LogOut, ShieldCheck } from "lucide-react";
 
 import { Logo } from "@/components/brand/logo";
 import { MobileNavigation } from "@/components/landing/mobile-navigation";
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { routes } from "@/lib/routes";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { LearnerProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -116,6 +117,7 @@ export function SiteHeader({ user }: { user: LearnerProfile | null }) {
 }
 
 function ProfileMenu({ user }: { user: LearnerProfile }) {
+  const router = useRouter();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -142,14 +144,30 @@ function ProfileMenu({ user }: { user: LearnerProfile }) {
             My Learning
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href={routes.auth.signOut}
-            className="flex items-center gap-2 rounded-[12px] px-3 py-2.5 text-sm font-medium text-ink outline-none transition-colors data-[highlighted]:bg-lavender focus:bg-lavender"
-          >
-            <LogOut className="size-4 text-muted" aria-hidden="true" />
-            Sign out
-          </Link>
+        {user.role === "admin" && (
+          <DropdownMenuItem asChild>
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 rounded-[12px] px-3 py-2.5 text-sm font-semibold text-primary outline-none transition-colors data-[highlighted]:bg-lavender focus:bg-lavender"
+            >
+              <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+              Admin Dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          onSelect={async () => {
+            const supabase = createSupabaseBrowserClient();
+            if (supabase) {
+              await supabase.auth.signOut();
+            }
+            router.push("/");
+            router.refresh();
+          }}
+          className="flex items-center gap-2 rounded-[12px] px-3 py-2.5 text-sm font-medium text-ink outline-none transition-colors data-[highlighted]:bg-lavender focus:bg-lavender cursor-pointer"
+        >
+          <LogOut className="size-4 text-muted" aria-hidden="true" />
+          Sign out
         </DropdownMenuItem>
       </DropdownMenuPanel>
     </DropdownMenu>

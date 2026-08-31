@@ -97,6 +97,13 @@ export function MobileNavigation({
                     <Link href={routes.myLearning}>Go to my learning</Link>
                   </Button>
                 </DialogPrimitive.Close>
+                {user.role === "admin" && (
+                  <DialogPrimitive.Close asChild>
+                    <Button asChild variant="outline" size="lg" className="w-full border-primary/40 text-primary font-semibold">
+                      <Link href="/admin">Admin Dashboard</Link>
+                    </Button>
+                  </DialogPrimitive.Close>
+                )}
               </>
             ) : (
               <>

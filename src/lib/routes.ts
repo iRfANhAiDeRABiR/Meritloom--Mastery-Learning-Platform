@@ -31,6 +31,10 @@ export const routes = {
   },
   howItWorks: "/how-it-works",
   about: "/about",
+  help: "/help",
+  contact: "/contact",
+  privacy: "/privacy",
+  terms: "/terms",
   myLearning: "/learn",
   // In-page anchors used by the landing navigation.
   anchors: {

@@ -1,0 +1,616 @@
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type {
+  AdminCourseDetail,
+  AdminCourseListItem,
+  AdminDashboardMetrics,
+  AdminLessonDetail,
+  AdminModuleDetail,
+  AdminQuestionDetail,
+  AdminQuizDetail,
+  Category,
+  CourseDifficulty,
+  LessonType,
+} from "@/lib/types";
+
+/**
+ * Fetch overview metrics for the Admin Dashboard.
+ */
+export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics> {
+  const supabase = await createSupabaseServerClient();
+  const fallback: AdminDashboardMetrics = {
+    publishedCoursesCount: 0,
+    draftCoursesCount: 0,
+    publishedLessonsCount: 0,
+    categoriesCount: 0,
+    recentCourses: [],
+  };
+
+  if (!supabase) return fallback;
+
+  try {
+    const [coursesRes, lessonsRes, catRes] = await Promise.all([
+      supabase
+        .from("courses")
+        .select("id, is_published"),
+      supabase.from("lessons").select("id, is_published"),
+      supabase.from("categories").select("id"),
+    ]);
+
+    const coursesData = coursesRes.data || [];
+    const publishedCourses = coursesData.filter((c) => c.is_published);
+    const draftCourses = coursesData.filter((c) => !c.is_published);
+    const publishedLessons = (lessonsRes.data || []).filter((l) => l.is_published);
+    const categoriesCount = (catRes.data || []).length;
+
+    const recentCoursesList = await getAdminCoursesList({});
+
+    return {
+      publishedCoursesCount: publishedCourses.length,
+      draftCoursesCount: draftCourses.length,
+      publishedLessonsCount: publishedLessons.length,
+      categoriesCount,
+      recentCourses: recentCoursesList.slice(0, 5),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+interface RawCourseListRow {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  difficulty: string | null;
+  is_published: boolean | null;
+  is_free: boolean | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+  cover_image_url: string | null;
+  estimated_minutes: number | null;
+  category?: { name?: string; slug?: string } | { name?: string; slug?: string }[] | null;
+  modules?: { id: string; lessons?: { id: string }[] }[] | null;
+}
+
+/**
+ * Fetch all courses for Admin Courses List with filtering.
+ */
+export async function getAdminCoursesList(params: {
+  q?: string;
+  status?: string;
+  category?: string;
+}): Promise<AdminCourseListItem[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("courses")
+      .select(`
+        id,
+        slug,
+        title,
+        summary,
+        difficulty,
+        is_published,
+        is_free,
+        published_at,
+        created_at,
+        updated_at,
+        cover_image_url,
+        estimated_minutes,
+        category:categories (name, slug),
+        modules:course_modules (
+          id,
+          lessons:lessons (id)
+        )
+      `)
+      .order("updated_at", { ascending: false });
+
+    const q = (params.q ?? "").trim().toLowerCase();
+    if (q) {
+      const clean = q.replace(/[%_]/g, "");
+      query = query.or(`title.ilike.%${clean}%,slug.ilike.%${clean}%,summary.ilike.%${clean}%`);
+    }
+
+    const status = (params.status ?? "all").toLowerCase().trim();
+    if (status === "published") {
+      query = query.eq("is_published", true);
+    } else if (status === "draft") {
+      query = query.eq("is_published", false);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) return [];
+
+    let items: AdminCourseListItem[] = (data as unknown as RawCourseListRow[]).map((row) => {
+      const cat = Array.isArray(row.category) ? row.category[0] : row.category;
+      const modules = Array.isArray(row.modules) ? row.modules : [];
+      let totalLessons = 0;
+      modules.forEach((m) => {
+        if (Array.isArray(m.lessons)) totalLessons += m.lessons.length;
+      });
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        summary: row.summary,
+        categoryName: cat?.name ?? null,
+        categorySlug: cat?.slug ?? null,
+        difficulty: (row.difficulty || "beginner") as CourseDifficulty,
+        isPublished: Boolean(row.is_published),
+        isFree: row.is_free !== false,
+        publishedAt: row.published_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        coverImageUrl: row.cover_image_url,
+        moduleCount: modules.length,
+        lessonCount: totalLessons,
+        estimatedMinutes: row.estimated_minutes,
+      };
+    });
+
+    if (params.category && params.category !== "all") {
+      const catFilter = params.category.toLowerCase().trim();
+      items = items.filter((c) => c.categorySlug === catFilter);
+    }
+
+    return items;
+  } catch {
+    return [];
+  }
+}
+
+interface RawOptionRow {
+  id: string;
+  option_text: string;
+  position: number;
+}
+
+interface RawQuestionRow {
+  id: string;
+  quiz_id: string;
+  question_type: "single_choice" | "multiple_choice" | "true_false";
+  question_text: string;
+  topic: string | null;
+  code_content: string | null;
+  code_language: string | null;
+  explanation: string | null;
+  position: number;
+  options?: RawOptionRow[] | null;
+  correct_options?: { option_id: string }[] | null;
+}
+
+interface RawQuizRow {
+  id: string;
+  lesson_id: string;
+  title: string;
+  description: string | null;
+  estimated_minutes: number;
+  is_published: boolean;
+  questions?: RawQuestionRow[] | null;
+}
+
+interface RawObjectiveRow {
+  id: string;
+  objective_text: string;
+  position: number;
+}
+
+interface RawResourceRow {
+  id: string;
+  label: string;
+  resource_type: string;
+  url: string | null;
+  file_path: string | null;
+  position: number;
+}
+
+interface RawLessonRow {
+  id: string;
+  module_id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  lesson_type: LessonType;
+  content: unknown;
+  video_url: string | null;
+  video_provider: string | null;
+  youtube_video_id: string | null;
+  source_channel: string | null;
+  source_url: string | null;
+  playlist_id: string | null;
+  key_takeaway: string | null;
+  estimated_minutes: number | null;
+  position: number;
+  is_preview: boolean | null;
+  is_bonus: boolean | null;
+  is_published: boolean | null;
+  objectives?: RawObjectiveRow[] | null;
+  resources?: RawResourceRow[] | null;
+  quizzes?: RawQuizRow | RawQuizRow[] | null;
+}
+
+interface RawModuleRow {
+  id: string;
+  course_id: string;
+  slug: string | null;
+  title: string;
+  description: string | null;
+  position: number;
+  estimated_minutes: number | null;
+  is_published: boolean | null;
+  lessons?: RawLessonRow[] | null;
+}
+
+/**
+ * Fetch complete course structure for the Admin Course Editor.
+ */
+export async function getAdminCourseDetail(
+  courseIdOrSlug: string,
+): Promise<AdminCourseDetail | null> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      courseIdOrSlug,
+    );
+
+    let courseQuery = supabase
+      .from("courses")
+      .select(`
+        id,
+        slug,
+        title,
+        summary,
+        description,
+        difficulty,
+        language,
+        estimated_minutes,
+        cover_image_url,
+        is_free,
+        is_published,
+        published_at,
+        created_at,
+        updated_at,
+        category_id,
+        category:categories (id, name, slug)
+      `);
+
+    if (isUuid) {
+      courseQuery = courseQuery.eq("id", courseIdOrSlug);
+    } else {
+      courseQuery = courseQuery.eq("slug", courseIdOrSlug);
+    }
+
+    const { data: courseRow, error: courseErr } = await courseQuery.maybeSingle();
+    if (courseErr || !courseRow) return null;
+
+    const courseId = courseRow.id;
+
+    const [modulesRes, outcomesRes, prereqsRes, skillsRes, pathRes] = await Promise.all([
+      supabase
+        .from("course_modules")
+        .select(`
+          id,
+          course_id,
+          slug,
+          title,
+          description,
+          position,
+          estimated_minutes,
+          is_published,
+          lessons:lessons (
+            id,
+            module_id,
+            slug,
+            title,
+            summary,
+            lesson_type,
+            content,
+            video_url,
+            video_provider,
+            youtube_video_id,
+            source_channel,
+            source_url,
+            playlist_id,
+            key_takeaway,
+            estimated_minutes,
+            position,
+            is_preview,
+            is_bonus,
+            is_published,
+            objectives:lesson_objectives (id, objective_text, position),
+            resources:lesson_resources (id, label, resource_type, url, file_path, position),
+            quizzes:practice_quizzes (
+              id,
+              lesson_id,
+              title,
+              description,
+              estimated_minutes,
+              is_published,
+              questions:practice_questions (
+                id,
+                quiz_id,
+                question_type,
+                question_text,
+                topic,
+                code_content,
+                code_language,
+                explanation,
+                position,
+                options:practice_question_options (id, option_text, position),
+                correct_options:practice_question_correct_options (option_id)
+              )
+            )
+          )
+        `)
+        .eq("course_id", courseId)
+        .order("position", { ascending: true }),
+
+      supabase
+        .from("course_learning_outcomes")
+        .select("id, outcome_text, position")
+        .eq("course_id", courseId)
+        .order("position", { ascending: true }),
+
+      supabase
+        .from("course_prerequisites")
+        .select("id, prerequisite_text, position")
+        .eq("course_id", courseId)
+        .order("position", { ascending: true }),
+
+      supabase
+        .from("course_skills")
+        .select("skill:skills(id, name, slug)")
+        .eq("course_id", courseId),
+
+      supabase
+        .from("learning_path_items")
+        .select("path:learning_paths(id, title, slug)")
+        .eq("course_id", courseId)
+        .maybeSingle(),
+    ]);
+
+    const rawModules = (modulesRes.data || []) as unknown as RawModuleRow[];
+    const modules: AdminModuleDetail[] = rawModules.map((m) => {
+      const rawLessons = Array.isArray(m.lessons) ? m.lessons : [];
+      const lessons: AdminLessonDetail[] = rawLessons
+        .sort((a, b) => a.position - b.position)
+        .map((l) => {
+          const rawObjectives = Array.isArray(l.objectives) ? l.objectives : [];
+          const rawResources = Array.isArray(l.resources) ? l.resources : [];
+          const rawQuiz = Array.isArray(l.quizzes) ? l.quizzes[0] : l.quizzes;
+
+          let quizDetail: AdminQuizDetail | null = null;
+          if (rawQuiz) {
+            const rawQuestions = Array.isArray(rawQuiz.questions) ? rawQuiz.questions : [];
+            const questions: AdminQuestionDetail[] = rawQuestions
+              .sort((a, b) => a.position - b.position)
+              .map((q) => {
+                const correctSet = new Set((q.correct_options || []).map((co) => co.option_id));
+                const rawOptions = Array.isArray(q.options) ? q.options : [];
+                const options = rawOptions
+                  .sort((a, b) => a.position - b.position)
+                  .map((opt) => ({
+                    id: opt.id,
+                    text: opt.option_text,
+                    position: opt.position,
+                    isCorrect: correctSet.has(opt.id),
+                  }));
+
+                return {
+                  id: q.id,
+                  quizId: q.quiz_id,
+                  questionType: q.question_type,
+                  questionText: q.question_text,
+                  topic: q.topic,
+                  codeContent: q.code_content,
+                  codeLanguage: q.code_language,
+                  explanation: q.explanation,
+                  position: q.position,
+                  options,
+                };
+              });
+
+            quizDetail = {
+              id: rawQuiz.id,
+              lessonId: rawQuiz.lesson_id,
+              title: rawQuiz.title,
+              description: rawQuiz.description,
+              estimatedMinutes: rawQuiz.estimated_minutes,
+              isPublished: rawQuiz.is_published,
+              questions,
+            };
+          }
+
+          return {
+            id: l.id,
+            moduleId: l.module_id,
+            courseId,
+            slug: l.slug,
+            title: l.title,
+            summary: l.summary,
+            lessonType: l.lesson_type,
+            content: l.content,
+            videoUrl: l.video_url,
+            videoProvider: l.video_provider,
+            youtubeVideoId: l.youtube_video_id,
+            sourceChannel: l.source_channel,
+            sourceUrl: l.source_url,
+            playlistId: l.playlist_id,
+            keyTakeaway: l.key_takeaway,
+            estimatedMinutes: l.estimated_minutes,
+            position: l.position,
+            isPreview: Boolean(l.is_preview),
+            isBonus: Boolean(l.is_bonus),
+            isPublished: Boolean(l.is_published),
+            objectives: rawObjectives
+              .sort((a, b) => a.position - b.position)
+              .map((o) => ({
+                id: o.id,
+                text: o.objective_text,
+                position: o.position,
+              })),
+            resources: rawResources
+              .sort((a, b) => a.position - b.position)
+              .map((r) => ({
+                id: r.id,
+                label: r.label,
+                resourceType: r.resource_type,
+                url: r.url || r.file_path,
+                position: r.position,
+              })),
+            quiz: quizDetail,
+          };
+        });
+
+      return {
+        id: m.id,
+        courseId: m.course_id,
+        slug: m.slug,
+        title: m.title,
+        description: m.description,
+        position: m.position,
+        estimatedMinutes: m.estimated_minutes,
+        isPublished: Boolean(m.is_published),
+        lessons,
+      };
+    });
+
+    const cat = Array.isArray(courseRow.category) ? courseRow.category[0] : courseRow.category;
+    const outcomes = (outcomesRes.data || []).map((o: { id: string; outcome_text: string; position: number }) => ({
+      id: o.id,
+      outcomeText: o.outcome_text,
+      position: o.position,
+    }));
+    const prerequisites = (prereqsRes.data || []).map((p: { id: string; prerequisite_text: string; position: number }) => ({
+      id: p.id,
+      prerequisiteText: p.prerequisite_text,
+      position: p.position,
+    }));
+
+    interface RawCourseSkillItem {
+      skill?: { id: string; name: string; slug: string } | null;
+    }
+    const skills = ((skillsRes.data || []) as unknown as RawCourseSkillItem[])
+      .filter((s) => s.skill)
+      .map((s) => ({
+        id: s.skill!.id,
+        name: s.skill!.name,
+        slug: s.skill!.slug,
+      }));
+
+    interface RawPathItem {
+      path?: { id: string; title: string; slug: string } | { id: string; title: string; slug: string }[] | null;
+    }
+    const pathItem = pathRes.data as unknown as RawPathItem | null;
+    const pathData = Array.isArray(pathItem?.path) ? pathItem.path[0] : pathItem?.path;
+
+    return {
+      id: courseRow.id,
+      slug: courseRow.slug,
+      title: courseRow.title,
+      summary: courseRow.summary,
+      description: courseRow.description,
+      categoryId: courseRow.category_id,
+      categoryName: cat?.name ?? null,
+      categorySlug: cat?.slug ?? null,
+      difficulty: (courseRow.difficulty || "beginner") as CourseDifficulty,
+      language: courseRow.language || "English",
+      estimatedMinutes: courseRow.estimated_minutes,
+      coverImageUrl: courseRow.cover_image_url,
+      isFree: courseRow.is_free !== false,
+      isPublished: Boolean(courseRow.is_published),
+      publishedAt: courseRow.published_at,
+      createdAt: courseRow.created_at,
+      updatedAt: courseRow.updated_at,
+      modules,
+      learningOutcomes: outcomes,
+      prerequisites,
+      skills,
+      learningPathName: pathData?.title ?? null,
+      learningPathSlug: pathData?.slug ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+interface RawCategoryRow {
+  id: string;
+  slug: string;
+  name: string;
+  icon_name: string | null;
+  description: string | null;
+  position: number;
+  courses?: { id: string }[] | null;
+}
+
+/**
+ * Fetch all categories for Admin Categories Management.
+ */
+export async function getAdminCategories(): Promise<Category[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, slug, name, icon_name, description, position, courses:courses(id)")
+      .order("position", { ascending: true });
+
+    if (error || !data) return [];
+
+    return (data as unknown as RawCategoryRow[]).map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      iconName: row.icon_name || undefined,
+      description: row.description || undefined,
+      courseCount: Array.isArray(row.courses) ? row.courses.length : 0,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+interface RawSkillRow {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  course_skills?: { course_id: string }[] | null;
+}
+
+/**
+ * Fetch all skills for Admin Skills Management.
+ */
+export async function getAdminSkills(): Promise<
+  { id: string; name: string; slug: string; description: string | null; courseCount: number }[]
+> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("skills")
+      .select("id, name, slug, description, course_skills:course_skills(course_id)")
+      .order("name", { ascending: true });
+
+    if (error || !data) return [];
+
+    return (data as unknown as RawSkillRow[]).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      courseCount: Array.isArray(row.course_skills) ? row.course_skills.length : 0,
+    }));
+  } catch {
+    return [];
+  }
+}

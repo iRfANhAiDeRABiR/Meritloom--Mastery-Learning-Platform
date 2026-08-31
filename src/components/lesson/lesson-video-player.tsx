@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { ExternalLink, Play, VideoOff } from "lucide-react";
 
 export interface LessonVideoPlayerProps {
@@ -199,9 +200,18 @@ export function LessonVideoPlayer({
       {/* Creator Attribution Row */}
       {youtubeData && (
         <div className="flex items-center justify-between px-1 text-[11px] text-muted">
-          <span className="truncate">
-            Video by <strong className="font-semibold text-ink">{channelName}</strong>
-          </span>
+          <div className="flex items-center gap-2 truncate">
+            <span className="truncate">
+              Video by <strong className="font-semibold text-ink">{channelName}</strong>
+            </span>
+            <span className="text-muted/40">•</span>
+            <Link
+              href="/help#video-not-playing"
+              className="text-muted hover:text-primary transition-colors shrink-0"
+            >
+              Video not playing?
+            </Link>
+          </div>
           {originalUrl && (
             <a
               href={originalUrl}

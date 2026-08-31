@@ -16,15 +16,15 @@ const FOOTER_NAV = [
     heading: "Platform",
     links: [
       { label: "About", href: routes.about },
-      { label: "Help", href: routes.howItWorks },
-      { label: "Contact", href: routes.about },
+      { label: "Help", href: routes.help },
+      { label: "Contact", href: routes.contact },
     ],
   },
   {
     heading: "Legal",
     links: [
-      { label: "Privacy", href: "#" },
-      { label: "Terms", href: "#" },
+      { label: "Privacy", href: routes.privacy },
+      { label: "Terms", href: routes.terms },
     ],
   },
 ];

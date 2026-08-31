@@ -1,22 +1,28 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Check,
   Eye,
   EyeOff,
+  FileText,
+  HelpCircle,
   KeyRound,
   Loader2,
   LogOut,
   Mail,
+  MessageSquare,
+  Shield,
   ShieldAlert,
   Trash2,
 } from "lucide-react";
 
 import { deleteAccountAction, updatePasswordAction } from "@/lib/actions/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { routes } from "@/lib/routes";
 import type { ProfileSettingsData } from "@/lib/types";
 
 interface AccountTabProps {
@@ -86,6 +92,7 @@ export function AccountTab({ profile, provider }: AccountTabProps) {
       await supabase.auth.signOut();
     }
     router.push("/");
+    router.refresh();
   };
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
@@ -99,6 +106,7 @@ export function AccountTab({ profile, provider }: AccountTabProps) {
 
     if (result.success) {
       router.push("/");
+      router.refresh();
     } else {
       setDeleteError(result.error || "Failed to delete account.");
       setIsDeleting(false);
@@ -262,7 +270,51 @@ export function AccountTab({ profile, provider }: AccountTabProps) {
         </button>
       </div>
 
-      {/* 4. Danger Zone */}
+      {/* 4. Legal & Support Links */}
+      <div className="rounded-[18px] border border-line bg-card p-5 sm:p-6 shadow-soft space-y-4">
+        <div>
+          <span className="text-xs font-bold text-ink">Legal & Support</span>
+          <p className="text-xs text-muted mt-0.5">
+            Review Meritloom&apos;s platform terms, privacy policy, and help resources.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-1">
+          <Link
+            href={routes.privacy}
+            className="flex items-center gap-2 rounded-xl border border-line bg-surface p-3 text-xs font-semibold text-ink hover:border-primary/40 hover:text-primary transition-colors"
+          >
+            <Shield className="size-3.5 text-primary" aria-hidden="true" />
+            <span>Privacy Policy</span>
+          </Link>
+
+          <Link
+            href={routes.terms}
+            className="flex items-center gap-2 rounded-xl border border-line bg-surface p-3 text-xs font-semibold text-ink hover:border-primary/40 hover:text-primary transition-colors"
+          >
+            <FileText className="size-3.5 text-primary" aria-hidden="true" />
+            <span>Terms of Service</span>
+          </Link>
+
+          <Link
+            href={routes.help}
+            className="flex items-center gap-2 rounded-xl border border-line bg-surface p-3 text-xs font-semibold text-ink hover:border-primary/40 hover:text-primary transition-colors"
+          >
+            <HelpCircle className="size-3.5 text-primary" aria-hidden="true" />
+            <span>Help Center</span>
+          </Link>
+
+          <Link
+            href={routes.contact}
+            className="flex items-center gap-2 rounded-xl border border-line bg-surface p-3 text-xs font-semibold text-ink hover:border-primary/40 hover:text-primary transition-colors"
+          >
+            <MessageSquare className="size-3.5 text-primary" aria-hidden="true" />
+            <span>Contact Us</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 5. Danger Zone */}
       <div className="rounded-[18px] border border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 p-5 sm:p-6 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
           <AlertTriangle className="size-5 text-rose-500 shrink-0 mt-0.5" aria-hidden="true" />
