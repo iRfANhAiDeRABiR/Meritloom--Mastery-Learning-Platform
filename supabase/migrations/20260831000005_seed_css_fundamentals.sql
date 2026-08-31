@@ -169,7 +169,7 @@ begin
   -- Lesson 1.1: CSS Introduction (AGDDdsiZ0Ko)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod1_id,
@@ -182,7 +182,6 @@ begin
     'https://www.youtube.com/watch?v=AGDDdsiZ0Ko',
     'AGDDdsiZ0Ko',
     'W3Schools.com',
-    'CSS - Introduction - W3Schools.com',
     'https://www.youtube.com/watch?v=AGDDdsiZ0Ko',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     1,
@@ -205,7 +204,7 @@ begin
   -- Lesson 1.2: CSS Syntax (G8r00ZNopTE)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod1_id,
@@ -218,7 +217,6 @@ begin
     'https://www.youtube.com/watch?v=G8r00ZNopTE',
     'G8r00ZNopTE',
     'W3Schools.com',
-    'CSS - Syntax - W3Schools.com',
     'https://www.youtube.com/watch?v=G8r00ZNopTE',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     2,
@@ -241,7 +239,7 @@ begin
   -- Lesson 1.3: CSS Selectors (ZNskBxLVOfs)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod1_id,
@@ -254,7 +252,6 @@ begin
     'https://www.youtube.com/watch?v=ZNskBxLVOfs',
     'ZNskBxLVOfs',
     'W3Schools.com',
-    'CSS - Simple Selectors - W3Schools.com',
     'https://www.youtube.com/watch?v=ZNskBxLVOfs',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     3,
@@ -278,7 +275,7 @@ begin
   -- Lesson 1.4: How to Add CSS (VSwaoQ3TFkQ)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod1_id,
@@ -291,7 +288,6 @@ begin
     'https://www.youtube.com/watch?v=VSwaoQ3TFkQ',
     'VSwaoQ3TFkQ',
     'W3Schools.com',
-    'CSS - How to add CSS to HTML - W3Schools.com',
     'https://www.youtube.com/watch?v=VSwaoQ3TFkQ',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     4,
@@ -315,7 +311,7 @@ begin
   -- Lesson 1.5: CSS Comments (uVtEJD3vBEs)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod1_id,
@@ -328,7 +324,6 @@ begin
     'https://www.youtube.com/watch?v=uVtEJD3vBEs',
     'uVtEJD3vBEs',
     'W3Schools.com',
-    'CSS - Comments - W3Schools.com',
     'https://www.youtube.com/watch?v=uVtEJD3vBEs',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     5,
@@ -402,7 +397,7 @@ begin
   -- Lesson 2.1: CSS Colors Intro (q0uWmobMf6I)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod2_id,
@@ -415,7 +410,6 @@ begin
     'https://www.youtube.com/watch?v=q0uWmobMf6I',
     'q0uWmobMf6I',
     'W3Schools.com',
-    'CSS - Colors Introduction - W3Schools.com',
     'https://www.youtube.com/watch?v=q0uWmobMf6I',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     1,
@@ -438,7 +432,7 @@ begin
   -- Lesson 2.2: CSS Colors RGB & RGBA (6tbUo6PXc88)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod2_id,
@@ -451,7 +445,6 @@ begin
     'https://www.youtube.com/watch?v=6tbUo6PXc88',
     '6tbUo6PXc88',
     'W3Schools.com',
-    'CSS - Colors RGB & RGBA - W3Schools.com',
     'https://www.youtube.com/watch?v=6tbUo6PXc88',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     2,
@@ -474,7 +467,7 @@ begin
   -- Lesson 2.3: CSS Colors Hex (LLmCr_201GU)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod2_id,
@@ -487,7 +480,6 @@ begin
     'https://www.youtube.com/watch?v=LLmCr_201GU',
     'LLmCr_201GU',
     'W3Schools.com',
-    'CSS - Colors Hex - W3Schools.com',
     'https://www.youtube.com/watch?v=LLmCr_201GU',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     3,
@@ -510,7 +502,7 @@ begin
   -- Lesson 2.4: CSS Colors HSL (Vilk0BFQZ4Y)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod2_id,
@@ -523,7 +515,6 @@ begin
     'https://www.youtube.com/watch?v=Vilk0BFQZ4Y',
     'Vilk0BFQZ4Y',
     'W3Schools.com',
-    'CSS - Colors HSL - W3Schools.com',
     'https://www.youtube.com/watch?v=Vilk0BFQZ4Y',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     4,
@@ -597,7 +588,7 @@ begin
   -- Lesson 3.1: CSS Background Colors (-itttmX6HX0)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod3_id,
@@ -610,7 +601,6 @@ begin
     'https://www.youtube.com/watch?v=-itttmX6HX0',
     '-itttmX6HX0',
     'W3Schools.com',
-    'CSS - Background Colors - W3Schools.com',
     'https://www.youtube.com/watch?v=-itttmX6HX0',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     1,
@@ -633,7 +623,7 @@ begin
   -- Lesson 3.2: CSS Background Images (FMyU_h8m-0c)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod3_id,
@@ -646,7 +636,6 @@ begin
     'https://www.youtube.com/watch?v=FMyU_h8m-0c',
     'FMyU_h8m-0c',
     'W3Schools.com',
-    'CSS - Background Images - W3Schools.com',
     'https://www.youtube.com/watch?v=FMyU_h8m-0c',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     2,
@@ -669,7 +658,7 @@ begin
   -- Lesson 3.3: Background Repeat and Position (k9dNFtC2F8A)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod3_id,
@@ -682,7 +671,6 @@ begin
     'https://www.youtube.com/watch?v=k9dNFtC2F8A',
     'k9dNFtC2F8A',
     'W3Schools.com',
-    'CSS - Background Repeat and Position - W3Schools.com',
     'https://www.youtube.com/watch?v=k9dNFtC2F8A',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     3,
@@ -705,7 +693,7 @@ begin
   -- Lesson 3.4: Background Attachment (lXs8BRnrW_M)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod3_id,
@@ -718,7 +706,6 @@ begin
     'https://www.youtube.com/watch?v=lXs8BRnrW_M',
     'lXs8BRnrW_M',
     'W3Schools.com',
-    'CSS - Background Attachment - W3Schools.com',
     'https://www.youtube.com/watch?v=lXs8BRnrW_M',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     4,
@@ -741,7 +728,7 @@ begin
   -- Lesson 3.5: Background Shorthand (rSEKmi5tR9E)
   insert into public.lessons (
     module_id, slug, title, summary, key_takeaway, lesson_type,
-    video_provider, video_url, youtube_video_id, source_channel, source_title,
+    video_provider, video_url, youtube_video_id, source_channel,
     source_url, playlist_id, position, estimated_minutes, is_preview, is_published, is_bonus
   ) values (
     v_mod3_id,
@@ -754,7 +741,6 @@ begin
     'https://www.youtube.com/watch?v=rSEKmi5tR9E',
     'rSEKmi5tR9E',
     'W3Schools.com',
-    'CSS - Background Shorthand - W3Schools.com',
     'https://www.youtube.com/watch?v=rSEKmi5tR9E',
     'PLP9IO4UYNF0UCaUSF3XNZ1U9f01E5h5PM',
     5,
