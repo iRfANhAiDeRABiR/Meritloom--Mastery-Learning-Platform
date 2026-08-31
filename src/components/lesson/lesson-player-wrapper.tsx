@@ -79,10 +79,10 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
         />
 
         {/* 3. Multi-Column Learning Workspace */}
-        <div className="flex flex-1 min-w-0 overflow-x-hidden">
+        <div className="flex flex-1 min-w-0 overflow-hidden w-full">
           {/* Secondary Course Outline Sidebar (Desktop only, hidden in Focus Mode) */}
           {!isFocusMode && (
-            <aside className="hidden lg:flex w-[270px] xl:w-[290px] sticky top-16 h-[calc(100vh-4rem)]">
+            <aside className="hidden lg:flex w-[260px] xl:w-[280px] shrink-0 sticky top-16 h-[calc(100vh-4rem)]">
               <LessonCourseOutline
                 courseSlug={course.slug}
                 currentLessonSlug={currentLesson.slug}
@@ -96,7 +96,7 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
           )}
 
           {/* Center Column: Video + Content + Bottom Nav */}
-          <main className="flex flex-1 flex-col items-center justify-start p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          <main className="flex flex-1 flex-col items-center justify-start p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0">
             <div
               className={cn(
                 "w-full flex flex-col gap-6 sm:gap-8",
@@ -118,7 +118,7 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
               <LessonContentRenderer lesson={currentLesson} />
 
               {/* Stacked Objectives & Resources on smaller screens / mobile */}
-              <div className="flex flex-col gap-6 lg:hidden pt-4 border-t border-line">
+              <div className="flex flex-col gap-6 xl:hidden pt-4 border-t border-line">
                 <LessonContextPanel lesson={currentLesson} />
               </div>
 
@@ -137,7 +137,7 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
 
           {/* Right Context Panel: Objectives & Resources (Desktop only, hidden in Focus Mode) */}
           {!isFocusMode && (
-            <aside className="hidden 2xl:flex w-[300px] sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto border-l border-line p-5 bg-card/40">
+            <aside className="hidden xl:flex w-[280px] 2xl:w-[310px] shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden border-l border-line p-4 lg:p-5 bg-card/30">
               <LessonContextPanel lesson={currentLesson} />
             </aside>
           )}
