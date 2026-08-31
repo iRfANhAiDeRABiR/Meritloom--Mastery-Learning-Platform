@@ -10,7 +10,7 @@ export function CourseCatalogHero() {
   return (
     <section
       aria-labelledby="catalog-hero-heading"
-      className="relative overflow-hidden bg-surface dark:bg-[#0B1020] py-14 border-b border-line text-ink dark:text-white sm:py-18 lg:py-20 transition-colors"
+      className="relative overflow-hidden bg-background dark:bg-[#0B1020] py-14 border-b border-line text-ink dark:text-white sm:py-18 lg:py-20 transition-colors"
     >
       {/* Decorative ambient gradients */}
       <div

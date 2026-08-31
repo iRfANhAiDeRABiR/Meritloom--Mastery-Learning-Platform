@@ -79,14 +79,22 @@ export function SiteHeader({ user }: { user: LearnerProfile | null }) {
 
           {user ? (
             <div className="hidden items-center gap-2 sm:flex">
-              <Button asChild variant="ghost">
+              <Button
+                asChild
+                variant="ghost"
+                className="font-semibold text-ink/80 hover:text-primary hover:bg-lavender/60 transition-colors"
+              >
                 <Link href={routes.myLearning}>My Learning</Link>
               </Button>
               <ProfileMenu user={user} />
             </div>
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
-              <Button asChild variant="ghost">
+              <Button
+                asChild
+                variant="ghost"
+                className="font-semibold text-ink/80 hover:text-primary hover:bg-lavender/60 transition-colors"
+              >
                 <Link href={routes.auth.signIn}>Sign In</Link>
               </Button>
               <Button asChild>

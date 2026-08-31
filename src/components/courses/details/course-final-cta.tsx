@@ -46,7 +46,7 @@ export function CourseFinalCTA({
 
           <div className="relative z-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             {!user ? (
-              <Button asChild size="lg" variant="secondary">
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 hover:text-primary active:bg-white/80 shadow-soft font-bold">
                 <Link
                   href={`/auth/sign-up?next=${encodeURIComponent(
                     `/courses/${course.slug}`,
@@ -57,14 +57,14 @@ export function CourseFinalCTA({
                 </Link>
               </Button>
             ) : isEnrolled ? (
-              <Button asChild size="lg" variant="secondary">
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 hover:text-primary active:bg-white/80 shadow-soft font-bold">
                 <Link href={routes.myLearning}>
                   <span>Continue Learning</span>
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="lg" variant="secondary">
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 hover:text-primary active:bg-white/80 shadow-soft font-bold">
                 <Link href={`/learn/courses/${course.slug}`}>
                   <span>Start Course</span>
                   <ArrowRight className="size-4" aria-hidden="true" />

@@ -46,7 +46,7 @@ export function FinalCTA({ user }: { user: LearnerProfile | null }) {
           </p>
 
           <div className="relative z-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <Button asChild size="lg" variant="secondary" className="shadow-soft hover:-translate-y-0.5 transition-transform">
+            <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 hover:text-primary active:bg-white/80 shadow-soft hover:-translate-y-0.5 transition-all font-bold">
               <Link href={primaryHref}>
                 {primaryLabel}
                 <ArrowRight className="size-4" aria-hidden="true" />
