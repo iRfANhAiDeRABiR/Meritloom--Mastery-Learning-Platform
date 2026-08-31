@@ -190,7 +190,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -225,7 +225,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -260,7 +260,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -296,7 +296,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -332,7 +332,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -360,7 +360,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     is_published = true
   returning id into v_lesson_id;
@@ -418,7 +418,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -453,7 +453,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -488,7 +488,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -523,7 +523,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -551,7 +551,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     is_published = true
   returning id into v_lesson_id;
@@ -609,7 +609,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -644,7 +644,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -679,7 +679,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -714,7 +714,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -749,7 +749,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     youtube_video_id = excluded.youtube_video_id, is_published = true
   returning id into v_lesson_id;
@@ -777,7 +777,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     is_published = true
   returning id into v_lesson_id;
@@ -828,7 +828,7 @@ begin
     true,
     false
   )
-  on conflict (module_id, slug) do update set
+  on conflict (slug) do update set
     title = excluded.title, summary = excluded.summary, key_takeaway = excluded.key_takeaway,
     is_published = true
   returning id into v_lesson_id;
