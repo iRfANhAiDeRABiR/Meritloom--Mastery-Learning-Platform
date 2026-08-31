@@ -4,11 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowRight,
   BookOpen,
   Bookmark,
   Compass,
-  Filter,
   Search,
   StickyNote,
 } from "lucide-react";
@@ -17,7 +15,6 @@ import { LessonNoteCard } from "@/components/notes/lesson-note-card";
 import { BookmarkedLessonCard } from "@/components/notes/bookmarked-lesson-card";
 import type {
   LearnerLessonBookmarkItem,
-  LearnerLessonNoteItem,
   MyNotesPageData,
 } from "@/lib/types";
 
@@ -54,10 +51,10 @@ export function MyNotesView({ data }: MyNotesViewProps) {
     setBookmarksState((prev) => prev.filter((b) => b.lessonId !== lessonId));
   };
 
-  // Filter Notes
+  // Filter & Sort Notes
   const filteredNotes = React.useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return data.notes.filter((n) => {
+    const list = data.notes.filter((n) => {
       const matchesSearch =
         !q ||
         n.content.toLowerCase().includes(q) ||
@@ -69,12 +66,20 @@ export function MyNotesView({ data }: MyNotesViewProps) {
 
       return matchesSearch && matchesCourse;
     });
-  }, [data.notes, searchQuery, selectedCourseSlug]);
 
-  // Filter Bookmarks
+    if (sortBy === "title") {
+      list.sort((a, b) => a.lessonTitle.localeCompare(b.lessonTitle));
+    } else {
+      list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    }
+
+    return list;
+  }, [data.notes, searchQuery, selectedCourseSlug, sortBy]);
+
+  // Filter & Sort Bookmarks
   const filteredBookmarks = React.useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return bookmarksState.filter((b) => {
+    const list = bookmarksState.filter((b) => {
       const matchesSearch =
         !q ||
         b.lessonTitle.toLowerCase().includes(q) ||
@@ -85,7 +90,15 @@ export function MyNotesView({ data }: MyNotesViewProps) {
 
       return matchesSearch && matchesCourse;
     });
-  }, [bookmarksState, searchQuery, selectedCourseSlug]);
+
+    if (sortBy === "title") {
+      list.sort((a, b) => a.lessonTitle.localeCompare(b.lessonTitle));
+    } else {
+      list.sort((a, b) => new Date(b.bookmarkedAt).getTime() - new Date(a.bookmarkedAt).getTime());
+    }
+
+    return list;
+  }, [bookmarksState, searchQuery, selectedCourseSlug, sortBy]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -180,6 +193,15 @@ export function MyNotesView({ data }: MyNotesViewProps) {
               ))}
             </select>
           )}
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "recent" | "title")}
+            className="h-10 rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-ink focus:border-primary focus:outline-none"
+          >
+            <option value="recent">Recently updated</option>
+            <option value="title">Course order / title</option>
+          </select>
         </div>
       </div>
 

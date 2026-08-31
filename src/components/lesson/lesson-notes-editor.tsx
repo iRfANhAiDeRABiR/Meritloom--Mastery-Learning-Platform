@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, CheckCircle2, Loader2, Lock, StickyNote, Trash2, XCircle } from "lucide-react";
+import { Check, Loader2, Lock, StickyNote, Trash2, XCircle } from "lucide-react";
 import { deleteLessonNoteAction, saveLessonNoteAction } from "@/lib/actions/notes-and-bookmarks";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/lib/notifications/toast";
@@ -149,7 +149,7 @@ export function LessonNotesEditor({
 
       {/* Lesson context pill */}
       <div className="text-[11px] text-ink-muted truncate">
-        <span className="font-semibold text-ink">{courseTitle}</span> • {lessonTitle}
+        <span className="font-semibold text-ink">{courseTitle}</span> • {moduleTitle} • {lessonTitle}
       </div>
 
       {/* Editor Textarea */}

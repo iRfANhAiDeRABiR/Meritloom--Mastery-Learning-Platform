@@ -1443,6 +1443,8 @@ export async function getLessonPlayerData(
     };
 
     return {
+      initialNote,
+      isBookmarked,
       course: {
         id: course.id,
         slug: course.slug,

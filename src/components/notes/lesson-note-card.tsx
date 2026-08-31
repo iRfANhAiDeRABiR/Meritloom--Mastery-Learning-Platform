@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BookOpen, Clock, FileText, StickyNote, Video } from "lucide-react";
+import { ArrowRight, FileText, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { LearnerLessonNoteItem } from "@/lib/types";

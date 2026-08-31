@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Bookmark, CheckCircle2, Clock, FileText, StickyNote, Trash2, Video } from "lucide-react";
+import { ArrowRight, Bookmark, CheckCircle2, Clock, FileText, StickyNote, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toggleLessonBookmarkAction } from "@/lib/actions/notes-and-bookmarks";
