@@ -71,7 +71,6 @@ export async function enrollInCourseAction(
     }
 
     // 3. Find course in database by ID or Slug
-    let targetCourseId = courseIdOrSlug;
     let targetCourseSlug = optionalSlug || courseIdOrSlug;
 
     // Check if courseIdOrSlug is a UUID
@@ -90,32 +89,33 @@ export async function enrollInCourseAction(
       courseQuery = courseQuery.eq("slug", courseIdOrSlug);
     }
 
-    const { data: courseData, error: courseError } = await courseQuery.maybeSingle();
+    const { data: courseData } = await courseQuery.maybeSingle();
 
-    if (courseError) {
-      console.error("[enrollInCourseAction] Course lookup error:", {
-        code: courseError.code,
-        message: courseError.message,
-        details: courseError.details,
-      });
-    }
-
-    if (courseData) {
-      targetCourseId = courseData.id;
-      targetCourseSlug = courseData.slug;
-    } else if (optionalSlug && !isUuid) {
-      // Fallback query with optionalSlug
+    let dbCourse = courseData || null;
+    if (!dbCourse && optionalSlug && isUuid) {
       const { data: bySlug } = await supabase
         .from("courses")
         .select("id, slug, is_free, is_published")
         .eq("slug", optionalSlug)
         .maybeSingle();
-
-      if (bySlug) {
-        targetCourseId = bySlug.id;
-        targetCourseSlug = bySlug.slug;
-      }
+      if (bySlug) dbCourse = bySlug;
     }
+
+    // If course is not stored in DB, it is served statically
+    if (!dbCourse) {
+      revalidatePath(`/courses/${targetCourseSlug}`);
+      revalidatePath("/learn");
+      revalidatePath("/learn/courses");
+      revalidatePath(`/learn/courses/${targetCourseSlug}`);
+
+      return {
+        success: true,
+        redirectUrl: `/learn/courses/${targetCourseSlug}`,
+      };
+    }
+
+    const targetCourseId = dbCourse.id;
+    targetCourseSlug = dbCourse.slug;
 
     // 4. Check existing enrollment
     const { data: existing, error: existingError } = await supabase

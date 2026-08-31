@@ -65,7 +65,7 @@ export function CourseFinalCTA({
               </Button>
             ) : (
               <Button asChild size="lg" variant="secondary">
-                <Link href={`/courses/${course.slug}`}>
+                <Link href={`/learn/courses/${course.slug}`}>
                   <span>Start Course</span>
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
