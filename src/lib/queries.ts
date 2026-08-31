@@ -78,7 +78,7 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
 
     if (error || !data || data.length === 0) return ALL_STATIC_SUMMARIES;
 
-    return data.map((row) => {
+    const mapped: CourseSummary[] = data.map((row) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw: any = row;
       const category = Array.isArray(raw.category)
@@ -102,8 +102,18 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
           category && typeof category.slug === "string" ? category.slug : null,
         thumbnailUrl: (raw.cover_image_url as string) ?? null,
         isFree: raw.is_free !== false,
-      } satisfies CourseSummary;
+      };
     });
+
+    // Merge any static catalog courses not present in DB
+    const existingSlugs = new Set(mapped.map((c) => c.slug));
+    for (const staticSummary of ALL_STATIC_SUMMARIES) {
+      if (!existingSlugs.has(staticSummary.slug)) {
+        mapped.push(staticSummary);
+      }
+    }
+
+    return mapped.slice(0, limit);
   } catch {
     return ALL_STATIC_SUMMARIES;
   }
@@ -228,9 +238,8 @@ export async function getCatalogCourses(
     }
 
     const totalCount = count ?? 0;
-    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
-    const courses = data.map((row) => {
+    const courses: CourseSummary[] = data.map((row) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw: any = row;
       const category = Array.isArray(raw.category)
@@ -254,44 +263,42 @@ export async function getCatalogCourses(
           category && typeof category.slug === "string" ? category.slug : null,
         thumbnailUrl: (raw.cover_image_url as string) ?? null,
         isFree: raw.is_free !== false,
-      } satisfies CourseSummary;
+      };
     });
 
-    if (courses.length === 0) {
-      const q = (params.q ?? "").toLowerCase();
-      const cat = (params.category ?? "all").toLowerCase();
-      const lev = (params.level ?? "all").toLowerCase();
+    const q = (params.q ?? "").toLowerCase();
+    const cat = (params.category ?? "all").toLowerCase();
+    const lev = (params.level ?? "all").toLowerCase();
 
-      let fallbackList = ALL_STATIC_SUMMARIES;
-      if (q) {
-        fallbackList = fallbackList.filter(
-          (c) =>
-            c.title.toLowerCase().includes(q) ||
-            c.shortDescription.toLowerCase().includes(q) ||
-            (c.categoryName && c.categoryName.toLowerCase().includes(q)),
-        );
-      }
-      if (cat !== "all") {
-        fallbackList = fallbackList.filter((c) => c.categorySlug === cat);
-      }
-      if (lev !== "all") {
-        fallbackList = fallbackList.filter((c) => c.difficulty === lev);
-      }
+    // Merge static courses not already returned in data
+    const existingSlugs = new Set(courses.map((c) => c.slug));
+    for (const staticCourse of ALL_STATIC_SUMMARIES) {
+      if (!existingSlugs.has(staticCourse.slug)) {
+        const matchesQ =
+          !q ||
+          staticCourse.title.toLowerCase().includes(q) ||
+          staticCourse.shortDescription.toLowerCase().includes(q) ||
+          (staticCourse.categoryName &&
+            staticCourse.categoryName.toLowerCase().includes(q));
+        const matchesCat =
+          cat === "all" || staticCourse.categorySlug === cat;
+        const matchesLev =
+          lev === "all" || staticCourse.difficulty === lev;
 
-      return {
-        courses: fallbackList,
-        totalCount: fallbackList.length,
-        page: 1,
-        totalPages: 1,
-        pageSize,
-      };
+        if (matchesQ && matchesCat && matchesLev) {
+          courses.push(staticCourse);
+        }
+      }
     }
+
+    const finalTotalCount = Math.max(totalCount, courses.length);
+    const finalTotalPages = Math.max(1, Math.ceil(finalTotalCount / pageSize));
 
     return {
       courses,
-      totalCount,
+      totalCount: finalTotalCount,
       page,
-      totalPages,
+      totalPages: finalTotalPages,
       pageSize,
     };
   } catch {
