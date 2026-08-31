@@ -855,3 +855,4 @@ begin
     (v_lesson_id, 'Prepare your styled layout for interactive JavaScript in the upcoming course', 4);
 
 end $$;
+

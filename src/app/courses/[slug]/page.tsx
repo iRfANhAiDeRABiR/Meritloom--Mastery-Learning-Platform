@@ -153,8 +153,9 @@ export default async function CourseDetailPage({
               {/* Course Syllabus & Accordions */}
               <CourseSyllabus modules={course.modules} />
 
-              {/* Prerequisites, Skills & Audience */}
+              {/* Prerequisites, Skills, Learning Sequence & Audience */}
               <CourseMetaSections
+                courseSlug={course.slug}
                 prerequisites={course.prerequisites}
                 skills={course.skills}
                 targetAudience={course.targetAudience}

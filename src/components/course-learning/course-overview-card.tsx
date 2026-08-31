@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   BookOpen,
   Calendar,
@@ -68,7 +69,7 @@ export function CourseOverviewCard({ data }: CourseOverviewCardProps) {
 
       {/* Realistic Pace-Based Estimation (Only when study pace was set) */}
       {studyPaceLabel && estimatedWeeksRemaining && (
-        <div className="mt-2 flex flex-col gap-1 rounded-xl bg-surface p-3 border border-line text-xs">
+        <div className="mt-1 flex flex-col gap-1 rounded-xl bg-surface p-3 border border-line text-xs">
           <div className="flex items-center gap-1.5 font-bold text-ink">
             <Calendar className="size-3.5 text-primary" aria-hidden="true" />
             <span>Est. {estimatedWeeksRemaining} {estimatedWeeksRemaining === 1 ? "week" : "weeks"} remaining</span>
@@ -78,6 +79,64 @@ export function CourseOverviewCard({ data }: CourseOverviewCardProps) {
           </p>
         </div>
       )}
+
+      {/* Web Development Learning Sequence */}
+      <div className="mt-1 flex flex-col gap-2.5 rounded-xl border border-line bg-surface/50 p-3 text-xs">
+        <span className="font-bold text-ink text-[11px] uppercase tracking-wider text-muted">
+          Learning sequence
+        </span>
+        <div className="flex flex-col gap-2">
+          {course.slug === "html-fundamentals" ? (
+            <>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-lavender/40 border border-primary/30">
+                <span className="font-bold text-ink text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-primary text-white text-[10px]">1</span>
+                  HTML Fundamentals
+                </span>
+                <span className="text-[10px] font-bold text-primary">Current</span>
+              </div>
+              <Link href="/courses/css-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
+                <span className="text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">2</span>
+                  CSS Fundamentals
+                </span>
+                <span className="text-[10px] text-primary font-semibold">Next</span>
+              </Link>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg opacity-60 border border-line/40 text-muted">
+                <span className="text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">3</span>
+                  JavaScript
+                </span>
+                <span className="text-[9px]">Coming later</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link href="/courses/html-fundamentals" className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-card border border-line text-muted hover:text-ink transition-colors">
+                <span className="text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">1</span>
+                  HTML Fundamentals
+                </span>
+                <span className="text-[10px] text-muted font-medium">Prereq</span>
+              </Link>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-lavender/40 border border-primary/30">
+                <span className="font-bold text-ink text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-primary text-white text-[10px]">2</span>
+                  CSS Fundamentals
+                </span>
+                <span className="text-[10px] font-bold text-primary">Current</span>
+              </div>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg opacity-60 border border-line/40 text-muted">
+                <span className="text-xs flex items-center gap-1.5">
+                  <span className="grid size-4 place-items-center rounded-full bg-surface text-muted text-[10px] border border-line">3</span>
+                  JavaScript
+                </span>
+                <span className="text-[9px]">Coming later</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
