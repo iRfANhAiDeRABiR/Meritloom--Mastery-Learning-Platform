@@ -5,6 +5,7 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 import { LearnerFeatures } from "@/components/landing/learner-features";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
+import { TestimonialsSection } from "@/components/home/testimonials/testimonials-section";
 import { getCurrentUser } from "@/lib/auth";
 import { getFeaturedCourses } from "@/lib/queries";
 
@@ -29,6 +30,7 @@ export default async function LandingPage() {
         <LearnerFeatures />
         <FeaturedCourses courses={courses} />
         <HowItWorks />
+        <TestimonialsSection />
         <FinalCTA user={user} />
       </main>
       <SiteFooter />

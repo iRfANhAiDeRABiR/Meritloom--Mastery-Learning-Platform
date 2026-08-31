@@ -266,6 +266,41 @@
   animation: float-slow-rotate 16s ease-in-out infinite;
 }
 
+/* Vertical Testimonials Marquee Animations */
+@keyframes marquee-vertical-up {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes marquee-vertical-down {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-marquee-up {
+  animation: marquee-vertical-up 32s linear infinite;
+}
+
+.animate-marquee-down {
+  animation: marquee-vertical-down 32s linear infinite;
+}
+
+.animate-marquee-up-slow {
+  animation: marquee-vertical-up 42s linear infinite;
+}
+
+.animate-marquee-down-slow {
+  animation: marquee-vertical-down 42s linear infinite;
+}
+
 /* Layout helpers registered as Tailwind utilities */
 @utility container-page {
   margin-inline: auto;
