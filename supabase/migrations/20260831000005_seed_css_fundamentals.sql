@@ -102,33 +102,33 @@ begin
     (v_course_id, 'A text editor such as VS Code, Notepad, or TextEdit', 3);
 
   -- 5. UPSERT SKILLS & COURSE_SKILLS
-  insert into public.skills (name, slug, category) values
-    ('CSS', 'css', 'Technical')
+  insert into public.skills (name, slug, is_active) values
+    ('CSS', 'css', true)
   on conflict (slug) do update set name = excluded.name
   returning id into v_skill_css_id;
 
-  insert into public.skills (name, slug, category) values
-    ('CSS Selectors', 'css-selectors', 'Technical')
+  insert into public.skills (name, slug, is_active) values
+    ('CSS Selectors', 'css-selectors', true)
   on conflict (slug) do update set name = excluded.name
   returning id into v_skill_sel_id;
 
-  insert into public.skills (name, slug, category) values
-    ('CSS Colors', 'css-colors', 'Technical')
+  insert into public.skills (name, slug, is_active) values
+    ('CSS Colors', 'css-colors', true)
   on conflict (slug) do update set name = excluded.name
   returning id into v_skill_col_id;
 
-  insert into public.skills (name, slug, category) values
-    ('CSS Backgrounds', 'css-backgrounds', 'Technical')
+  insert into public.skills (name, slug, is_active) values
+    ('CSS Backgrounds', 'css-backgrounds', true)
   on conflict (slug) do update set name = excluded.name
   returning id into v_skill_bg_id;
 
-  insert into public.skills (name, slug, category) values
-    ('Web Styling', 'web-styling', 'Technical')
+  insert into public.skills (name, slug, is_active) values
+    ('Web Styling', 'web-styling', true)
   on conflict (slug) do update set name = excluded.name
   returning id into v_skill_style_id;
 
-  insert into public.skills (name, slug, category) values
-    ('Web Development', 'web-development-skill', 'Technical')
+  insert into public.skills (name, slug, is_active) values
+    ('Web Development', 'web-development-skill', true)
   on conflict (slug) do update set name = excluded.name
   returning id into v_skill_webdev_id;
 
