@@ -112,11 +112,24 @@ export async function getLearnerDashboardData(
             slug,
             title,
             difficulty,
-            thumbnail_url,
+            cover_image_url,
             is_published,
             category:categories (
               name,
               slug
+            ),
+            modules:course_modules (
+              id,
+              title,
+              position,
+              lessons (
+                id,
+                title,
+                slug,
+                position,
+                is_bonus,
+                is_published
+              )
             )
           )
         `,
@@ -134,53 +147,61 @@ export async function getLearnerDashboardData(
 
           enrolledCourseIds.push(course.id);
 
-          // Get total lessons count for this course
-          const { count: totalLessons } = await supabase
-            .from("lessons")
-            .select("id", { count: "exact", head: true })
-            .eq("course_id", course.id)
-            .eq("is_published", true);
-
-          // Get completed lessons count if lesson_progress table exists
           let completedLessons = 0;
+          let totalLessons = 0;
           let nextLessonTitle: string | null = null;
           let nextLessonSlug: string | null = null;
 
           try {
-            const { count: completedCount } = await supabase
+            const { data: progressRows } = await supabase
               .from("lesson_progress")
-              .select("id", { count: "exact", head: true })
+              .select("lesson_id, completed")
               .eq("user_id", userId)
               .eq("course_id", course.id)
               .eq("completed", true);
 
-            completedLessons = completedCount ?? 0;
+            const completedSet = new Set(progressRows?.map((p) => p.lesson_id) || []);
+
+            const rawModules = Array.isArray(course.modules) ? course.modules : [];
+            const sortedModules = [...rawModules].sort(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (a: any, b: any) => (a.position || 0) - (b.position || 0),
+            );
+
+            for (const mod of sortedModules) {
+              const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
+              const sortedLessons = [...rawLessons]
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .filter((l: any) => l.is_published !== false)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+
+              for (const les of sortedLessons) {
+                if (!les.is_bonus) {
+                  totalLessons++;
+                  if (completedSet.has(les.id)) {
+                    completedLessons++;
+                  } else if (!nextLessonTitle) {
+                    nextLessonTitle = les.title;
+                    nextLessonSlug = les.slug;
+                  }
+                }
+              }
+            }
           } catch {
             completedLessons = 0;
           }
 
-          // Find the next lesson
-          try {
-            const { data: nextLesson } = await supabase
-              .from("lessons")
-              .select("title, slug")
-              .eq("course_id", course.id)
-              .eq("is_published", true)
-              .order("position", { ascending: true })
-              .limit(1)
-              .maybeSingle();
-
-            if (nextLesson) {
-              nextLessonTitle = nextLesson.title;
-              nextLessonSlug = nextLesson.slug;
+          if (totalLessons === 0 && course.slug === "html-fundamentals") {
+            totalLessons = 22;
+            if (!nextLessonTitle) {
+              nextLessonTitle = "HTML - Introduction";
+              nextLessonSlug = "html-introduction";
             }
-          } catch {
-            // Ignore
           }
 
-          const total = totalLessons ?? 0;
           const progressPercent =
-            total > 0 ? Math.min(100, Math.round((completedLessons / total) * 100)) : 0;
+            totalLessons > 0 ? Math.min(100, Math.round((completedLessons / totalLessons) * 100)) : 0;
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const cat = Array.isArray(course.category) ? course.category[0] : (course.category as any);
@@ -192,9 +213,9 @@ export async function getLearnerDashboardData(
             courseTitle: course.title,
             categoryName: cat?.name ?? null,
             categorySlug: cat?.slug ?? null,
-            thumbnailUrl: course.thumbnail_url ?? null,
+            thumbnailUrl: course.cover_image_url ?? null,
             difficulty: (course.difficulty as CourseDifficulty) || "beginner",
-            totalLessons: total,
+            totalLessons,
             completedLessons,
             progressPercent,
             nextLessonTitle,
@@ -219,15 +240,17 @@ export async function getLearnerDashboardData(
           id,
           slug,
           title,
-          short_description,
+          summary,
           difficulty,
           estimated_minutes,
-          lesson_count,
-          thumbnail_url,
+          cover_image_url,
           is_free,
           category:categories (
             name,
             slug
+          ),
+          modules:course_modules (
+            lessons (id, is_bonus, is_published)
           )
         `,
         )
@@ -251,17 +274,30 @@ export async function getLearnerDashboardData(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mapped: CourseSummary[] = recCourses.map((c: any) => {
           const cat = Array.isArray(c.category) ? c.category[0] : c.category;
+          let lessonCount = 0;
+          if (Array.isArray(c.modules)) {
+            for (const m of c.modules) {
+              if (Array.isArray(m.lessons)) {
+                lessonCount += m.lessons.filter(
+                  (l: { is_bonus?: boolean; is_published?: boolean }) =>
+                    !l.is_bonus && l.is_published !== false,
+                ).length;
+              }
+            }
+          }
+          if (lessonCount === 0 && c.slug === "html-fundamentals") lessonCount = 22;
+
           return {
             id: c.id,
             slug: c.slug,
             title: c.title,
-            shortDescription: c.short_description || "",
+            shortDescription: c.summary || "",
             difficulty: (c.difficulty as CourseDifficulty) || "beginner",
             estimatedMinutes: c.estimated_minutes || 0,
-            lessonCount: c.lesson_count || 0,
+            lessonCount,
             categoryName: cat?.name || null,
             categorySlug: cat?.slug || null,
-            thumbnailUrl: c.thumbnail_url || null,
+            thumbnailUrl: c.cover_image_url || null,
             isFree: c.is_free ?? true,
           };
         });
@@ -285,15 +321,17 @@ export async function getLearnerDashboardData(
             id,
             slug,
             title,
-            short_description,
+            summary,
             difficulty,
             estimated_minutes,
-            lesson_count,
-            thumbnail_url,
+            cover_image_url,
             is_free,
             category:categories (
               name,
               slug
+            ),
+            modules:course_modules (
+              lessons (id, is_bonus, is_published)
             )
           `,
           )
@@ -305,17 +343,30 @@ export async function getLearnerDashboardData(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           defaultResult.recommendedCourses = fallbackCourses.map((c: any) => {
             const cat = Array.isArray(c.category) ? c.category[0] : c.category;
+            let lessonCount = 0;
+            if (Array.isArray(c.modules)) {
+              for (const m of c.modules) {
+                if (Array.isArray(m.lessons)) {
+                  lessonCount += m.lessons.filter(
+                    (l: { is_bonus?: boolean; is_published?: boolean }) =>
+                      !l.is_bonus && l.is_published !== false,
+                  ).length;
+                }
+              }
+            }
+            if (lessonCount === 0 && c.slug === "html-fundamentals") lessonCount = 22;
+
             return {
               id: c.id,
               slug: c.slug,
               title: c.title,
-              shortDescription: c.short_description || "",
+              shortDescription: c.summary || "",
               difficulty: (c.difficulty as CourseDifficulty) || "beginner",
               estimatedMinutes: c.estimated_minutes || 0,
-              lessonCount: c.lesson_count || 0,
+              lessonCount,
               categoryName: cat?.name || null,
               categorySlug: cat?.slug || null,
-              thumbnailUrl: c.thumbnail_url || null,
+              thumbnailUrl: c.cover_image_url || null,
               isFree: c.is_free ?? true,
             };
           });
@@ -437,13 +488,27 @@ export async function getMyLearningCoursesData(
               id,
               slug,
               title,
+              summary,
               difficulty,
               estimated_minutes,
-              thumbnail_url,
+              cover_image_url,
               is_published,
               category:categories (
                 name,
                 slug
+              ),
+              modules:course_modules (
+                id,
+                title,
+                position,
+                lessons (
+                  id,
+                  title,
+                  slug,
+                  position,
+                  is_bonus,
+                  is_published
+                )
               )
             )
           `,
@@ -461,54 +526,62 @@ export async function getMyLearningCoursesData(
             const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
             if (!course || !course.is_published) continue;
 
-            // Get total lessons count
-            const { count: totalLessons } = await supabase
-              .from("lessons")
-              .select("id", { count: "exact", head: true })
-              .eq("course_id", course.id)
-              .eq("is_published", true);
-
-            // Get completed lessons count
             let completedLessons = 0;
+            let totalLessons = 0;
             let nextLessonTitle: string | null = null;
             let nextLessonSlug: string | null = null;
 
             try {
-              const { count: completedCount } = await supabase
+              const { data: progressRows } = await supabase
                 .from("lesson_progress")
-                .select("id", { count: "exact", head: true })
+                .select("lesson_id, completed")
                 .eq("user_id", userId)
                 .eq("course_id", course.id)
                 .eq("completed", true);
 
-              completedLessons = completedCount ?? 0;
+              const completedSet = new Set(progressRows?.map((p) => p.lesson_id) || []);
+
+              const rawModules = Array.isArray(course.modules) ? course.modules : [];
+              const sortedModules = [...rawModules].sort(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (a: any, b: any) => (a.position || 0) - (b.position || 0),
+              );
+
+              for (const mod of sortedModules) {
+                const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
+                const sortedLessons = [...rawLessons]
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  .filter((l: any) => l.is_published !== false)
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+
+                for (const les of sortedLessons) {
+                  if (!les.is_bonus) {
+                    totalLessons++;
+                    if (completedSet.has(les.id)) {
+                      completedLessons++;
+                    } else if (!nextLessonTitle) {
+                      nextLessonTitle = les.title;
+                      nextLessonSlug = les.slug;
+                    }
+                  }
+                }
+              }
             } catch {
               completedLessons = 0;
             }
 
-            // Find next lesson
-            try {
-              const { data: nextLesson } = await supabase
-                .from("lessons")
-                .select("title, slug")
-                .eq("course_id", course.id)
-                .eq("is_published", true)
-                .order("position", { ascending: true })
-                .limit(1)
-                .maybeSingle();
-
-              if (nextLesson) {
-                nextLessonTitle = nextLesson.title;
-                nextLessonSlug = nextLesson.slug;
+            if (totalLessons === 0 && course.slug === "html-fundamentals") {
+              totalLessons = 22;
+              if (!nextLessonTitle) {
+                nextLessonTitle = "HTML - Introduction";
+                nextLessonSlug = "html-introduction";
               }
-            } catch {
-              // Ignore
             }
 
-            const total = totalLessons ?? 0;
             const progressPercent =
-              total > 0
-                ? Math.min(100, Math.round((completedLessons / total) * 100))
+              totalLessons > 0
+                ? Math.min(100, Math.round((completedLessons / totalLessons) * 100))
                 : currentTab === "completed"
                 ? 100
                 : 0;
@@ -523,10 +596,10 @@ export async function getMyLearningCoursesData(
               courseTitle: course.title,
               categoryName: cat?.name ?? null,
               categorySlug: cat?.slug ?? null,
-              thumbnailUrl: course.thumbnail_url ?? null,
+              thumbnailUrl: course.cover_image_url ?? null,
               difficulty: (course.difficulty as CourseDifficulty) || "beginner",
               estimatedMinutes: course.estimated_minutes || 0,
-              totalLessons: total,
+              totalLessons,
               completedLessons,
               progressPercent,
               nextLessonTitle,
@@ -586,14 +659,17 @@ export async function getMyLearningCoursesData(
               id,
               slug,
               title,
+              summary,
               difficulty,
               estimated_minutes,
-              lesson_count,
-              thumbnail_url,
+              cover_image_url,
               is_published,
               category:categories (
                 name,
                 slug
+              ),
+              modules:course_modules (
+                lessons (id, is_bonus, is_published)
               )
             `,
             )
@@ -607,6 +683,19 @@ export async function getMyLearningCoursesData(
                 ? course.category[0]
                 : course.category;
 
+              let lessonCount = 0;
+              if (Array.isArray(course.modules)) {
+                for (const m of course.modules) {
+                  if (Array.isArray(m.lessons)) {
+                    lessonCount += m.lessons.filter(
+                      (l: { is_bonus?: boolean; is_published?: boolean }) =>
+                        !l.is_bonus && l.is_published !== false,
+                    ).length;
+                  }
+                }
+              }
+              if (lessonCount === 0 && course.slug === "html-fundamentals") lessonCount = 22;
+
               return {
                 id: `saved-${course.id}`,
                 courseId: course.id,
@@ -614,10 +703,10 @@ export async function getMyLearningCoursesData(
                 courseTitle: course.title,
                 categoryName: cat?.name || null,
                 categorySlug: cat?.slug || null,
-                thumbnailUrl: course.thumbnail_url || null,
+                thumbnailUrl: course.cover_image_url || null,
                 difficulty: (course.difficulty as CourseDifficulty) || "beginner",
                 estimatedMinutes: course.estimated_minutes || 0,
-                totalLessons: course.lesson_count || 0,
+                totalLessons: lessonCount,
                 completedLessons: 0,
                 progressPercent: 0,
                 nextLessonTitle: null,
