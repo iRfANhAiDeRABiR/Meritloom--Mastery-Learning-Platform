@@ -19,11 +19,12 @@ export function Avatar({
   ...props
 }: AvatarProps) {
   const [hasError, setHasError] = React.useState(false);
+  const [prevSrc, setPrevSrc] = React.useState(src);
 
-  // Reset error state if the src URL changes
-  React.useEffect(() => {
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setHasError(false);
-  }, [src]);
+  }
 
   const initials = React.useMemo(() => {
     if (!name) return "L";

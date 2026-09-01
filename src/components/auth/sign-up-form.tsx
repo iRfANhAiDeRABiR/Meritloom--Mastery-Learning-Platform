@@ -37,7 +37,8 @@ export function SignUpForm() {
   const [isEmailFocused, setIsEmailFocused] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const urlError = React.useMemo(() => getSafeAuthErrorFromCode(errorParam), [errorParam]);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(urlError?.title ?? null);
 
   // Email verification confirmation state
   const [needsVerification, setNeedsVerification] = React.useState(false);
@@ -45,14 +46,10 @@ export function SignUpForm() {
   const [resendMessage, setResendMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (errorParam) {
-      const err = getSafeAuthErrorFromCode(errorParam);
-      if (err) {
-        setErrorMessage(err.title);
-        notify.error({ title: err.title, description: err.description });
-      }
+    if (urlError) {
+      notify.error({ title: urlError.title, description: urlError.description });
     }
-  }, [errorParam]);
+  }, [urlError]);
 
   React.useEffect(() => {
     if (resendCooldown <= 0) return;

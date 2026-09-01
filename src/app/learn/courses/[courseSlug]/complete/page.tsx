@@ -16,8 +16,13 @@ export async function generateMetadata({
   params,
 }: CourseCompletePageProps): Promise<Metadata> {
   const { courseSlug } = await params;
+  const readable = courseSlug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
   return {
-    title: `Course Completion Summary | Meritloom`,
+    title: `${readable} Completion Summary | Meritloom`,
     robots: {
       index: false,
       follow: false,

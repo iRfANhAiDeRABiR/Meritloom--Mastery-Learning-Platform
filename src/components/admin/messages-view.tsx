@@ -60,15 +60,18 @@ export function MessagesView({
 }: MessagesViewProps) {
   const router = useRouter();
   const [messages, setMessages] = React.useState<AdminSupportMessage[]>(initialMessages);
+  const [prevInitial, setPrevInitial] = React.useState(initialMessages);
+
+  if (prevInitial !== initialMessages) {
+    setPrevInitial(initialMessages);
+    setMessages(initialMessages);
+  }
+
   const [selectedMessage, setSelectedMessage] = React.useState<AdminSupportMessage | null>(null);
   const [q, setQ] = React.useState(searchQuery);
   const [statusFilter, setStatusFilter] = React.useState(selectedStatus);
   const [topicFilter, setTopicFilter] = React.useState(selectedTopic);
   const [isUpdating, setIsUpdating] = React.useState(false);
-
-  React.useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages]);
 
   const applyFilters = (newQ = q, newStatus = statusFilter, newTopic = topicFilter) => {
     const params = new URLSearchParams();

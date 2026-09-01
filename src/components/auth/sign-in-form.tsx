@@ -31,17 +31,14 @@ export function SignInForm() {
   const [password, setPassword] = React.useState("");
   const [isEmailFocused, setIsEmailFocused] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const urlError = React.useMemo(() => getSafeAuthErrorFromCode(errorParam), [errorParam]);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(urlError?.title ?? null);
 
   React.useEffect(() => {
-    if (errorParam) {
-      const err = getSafeAuthErrorFromCode(errorParam);
-      if (err) {
-        setErrorMessage(err.title);
-        notify.error({ title: err.title, description: err.description });
-      }
+    if (urlError) {
+      notify.error({ title: urlError.title, description: urlError.description });
     }
-  }, [errorParam]);
+  }, [urlError]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

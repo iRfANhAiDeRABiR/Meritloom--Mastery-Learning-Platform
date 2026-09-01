@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 
 import { QuizHeader } from "@/components/quiz/quiz-header";
 import { QuizProgress } from "@/components/quiz/quiz-progress";
@@ -23,6 +24,7 @@ interface PracticeQuizProps {
 }
 
 export function PracticeQuiz({ data }: PracticeQuizProps) {
+  const router = useRouter();
   const {
     id: quizId,
     courseSlug,
@@ -155,7 +157,7 @@ export function PracticeQuiz({ data }: PracticeQuizProps) {
           action: {
             label: "View summary",
             onClick: () => {
-              window.location.href = `/learn/courses/${courseSlug}/complete`;
+              router.push(`/learn/courses/${courseSlug}/complete`);
             },
           },
         });

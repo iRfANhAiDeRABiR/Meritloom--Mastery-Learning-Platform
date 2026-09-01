@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -35,17 +36,20 @@ export function LessonBottomNav({
   isLastLesson,
   onCompletionChanged,
 }: LessonBottomNavProps) {
+  const router = useRouter();
   const [completed, setCompleted] = React.useState(initialCompleted);
-  const [isPending, setIsPending] = React.useState(false);
-
-  // Sync state if initialCompleted changes externally
   const [prevInitial, setPrevInitial] = React.useState(initialCompleted);
+
   if (prevInitial !== initialCompleted) {
     setPrevInitial(initialCompleted);
     setCompleted(initialCompleted);
   }
 
+  const [isPending, setIsPending] = React.useState(false);
+
   const handleToggleComplete = async () => {
+    if (isPending) return;
+
     const nextState = !completed;
     setCompleted(nextState);
     setIsPending(true);
@@ -69,7 +73,7 @@ export function LessonBottomNav({
         action: {
           label: "View summary",
           onClick: () => {
-            window.location.href = `/learn/courses/${courseSlug}/complete`;
+            router.push(`/learn/courses/${courseSlug}/complete`);
           },
         },
       });

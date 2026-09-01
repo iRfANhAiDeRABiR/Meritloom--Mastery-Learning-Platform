@@ -33,13 +33,16 @@ export function LearnersView({
 }: LearnersViewProps) {
   const router = useRouter();
   const [learners, setLearners] = React.useState<AdminLearnerListItem[]>(initialLearners);
+  const [prevInitial, setPrevInitial] = React.useState(initialLearners);
+
+  if (prevInitial !== initialLearners) {
+    setPrevInitial(initialLearners);
+    setLearners(initialLearners);
+  }
+
   const [q, setQ] = React.useState(searchQuery);
   const [roleFilter, setRoleFilter] = React.useState(selectedRole);
   const [isUpdating, setIsUpdating] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    setLearners(initialLearners);
-  }, [initialLearners]);
 
   const applyFilters = (newQ = q, newRole = roleFilter) => {
     const params = new URLSearchParams();

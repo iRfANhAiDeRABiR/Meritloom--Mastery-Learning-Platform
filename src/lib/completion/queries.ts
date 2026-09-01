@@ -846,6 +846,7 @@ function buildStaticCourseCompletionFallback(course: any): CourseCompletionData 
     notesCount: 0,
     bookmarksCount: 0,
     learningOutcomes: course.learningOutcomes || [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     moduleSummaries: course.modules.map((m: any) => ({
       id: m.id,
       position: m.position,

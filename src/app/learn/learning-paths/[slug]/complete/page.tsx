@@ -16,8 +16,13 @@ export async function generateMetadata({
   params,
 }: PathCompletePageProps): Promise<Metadata> {
   const { slug } = await params;
+  const readable = slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
   return {
-    title: `Learning Path Completion Summary | Meritloom`,
+    title: `${readable} Completion Summary | Meritloom`,
     robots: {
       index: false,
       follow: false,
