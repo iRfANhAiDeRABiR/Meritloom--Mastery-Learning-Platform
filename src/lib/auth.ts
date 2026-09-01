@@ -20,16 +20,23 @@ export async function getCurrentUser(): Promise<LearnerProfile | null> {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, full_name, avatar_url")
       .eq("id", user.id)
       .maybeSingle();
 
     const metadata = user.user_metadata ?? {};
     const name =
-      (typeof metadata.full_name === "string" && metadata.full_name) ||
-      (typeof metadata.name === "string" && metadata.name) ||
+      (typeof profile?.full_name === "string" && profile.full_name.trim()) ||
+      (typeof metadata.full_name === "string" && metadata.full_name.trim()) ||
+      (typeof metadata.name === "string" && metadata.name.trim()) ||
       user.email?.split("@")[0] ||
       "Learner";
+
+    const avatarUrl =
+      (typeof profile?.avatar_url === "string" && profile.avatar_url.trim()) ||
+      (typeof metadata.avatar_url === "string" && metadata.avatar_url.trim()) ||
+      (typeof metadata.picture === "string" && metadata.picture.trim()) ||
+      null;
 
     const role = (profile?.role === "admin" || metadata.role === "admin"
       ? "admin"
@@ -38,8 +45,7 @@ export async function getCurrentUser(): Promise<LearnerProfile | null> {
     return {
       id: user.id,
       name,
-      avatarUrl:
-        typeof metadata.avatar_url === "string" ? metadata.avatar_url : null,
+      avatarUrl,
       email: user.email,
       role,
     };

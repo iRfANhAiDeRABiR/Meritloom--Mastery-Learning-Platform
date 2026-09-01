@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -18,6 +20,11 @@ export function Avatar({
 }: AvatarProps) {
   const [hasError, setHasError] = React.useState(false);
 
+  // Reset error state if the src URL changes
+  React.useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
   const initials = React.useMemo(() => {
     if (!name) return "L";
     const parts = name.trim().split(/\s+/);
@@ -25,9 +32,10 @@ export function Avatar({
     return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   }, [name]);
 
-  const displayName = name || alt || "Learner avatar";
+  const cleanSrc = typeof src === "string" ? src.trim() : null;
+  const displayName = name ? `${name}'s profile photo` : alt || "Profile photo";
 
-  if (src && !hasError) {
+  if (cleanSrc && !hasError) {
     return (
       <div
         className={cn(
@@ -37,7 +45,7 @@ export function Avatar({
         {...props}
       >
         <Image
-          src={src}
+          src={cleanSrc}
           alt={displayName}
           fill
           sizes="40px"
