@@ -7,7 +7,7 @@ interface LegalSectionData {
   title: string;
   content: string;
   callout?: {
-    type: "info" | "important" | "transparency";
+    type: "info" | "important" | "transparency" | "security";
     title?: string;
     text: string;
   };

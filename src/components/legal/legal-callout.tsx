@@ -1,8 +1,8 @@
-import { AlertCircle, ExternalLink, Info } from "lucide-react";
+import { AlertCircle, ExternalLink, Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LegalCalloutProps {
-  type?: "info" | "important" | "transparency";
+  type?: "info" | "important" | "transparency" | "security";
   title?: string;
   text: string;
 }
@@ -14,6 +14,8 @@ export function LegalCallout({
 }: LegalCalloutProps) {
   const getIcon = () => {
     switch (type) {
+      case "security":
+        return <ShieldCheck className="size-5 text-emerald-500 shrink-0" aria-hidden="true" />;
       case "important":
         return <AlertCircle className="size-5 text-amber-500 shrink-0" aria-hidden="true" />;
       case "transparency":
@@ -26,6 +28,8 @@ export function LegalCallout({
 
   const getContainerStyle = () => {
     switch (type) {
+      case "security":
+        return "border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10 text-ink";
       case "important":
         return "border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 text-ink";
       case "transparency":
