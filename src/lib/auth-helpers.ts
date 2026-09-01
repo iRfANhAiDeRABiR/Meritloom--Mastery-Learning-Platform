@@ -8,7 +8,7 @@
  */
 export function getSafeNextUrl(
   nextParam?: string | null,
-  fallback = "/courses",
+  fallback = "/learn",
 ): string {
   if (!nextParam || typeof nextParam !== "string") {
     return fallback;
@@ -25,7 +25,7 @@ export function getSafeNextUrl(
     return fallback;
   }
 
-  // Reject protocol strings
+  // Reject protocol strings (e.g. javascript:, https:, etc.)
   if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
     return fallback;
   }
@@ -48,6 +48,14 @@ export function formatAuthError(error: unknown): string {
       : "";
 
   const lower = msg.toLowerCase();
+
+  if (
+    lower.includes("unsupported provider") ||
+    lower.includes("provider is not enabled") ||
+    lower.includes("provider is disabled")
+  ) {
+    return "Google sign-in isn't available right now. Please continue with email or try again later.";
+  }
 
   if (
     lower.includes("already registered") ||
@@ -82,5 +90,40 @@ export function formatAuthError(error: unknown): string {
   }
 
   return "Something went wrong. Please check your details and try again.";
+}
+
+/**
+ * Maps OAuth URL error query parameters (e.g. ?error=oauth_callback_failed)
+ * to friendly user-facing messages.
+ */
+export function getSafeAuthErrorFromCode(code?: string | null): {
+  title: string;
+  description?: string;
+} | null {
+  if (!code) return null;
+
+  switch (code) {
+    case "oauth_cancelled":
+      return {
+        title: "Google sign-in was cancelled",
+        description: "You can try again or sign in with your email address.",
+      };
+    case "oauth_disabled":
+      return {
+        title: "Google sign-in isn't available right now",
+        description: "Please continue with email or try again later.",
+      };
+    case "oauth_callback_failed":
+    case "oauth_error":
+      return {
+        title: "Google sign-in didn't work",
+        description: "Please try again or continue with email.",
+      };
+    default:
+      return {
+        title: "Authentication failed",
+        description: "Please try signing in again.",
+      };
+  }
 }
 

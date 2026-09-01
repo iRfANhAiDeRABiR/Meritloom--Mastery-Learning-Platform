@@ -9,7 +9,11 @@ import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { PasswordInput } from "@/components/auth/password-input";
-import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
+import {
+  formatAuthError,
+  getSafeAuthErrorFromCode,
+  getSafeNextUrl,
+} from "@/lib/auth-helpers";
 import { getUserFacingError } from "@/lib/errors/user-facing-errors";
 import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
@@ -20,13 +24,24 @@ export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
-  const safeNext = getSafeNextUrl(nextParam);
+  const errorParam = searchParams.get("error");
+  const safeNext = getSafeNextUrl(nextParam, "/learn");
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [isEmailFocused, setIsEmailFocused] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (errorParam) {
+      const err = getSafeAuthErrorFromCode(errorParam);
+      if (err) {
+        setErrorMessage(err.title);
+        notify.error({ title: err.title, description: err.description });
+      }
+    }
+  }, [errorParam]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

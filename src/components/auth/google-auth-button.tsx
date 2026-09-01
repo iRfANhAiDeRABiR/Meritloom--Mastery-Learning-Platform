@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Loader2 } from "lucide-react";
 
+import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { notify } from "@/lib/notifications/toast";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ interface GoogleAuthButtonProps {
 }
 
 export function GoogleAuthButton({
-  nextUrl = "/courses",
+  nextUrl = "/learn",
   onError,
   className,
 }: GoogleAuthButtonProps) {
@@ -25,8 +26,9 @@ export function GoogleAuthButton({
       setIsLoading(true);
       const supabase = createSupabaseBrowserClient();
 
+      const safeNext = getSafeNextUrl(nextUrl, "/learn");
       const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-        nextUrl,
+        safeNext,
       )}`;
 
       const { error } = await supabase.auth.signInWithOAuth({
@@ -38,11 +40,27 @@ export function GoogleAuthButton({
 
       if (error) {
         setIsLoading(false);
-        const msg = error.message || "Google sign-in could not be initiated.";
-        onError?.(msg);
-        notify.error({ title: msg });
+        const rawMsg = error.message || "";
+        const lower = rawMsg.toLowerCase();
+
+        if (
+          lower.includes("unsupported provider") ||
+          lower.includes("provider is not enabled") ||
+          lower.includes("provider is disabled")
+        ) {
+          console.warn("[GoogleAuthButton] Supabase Google OAuth provider is disabled:", rawMsg);
+          const title = "Google sign-in isn't available right now";
+          const description = "Please continue with email or try again later.";
+          onError?.(title);
+          notify.error({ title, description });
+          return;
+        }
+
+        const friendly = formatAuthError(error);
+        onError?.(friendly);
+        notify.error({ title: friendly });
       }
-    } catch {
+    } catch (err) {
       setIsLoading(false);
       const msg = "Google sign-in could not be completed. Please try again.";
       onError?.(msg);
@@ -55,6 +73,8 @@ export function GoogleAuthButton({
       type="button"
       onClick={handleGoogleAuth}
       disabled={isLoading}
+      aria-busy={isLoading}
+      aria-label="Continue with Google"
       className={cn(
         "group relative flex h-[50px] w-full items-center justify-center gap-3 rounded-[13px] border border-line bg-card px-4 text-sm font-semibold text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60 cursor-pointer",
         className,

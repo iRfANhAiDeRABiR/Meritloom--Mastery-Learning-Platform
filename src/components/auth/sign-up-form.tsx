@@ -10,7 +10,11 @@ import { AuthErrorAlert } from "@/components/auth/auth-error-alert";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
-import { formatAuthError, getSafeNextUrl } from "@/lib/auth-helpers";
+import {
+  formatAuthError,
+  getSafeAuthErrorFromCode,
+  getSafeNextUrl,
+} from "@/lib/auth-helpers";
 import { getUserFacingError } from "@/lib/errors/user-facing-errors";
 import { notify } from "@/lib/notifications/toast";
 import { routes } from "@/lib/routes";
@@ -21,7 +25,8 @@ export function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
-  const safeNext = getSafeNextUrl(nextParam);
+  const errorParam = searchParams.get("error");
+  const safeNext = getSafeNextUrl(nextParam, "/learn");
 
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -38,6 +43,16 @@ export function SignUpForm() {
   const [needsVerification, setNeedsVerification] = React.useState(false);
   const [resendCooldown, setResendCooldown] = React.useState(0);
   const [resendMessage, setResendMessage] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (errorParam) {
+      const err = getSafeAuthErrorFromCode(errorParam);
+      if (err) {
+        setErrorMessage(err.title);
+        notify.error({ title: err.title, description: err.description });
+      }
+    }
+  }, [errorParam]);
 
   React.useEffect(() => {
     if (resendCooldown <= 0) return;
