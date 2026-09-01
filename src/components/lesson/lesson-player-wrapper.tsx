@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { getPracticeConfigForLesson } from "@/lib/practice/defaults";
-
 import { LessonBottomNav } from "@/components/lesson/lesson-bottom-nav";
 import { LessonContentRenderer } from "@/components/lesson/lesson-content-renderer";
 import { LessonContextPanel } from "@/components/lesson/lesson-context-panel";

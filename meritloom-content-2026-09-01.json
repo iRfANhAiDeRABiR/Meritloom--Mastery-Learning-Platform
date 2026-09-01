@@ -1,0 +1,114 @@
+{
+  "format": "meritloom-content",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-01T00:50:21.719Z",
+  "application": "Meritloom",
+  "scope": {
+    "type": "courses",
+    "courseSlugs": [
+      "css-fundamentals",
+      "html-fundamentals",
+      "javascript-fundamentals"
+    ],
+    "includeReferencedCourses": true
+  },
+  "categories": [
+    {
+      "slug": "web-development",
+      "name": "Web Development",
+      "description": "Learn to build modern, responsive, and interactive websites with HTML, CSS, and JavaScript foundations.",
+      "iconName": "Layers",
+      "position": 1,
+      "isActive": true
+    }
+  ],
+  "skills": [
+    {
+      "slug": "arithmetic-operators",
+      "name": "Arithmetic Operators",
+      "isActive": true
+    },
+    {
+      "slug": "css",
+      "name": "CSS",
+      "isActive": true
+    },
+    {
+      "slug": "css-backgrounds",
+      "name": "CSS Backgrounds",
+      "isActive": true
+    },
+    {
+      "slug": "css-colors",
+      "name": "CSS Colors",
+      "isActive": true
+    },
+    {
+      "slug": "css-selectors",
+      "name": "CSS Selectors",
+      "isActive": true
+    },
+    {
+      "slug": "dom-and-output",
+      "name": "DOM & Output",
+      "isActive": true
+    },
+    {
+      "slug": "html",
+      "name": "HTML",
+      "isActive": true
+    },
+    {
+      "slug": "html-attributes",
+      "name": "HTML Attributes",
+      "isActive": true
+    },
+    {
+      "slug": "html-elements",
+      "name": "HTML Elements",
+      "isActive": true
+    },
+    {
+      "slug": "html-forms",
+      "name": "HTML Forms",
+      "isActive": true
+    },
+    {
+      "slug": "html-tables",
+      "name": "HTML Tables",
+      "isActive": true
+    },
+    {
+      "slug": "javascript",
+      "name": "JavaScript",
+      "isActive": true
+    },
+    {
+      "slug": "javascript-fundamentals-skill",
+      "name": "JavaScript Fundamentals",
+      "isActive": true
+    },
+    {
+      "slug": "variables-and-scoping",
+      "name": "Variables & Scoping",
+      "isActive": true
+    },
+    {
+      "slug": "web-development",
+      "name": "Web Development",
+      "isActive": true
+    },
+    {
+      "slug": "web-interactivity",
+      "name": "Web Interactivity",
+      "isActive": true
+    },
+    {
+      "slug": "web-styling",
+      "name": "Web Styling",
+      "isActive": true
+    }
+  ],
+  "courses": [],
+  "learningPaths": []
+}

@@ -37,6 +37,21 @@ export const routes = {
   privacy: "/privacy",
   terms: "/terms",
   myLearning: "/learn",
+  admin: {
+    dashboard: "/admin",
+    courses: "/admin/courses",
+    newCourse: "/admin/courses/new",
+    course: (id: string) => `/admin/courses/${id}`,
+    learningPaths: "/admin/learning-paths",
+    newLearningPath: "/admin/learning-paths/new",
+    learningPath: (id: string) => `/admin/learning-paths/${id}`,
+    learners: "/admin/learners",
+    messages: "/admin/messages",
+    instructors: "/admin/instructors",
+    categories: "/admin/categories",
+    skills: "/admin/skills",
+    contentTools: "/admin/content-tools",
+  },
   // In-page anchors used by the landing navigation.
   anchors: {
     courses: "#courses",

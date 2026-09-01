@@ -21,6 +21,7 @@ export async function createCourseAction(params: {
   summary?: string;
   description?: string;
   categoryId?: string | null;
+  instructorProfileId?: string | null;
   difficulty?: "beginner" | "intermediate" | "advanced";
   language?: string;
   estimatedMinutes?: number;
@@ -59,6 +60,7 @@ export async function createCourseAction(params: {
         summary: params.summary?.trim() || null,
         description: params.description?.trim() || null,
         category_id: params.categoryId || null,
+        instructor_profile_id: params.instructorProfileId || null,
         difficulty: params.difficulty || "beginner",
         language: params.language || "English",
         estimated_minutes: params.estimatedMinutes || 0,
@@ -90,6 +92,7 @@ export async function updateCourseOverviewAction(
     summary?: string;
     description?: string;
     categoryId?: string | null;
+    instructorProfileId?: string | null;
     difficulty?: "beginner" | "intermediate" | "advanced";
     language?: string;
     estimatedMinutes?: number;
@@ -130,6 +133,7 @@ export async function updateCourseOverviewAction(
         summary: params.summary?.trim() || null,
         description: params.description?.trim() || null,
         category_id: params.categoryId || null,
+        instructor_profile_id: params.instructorProfileId || null,
         difficulty: params.difficulty || "beginner",
         language: params.language || "English",
         estimated_minutes: params.estimatedMinutes || 0,
@@ -1207,6 +1211,194 @@ export async function importYouTubePlaylistAction(
     return { success: true, data: { importedCount } };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 10. SUPPORT MESSAGE / INQUIRY ACTIONS
+// -----------------------------------------------------------------------------
+
+export async function updateSupportMessageStatusAction(
+  messageId: string,
+  status: "new" | "reviewing" | "resolved" | "closed",
+): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  try {
+    const { error } = await supabase
+      .from("support_messages")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", messageId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/admin/messages");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to update status.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function deleteSupportMessageAction(messageId: string): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  try {
+    const { error } = await supabase.from("support_messages").delete().eq("id", messageId);
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/admin/messages");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to delete message.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 11. LEARNER MANAGEMENT ACTIONS
+// -----------------------------------------------------------------------------
+
+export async function updateLearnerRoleAction(
+  userId: string,
+  role: "learner" | "admin",
+): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        role,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/admin/learners");
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to update role.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 12. INSTRUCTOR PROFILE ACTIONS
+// -----------------------------------------------------------------------------
+
+export async function createInstructorAction(params: {
+  displayName: string;
+  title?: string;
+  bio?: string;
+  avatarUrl?: string;
+  isPublished?: boolean;
+}): Promise<ActionResult<{ id: string }>> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  const displayName = params.displayName?.trim();
+  if (!displayName || displayName.length < 2) {
+    return { success: false, error: "Display name must be at least 2 characters." };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("instructor_profiles")
+      .insert({
+        display_name: displayName,
+        title: params.title?.trim() || null,
+        bio: params.bio?.trim() || null,
+        avatar_url: params.avatarUrl?.trim() || null,
+        is_published: params.isPublished ?? true,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      return { success: false, error: error?.message || "Failed to create instructor." };
+    }
+
+    revalidatePath("/admin/instructors");
+    revalidatePath("/admin/courses");
+    return { success: true, data: { id: data.id } };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to create instructor.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function updateInstructorAction(
+  id: string,
+  params: {
+    displayName: string;
+    title?: string;
+    bio?: string;
+    avatarUrl?: string;
+    isPublished?: boolean;
+  },
+): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  const displayName = params.displayName?.trim();
+  if (!displayName || displayName.length < 2) {
+    return { success: false, error: "Display name must be at least 2 characters." };
+  }
+
+  try {
+    const { error } = await supabase
+      .from("instructor_profiles")
+      .update({
+        display_name: displayName,
+        title: params.title?.trim() || null,
+        bio: params.bio?.trim() || null,
+        avatar_url: params.avatarUrl?.trim() || null,
+        is_published: params.isPublished ?? true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/admin/instructors");
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to update instructor.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function deleteInstructorAction(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  try {
+    const { error } = await supabase.from("instructor_profiles").delete().eq("id", id);
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/admin/instructors");
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to delete instructor.";
     return { success: false, error: errorMsg };
   }
 }

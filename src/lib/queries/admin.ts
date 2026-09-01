@@ -3,17 +3,22 @@ import type {
   AdminCourseDetail,
   AdminCourseListItem,
   AdminDashboardMetrics,
+  AdminInstructorDetail,
+  AdminLearnerListItem,
+  AdminLearningPathDetail,
+  AdminLearningPathItemDetail,
+  AdminLearningPathListItem,
   AdminLessonDetail,
   AdminModuleDetail,
   AdminQuestionDetail,
   AdminQuizDetail,
-  AdminLearningPathDetail,
-  AdminLearningPathItemDetail,
-  AdminLearningPathListItem,
+  AdminSupportMessage,
   AvailableCourseForPath,
   Category,
   CourseDifficulty,
   LessonType,
+  SupportMessageStatus,
+  SupportMessageTopic,
 } from "@/lib/types";
 
 /**
@@ -26,25 +31,43 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
     draftCoursesCount: 0,
     publishedLessonsCount: 0,
     categoriesCount: 0,
+    learningPathsCount: 0,
+    learnersCount: 0,
+    enrollmentsCount: 0,
+    unreadMessagesCount: 0,
     recentCourses: [],
   };
 
   if (!supabase) return fallback;
 
   try {
-    const [coursesRes, lessonsRes, catRes] = await Promise.all([
-      supabase
-        .from("courses")
-        .select("id, is_published"),
+    const [
+      coursesRes,
+      lessonsRes,
+      catRes,
+      pathsRes,
+      profilesRes,
+      enrollmentsRes,
+      messagesRes,
+    ] = await Promise.all([
+      supabase.from("courses").select("id, is_published"),
       supabase.from("lessons").select("id, is_published"),
-      supabase.from("categories").select("id"),
+      supabase.from("categories").select("id", { count: "exact", head: true }),
+      supabase.from("learning_paths").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("course_enrollments").select("id", { count: "exact", head: true }),
+      supabase.from("support_messages").select("id", { count: "exact", head: true }).eq("status", "new"),
     ]);
 
     const coursesData = coursesRes.data || [];
     const publishedCourses = coursesData.filter((c) => c.is_published);
     const draftCourses = coursesData.filter((c) => !c.is_published);
     const publishedLessons = (lessonsRes.data || []).filter((l) => l.is_published);
-    const categoriesCount = (catRes.data || []).length;
+    const categoriesCount = catRes.count ?? (catRes.data || []).length;
+    const learningPathsCount = pathsRes.count ?? 0;
+    const learnersCount = profilesRes.count ?? 0;
+    const enrollmentsCount = enrollmentsRes.count ?? 0;
+    const unreadMessagesCount = messagesRes.count ?? 0;
 
     const recentCoursesList = await getAdminCoursesList({});
 
@@ -53,6 +76,10 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
       draftCoursesCount: draftCourses.length,
       publishedLessonsCount: publishedLessons.length,
       categoriesCount,
+      learningPathsCount,
+      learnersCount,
+      enrollmentsCount,
+      unreadMessagesCount,
       recentCourses: recentCoursesList.slice(0, 5),
     };
   } catch {
@@ -73,6 +100,8 @@ interface RawCourseListRow {
   updated_at: string;
   cover_image_url: string | null;
   estimated_minutes: number | null;
+  instructor_profile_id?: string | null;
+  instructor?: { display_name?: string } | { display_name?: string }[] | null;
   category?: { name?: string; slug?: string } | { name?: string; slug?: string }[] | null;
   modules?: { id: string; lessons?: { id: string }[] }[] | null;
 }
@@ -104,6 +133,8 @@ export async function getAdminCoursesList(params: {
         updated_at,
         cover_image_url,
         estimated_minutes,
+        instructor_profile_id,
+        instructor:instructor_profiles (display_name),
         category:categories (name, slug),
         modules:course_modules (
           id,
@@ -130,6 +161,7 @@ export async function getAdminCoursesList(params: {
 
     let items: AdminCourseListItem[] = (data as unknown as RawCourseListRow[]).map((row) => {
       const cat = Array.isArray(row.category) ? row.category[0] : row.category;
+      const inst = Array.isArray(row.instructor) ? row.instructor[0] : row.instructor;
       const modules = Array.isArray(row.modules) ? row.modules : [];
       let totalLessons = 0;
       modules.forEach((m) => {
@@ -143,6 +175,8 @@ export async function getAdminCoursesList(params: {
         summary: row.summary,
         categoryName: cat?.name ?? null,
         categorySlug: cat?.slug ?? null,
+        instructorName: inst?.display_name ?? null,
+        instructorProfileId: row.instructor_profile_id ?? null,
         difficulty: (row.difficulty || "beginner") as CourseDifficulty,
         isPublished: Boolean(row.is_published),
         isFree: row.is_free !== false,
@@ -281,6 +315,8 @@ export async function getAdminCourseDetail(
         created_at,
         updated_at,
         category_id,
+        instructor_profile_id,
+        instructor:instructor_profiles (id, display_name, title, bio, avatar_url, is_published),
         category:categories (id, name, slug)
       `);
 
@@ -514,6 +550,29 @@ export async function getAdminCourseDetail(
     const pathItem = pathRes.data as unknown as RawPathItem | null;
     const pathData = Array.isArray(pathItem?.path) ? pathItem.path[0] : pathItem?.path;
 
+    interface RawInstructorItem {
+      id: string;
+      display_name: string;
+      title: string | null;
+      bio: string | null;
+      avatar_url: string | null;
+      is_published: boolean;
+    }
+    const inst = (Array.isArray(courseRow.instructor) ? courseRow.instructor[0] : courseRow.instructor) as RawInstructorItem | null;
+    const instructorDetail: AdminInstructorDetail | null = inst
+      ? {
+          id: inst.id,
+          profileId: null,
+          displayName: inst.display_name,
+          title: inst.title,
+          bio: inst.bio,
+          avatarUrl: inst.avatar_url,
+          isPublished: inst.is_published,
+          createdAt: "",
+          updatedAt: "",
+        }
+      : null;
+
     return {
       id: courseRow.id,
       slug: courseRow.slug,
@@ -523,6 +582,8 @@ export async function getAdminCourseDetail(
       categoryId: courseRow.category_id,
       categoryName: cat?.name ?? null,
       categorySlug: cat?.slug ?? null,
+      instructorProfileId: courseRow.instructor_profile_id ?? null,
+      instructor: instructorDetail,
       difficulty: (courseRow.difficulty || "beginner") as CourseDifficulty,
       language: courseRow.language || "English",
       estimatedMinutes: courseRow.estimated_minutes,
@@ -1034,3 +1095,221 @@ export async function getAdminCourseLearningPaths(
     return [];
   }
 }
+
+/**
+ * Fetch all support and contact inquiries for the Admin Messages Inbox.
+ */
+export async function getAdminSupportMessages(params: {
+  q?: string;
+  status?: string;
+  topic?: string;
+}): Promise<AdminSupportMessage[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("support_messages")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const q = (params.q ?? "").trim().toLowerCase();
+    if (q) {
+      const clean = q.replace(/[%_]/g, "");
+      query = query.or(`name.ilike.%${clean}%,email.ilike.%${clean}%,message.ilike.%${clean}%`);
+    }
+
+    const status = (params.status ?? "all").toLowerCase().trim();
+    if (status && status !== "all") {
+      query = query.eq("status", status);
+    }
+
+    const topic = (params.topic ?? "all").toLowerCase().trim();
+    if (topic && topic !== "all") {
+      query = query.eq("topic", topic);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) return [];
+
+    return data.map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      name: row.name,
+      email: row.email,
+      topic: row.topic as SupportMessageTopic,
+      message: row.message,
+      pageUrl: row.page_url,
+      status: row.status as SupportMessageStatus,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch all registered learners with enrollment and completion statistics.
+ */
+export async function getAdminLearnersList(params: {
+  q?: string;
+  role?: string;
+}): Promise<AdminLearnerListItem[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("profiles")
+      .select(`
+        id,
+        full_name,
+        avatar_url,
+        role,
+        created_at,
+        updated_at,
+        enrollments:course_enrollments (
+          id,
+          course:courses (title)
+        ),
+        progress:lesson_progress (id, completed),
+        quiz_attempts:practice_quiz_attempts (id)
+      `)
+      .order("created_at", { ascending: false });
+
+    const q = (params.q ?? "").trim().toLowerCase();
+    if (q) {
+      const clean = q.replace(/[%_]/g, "");
+      query = query.or(`full_name.ilike.%${clean}%`);
+    }
+
+    const role = (params.role ?? "all").toLowerCase().trim();
+    if (role && role !== "all") {
+      query = query.eq("role", role);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) {
+      // Fallback to simple profiles query if joins fail
+      const { data: simpleProfiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, role, created_at, updated_at")
+        .order("created_at", { ascending: false });
+
+      if (!simpleProfiles) return [];
+
+      return simpleProfiles.map((p) => ({
+        id: p.id,
+        fullName: p.full_name,
+        avatarUrl: p.avatar_url,
+        role: (p.role === "admin" ? "admin" : "learner") as "learner" | "admin",
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+        enrollmentCount: 0,
+        completedLessonsCount: 0,
+        quizAttemptsCount: 0,
+        enrolledCourseTitles: [],
+      }));
+    }
+
+    interface RawLearnerRow {
+      id: string;
+      full_name: string | null;
+      avatar_url: string | null;
+      role: string | null;
+      created_at: string;
+      updated_at: string;
+      enrollments?: { id: string; course?: { title?: string } | { title?: string }[] | null }[] | null;
+      progress?: { id: string; completed?: boolean }[] | null;
+      quiz_attempts?: { id: string }[] | null;
+    }
+
+    return (data as unknown as RawLearnerRow[]).map((row) => {
+      const enrollments = Array.isArray(row.enrollments) ? row.enrollments : [];
+      const progress = Array.isArray(row.progress) ? row.progress : [];
+      const quizAttempts = Array.isArray(row.quiz_attempts) ? row.quiz_attempts : [];
+
+      const enrolledTitles = enrollments
+        .map((e) => {
+          const c = Array.isArray(e.course) ? e.course[0] : e.course;
+          return c?.title;
+        })
+        .filter((t): t is string => Boolean(t));
+
+      const completedCount = progress.filter((p) => p.completed).length;
+
+      return {
+        id: row.id,
+        fullName: row.full_name,
+        avatarUrl: row.avatar_url,
+        role: (row.role === "admin" ? "admin" : "learner") as "learner" | "admin",
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        enrollmentCount: enrollments.length,
+        completedLessonsCount: completedCount,
+        quizAttemptsCount: quizAttempts.length,
+        enrolledCourseTitles: enrolledTitles,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch all instructor profiles for Admin Management.
+ */
+export async function getAdminInstructorsList(): Promise<AdminInstructorDetail[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("instructor_profiles")
+      .select(`
+        id,
+        profile_id,
+        display_name,
+        title,
+        bio,
+        avatar_url,
+        is_published,
+        created_at,
+        updated_at,
+        courses:courses (id)
+      `)
+      .order("display_name", { ascending: true });
+
+    if (error || !data) return [];
+
+    interface RawInstructorListRow {
+      id: string;
+      profile_id: string | null;
+      display_name: string;
+      title: string | null;
+      bio: string | null;
+      avatar_url: string | null;
+      is_published: boolean | null;
+      created_at: string;
+      updated_at: string;
+      courses?: { id: string }[] | null;
+    }
+
+    return (data as unknown as RawInstructorListRow[]).map((row) => ({
+      id: row.id,
+      profileId: row.profile_id,
+      displayName: row.display_name,
+      title: row.title,
+      bio: row.bio,
+      avatarUrl: row.avatar_url,
+      isPublished: Boolean(row.is_published),
+      courseCount: Array.isArray(row.courses) ? row.courses.length : 0,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+

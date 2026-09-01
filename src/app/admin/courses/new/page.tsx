@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAdminCategories } from "@/lib/queries/admin";
+import { getAdminCategories, getAdminInstructorsList } from "@/lib/queries/admin";
 import { NewCourseForm } from "@/components/admin/new-course-form";
 
 export const metadata: Metadata = {
@@ -13,7 +13,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminNewCoursePage() {
-  const categories = await getAdminCategories();
+  const [categories, instructors] = await Promise.all([
+    getAdminCategories(),
+    getAdminInstructorsList(),
+  ]);
 
-  return <NewCourseForm categories={categories} />;
+  return <NewCourseForm categories={categories} instructors={instructors} />;
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   getAdminCategories,
   getAdminCourseDetail,
+  getAdminInstructorsList,
   getAdminSkills,
 } from "@/lib/queries/admin";
 import { CourseEditorShell } from "@/components/admin/course-editor/course-editor-shell";
@@ -28,10 +29,11 @@ export default async function AdminCourseDetailPage({
 }: AdminCourseDetailPageProps) {
   const { courseId } = await params;
 
-  const [course, categories, allSkills] = await Promise.all([
+  const [course, categories, allSkills, instructors] = await Promise.all([
     getAdminCourseDetail(courseId),
     getAdminCategories(),
     getAdminSkills(),
+    getAdminInstructorsList(),
   ]);
 
   if (!course) {
@@ -43,6 +45,7 @@ export default async function AdminCourseDetailPage({
       course={course}
       categories={categories}
       allSkills={allSkills}
+      instructors={instructors}
     />
   );
 }

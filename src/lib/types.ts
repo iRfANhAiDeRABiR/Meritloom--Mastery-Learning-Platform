@@ -673,7 +673,61 @@ export interface AdminDashboardMetrics {
   draftCoursesCount: number;
   publishedLessonsCount: number;
   categoriesCount: number;
+  learningPathsCount?: number;
+  learnersCount?: number;
+  enrollmentsCount?: number;
+  unreadMessagesCount?: number;
   recentCourses: AdminCourseListItem[];
+}
+
+export type SupportMessageStatus = "new" | "reviewing" | "resolved" | "closed";
+export type SupportMessageTopic =
+  | "course"
+  | "video"
+  | "account"
+  | "progress"
+  | "learning_path"
+  | "bug"
+  | "content_feedback"
+  | "general";
+
+export interface AdminSupportMessage {
+  id: string;
+  userId: string | null;
+  name: string;
+  email: string;
+  topic: SupportMessageTopic;
+  message: string;
+  pageUrl: string | null;
+  status: SupportMessageStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminLearnerListItem {
+  id: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  role: "learner" | "admin";
+  createdAt: string;
+  updatedAt: string;
+  enrollmentCount: number;
+  completedLessonsCount: number;
+  quizAttemptsCount: number;
+  enrolledCourseTitles: string[];
+}
+
+export interface AdminInstructorDetail {
+  id: string;
+  profileId: string | null;
+  displayName: string;
+  title: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  isPublished: boolean;
+  courseCount?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AdminCourseListItem {
@@ -683,6 +737,8 @@ export interface AdminCourseListItem {
   summary: string | null;
   categoryName: string | null;
   categorySlug: string | null;
+  instructorName?: string | null;
+  instructorProfileId?: string | null;
   difficulty: CourseDifficulty;
   isPublished: boolean;
   isFree: boolean;
@@ -704,6 +760,8 @@ export interface AdminCourseDetail {
   categoryId: string | null;
   categoryName: string | null;
   categorySlug: string | null;
+  instructorProfileId: string | null;
+  instructor?: AdminInstructorDetail | null;
   difficulty: CourseDifficulty;
   language: string;
   estimatedMinutes: number | null;

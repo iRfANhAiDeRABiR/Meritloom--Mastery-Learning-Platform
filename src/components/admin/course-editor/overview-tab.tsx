@@ -5,19 +5,23 @@ import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { updateCourseOverviewAction } from "@/lib/actions/admin";
 import { notify } from "@/lib/notifications/toast";
-import type { AdminCourseDetail, Category, CourseDifficulty } from "@/lib/types";
+import type { AdminCourseDetail, AdminInstructorDetail, Category, CourseDifficulty } from "@/lib/types";
 
 interface OverviewTabProps {
   course: AdminCourseDetail;
   categories: Category[];
+  instructors?: AdminInstructorDetail[];
 }
 
-export function OverviewTab({ course, categories }: OverviewTabProps) {
+export function OverviewTab({ course, categories, instructors = [] }: OverviewTabProps) {
   const [title, setTitle] = React.useState(course.title);
   const [slug, setSlug] = React.useState(course.slug);
   const [summary, setSummary] = React.useState(course.summary || "");
   const [description, setDescription] = React.useState(course.description || "");
   const [categoryId, setCategoryId] = React.useState(course.categoryId || "");
+  const [instructorProfileId, setInstructorProfileId] = React.useState(
+    course.instructorProfileId || "",
+  );
   const [difficulty, setDifficulty] = React.useState<CourseDifficulty>(course.difficulty);
   const [language, setLanguage] = React.useState(course.language || "English");
   const [coverImageUrl, setCoverImageUrl] = React.useState(course.coverImageUrl || "");
@@ -37,6 +41,7 @@ export function OverviewTab({ course, categories }: OverviewTabProps) {
         summary,
         description,
         categoryId: categoryId || null,
+        instructorProfileId: instructorProfileId || null,
         difficulty,
         language,
         coverImageUrl: coverImageUrl || null,
@@ -126,7 +131,7 @@ export function OverviewTab({ course, categories }: OverviewTabProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
             Category
@@ -140,6 +145,24 @@ export function OverviewTab({ course, categories }: OverviewTabProps) {
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
+            Instructor / Organization
+          </label>
+          <select
+            value={instructorProfileId}
+            onChange={(e) => setInstructorProfileId(e.target.value)}
+            className="mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-elevated px-3 text-sm text-ink focus:border-primary focus:outline-none"
+          >
+            <option value="">None (Standard)</option>
+            {instructors.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.displayName} {i.title ? `(${i.title})` : ""}
               </option>
             ))}
           </select>

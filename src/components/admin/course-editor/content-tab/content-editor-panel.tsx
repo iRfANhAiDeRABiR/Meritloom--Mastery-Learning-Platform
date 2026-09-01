@@ -132,7 +132,7 @@ export function ContentEditorPanel({
             courseId={course.id}
             onUpdated={onUpdated}
           />
-        ) : selectedLesson.lessonType === "knowledge_check" ? (
+        ) : selectedLesson.lessonType === "knowledge_check" || selectedLesson.lessonType === "quiz" ? (
           <QuizEditor
             key={selectedLesson.id}
             lessonId={selectedLesson.id}

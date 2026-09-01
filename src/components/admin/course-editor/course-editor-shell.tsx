@@ -20,18 +20,20 @@ import { ContentTabView } from "@/components/admin/course-editor/content-tab/con
 import { OutcomesTab } from "@/components/admin/course-editor/outcomes-tab";
 import { SkillsTab } from "@/components/admin/course-editor/skills-tab";
 import { SettingsTab } from "@/components/admin/course-editor/settings-tab";
-import type { AdminCourseDetail, Category } from "@/lib/types";
+import type { AdminCourseDetail, AdminInstructorDetail, Category } from "@/lib/types";
 
 interface CourseEditorShellProps {
   course: AdminCourseDetail;
   categories: Category[];
   allSkills: { id: string; name: string; slug: string }[];
+  instructors?: AdminInstructorDetail[];
 }
 
 export function CourseEditorShell({
   course,
   categories,
   allSkills,
+  instructors = [],
 }: CourseEditorShellProps) {
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "content" | "outcomes" | "skills" | "settings"
@@ -154,7 +156,9 @@ export function CourseEditorShell({
       {/* Active Tab View */}
       <div>
         {activeTab === "content" && <ContentTabView course={course} />}
-        {activeTab === "overview" && <OverviewTab course={course} categories={categories} />}
+        {activeTab === "overview" && (
+          <OverviewTab course={course} categories={categories} instructors={instructors} />
+        )}
         {activeTab === "outcomes" && <OutcomesTab course={course} />}
         {activeTab === "skills" && <SkillsTab course={course} allSkills={allSkills} />}
         {activeTab === "settings" && <SettingsTab course={course} />}

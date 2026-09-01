@@ -7,19 +7,21 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createCourseAction } from "@/lib/actions/admin";
 import { generateSlug } from "@/lib/utils/youtube-importer";
-import type { Category, CourseDifficulty } from "@/lib/types";
+import type { AdminInstructorDetail, Category, CourseDifficulty } from "@/lib/types";
 
 interface NewCourseFormProps {
   categories: Category[];
+  instructors?: AdminInstructorDetail[];
 }
 
-export function NewCourseForm({ categories }: NewCourseFormProps) {
+export function NewCourseForm({ categories, instructors = [] }: NewCourseFormProps) {
   const router = useRouter();
   const [title, setTitle] = React.useState("");
   const [slug, setSlug] = React.useState("");
   const [summary, setSummary] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [categoryId, setCategoryId] = React.useState(categories[0]?.id || "");
+  const [instructorProfileId, setInstructorProfileId] = React.useState("");
   const [difficulty, setDifficulty] = React.useState<CourseDifficulty>("beginner");
   const [language, setLanguage] = React.useState("English");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -45,6 +47,7 @@ export function NewCourseForm({ categories }: NewCourseFormProps) {
         summary,
         description,
         categoryId: categoryId || null,
+        instructorProfileId: instructorProfileId || null,
         difficulty,
         language,
       });
@@ -148,7 +151,7 @@ export function NewCourseForm({ categories }: NewCourseFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
                 Category
@@ -161,6 +164,24 @@ export function NewCourseForm({ categories }: NewCourseFormProps) {
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
+                Instructor
+              </label>
+              <select
+                value={instructorProfileId}
+                onChange={(e) => setInstructorProfileId(e.target.value)}
+                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-elevated px-3 text-sm text-ink focus:border-primary focus:outline-none"
+              >
+                <option value="">None (Standard)</option>
+                {instructors.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.displayName}
                   </option>
                 ))}
               </select>

@@ -6,10 +6,14 @@ import {
   BookOpen,
   ChevronRight,
   DatabaseBackup,
+  GraduationCap,
   Layers,
   LayoutDashboard,
+  Mail,
   Route,
   Sparkles,
+  UserCheck,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +37,21 @@ const NAV_ITEMS = [
     exact: false,
   },
   {
-    label: "Content Tools",
-    href: "/admin/content-tools",
-    icon: DatabaseBackup,
+    label: "Learners & Users",
+    href: "/admin/learners",
+    icon: Users,
+    exact: false,
+  },
+  {
+    label: "Support Messages",
+    href: "/admin/messages",
+    icon: Mail,
+    exact: false,
+  },
+  {
+    label: "Instructors",
+    href: "/admin/instructors",
+    icon: UserCheck,
     exact: false,
   },
   {
@@ -50,6 +66,12 @@ const NAV_ITEMS = [
     icon: Sparkles,
     exact: false,
   },
+  {
+    label: "Content Tools",
+    href: "/admin/content-tools",
+    icon: DatabaseBackup,
+    exact: false,
+  },
 ];
 
 export function AdminSidebar({ className }: { className?: string }) {
@@ -58,7 +80,7 @@ export function AdminSidebar({ className }: { className?: string }) {
   return (
     <aside className={cn("flex flex-col border-r border-line bg-surface-elevated/40 p-4", className)}>
       <div className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-ink-muted">
-        Content Management
+        Admin Studio
       </div>
       <nav className="flex flex-1 flex-col gap-1">
         {NAV_ITEMS.map((item) => {
@@ -90,7 +112,7 @@ export function AdminSidebar({ className }: { className?: string }) {
 
       <div className="mt-auto rounded-xl border border-line bg-surface p-3 text-xs text-ink-muted">
         <p className="font-semibold text-ink">Meritloom Studio</p>
-        <p className="mt-0.5 text-[11px] text-ink-muted">Direct database course authoring without manual SQL.</p>
+        <p className="mt-0.5 text-[11px] text-ink-muted">Complete control over courses, learners, messages, and platform content.</p>
       </div>
     </aside>
   );
