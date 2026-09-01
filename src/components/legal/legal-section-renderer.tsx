@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LegalCallout } from "./legal-callout";
+import { LegalCallout, type LegalCalloutType } from "./legal-callout";
 import { routes } from "@/lib/routes";
 
 interface LegalSectionData {
@@ -7,7 +7,7 @@ interface LegalSectionData {
   title: string;
   content: string;
   callout?: {
-    type: "info" | "important" | "transparency" | "security";
+    type?: LegalCalloutType;
     title?: string;
     text: string;
   };

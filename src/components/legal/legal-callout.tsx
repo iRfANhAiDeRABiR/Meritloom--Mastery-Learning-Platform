@@ -1,8 +1,10 @@
 import { AlertCircle, ExternalLink, Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface LegalCalloutProps {
-  type?: "info" | "important" | "transparency" | "security";
+export type LegalCalloutType = "info" | "important" | "transparency" | "security" | (string & {});
+
+export interface LegalCalloutProps {
+  type?: LegalCalloutType;
   title?: string;
   text: string;
 }
