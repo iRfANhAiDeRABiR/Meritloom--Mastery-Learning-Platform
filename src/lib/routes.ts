@@ -40,6 +40,7 @@ export const routes = {
   admin: {
     dashboard: "/admin",
     courses: "/admin/courses",
+    quizzes: "/admin/quizzes",
     newCourse: "/admin/courses/new",
     course: (id: string) => `/admin/courses/${id}`,
     learningPaths: "/admin/learning-paths",

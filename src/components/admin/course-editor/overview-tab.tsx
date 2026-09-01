@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Save } from "lucide-react";
+import { BookOpen, CheckCircle2, FileQuestion, Layers, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { updateCourseOverviewAction } from "@/lib/actions/admin";
 import { notify } from "@/lib/notifications/toast";
-import type { AdminCourseDetail, AdminInstructorDetail, Category, CourseDifficulty } from "@/lib/types";
+import { isKnowledgeCheckLesson, type AdminCourseDetail, type AdminInstructorDetail, Category, CourseDifficulty } from "@/lib/types";
 
 interface OverviewTabProps {
   course: AdminCourseDetail;
@@ -27,6 +28,18 @@ export function OverviewTab({ course, categories, instructors = [] }: OverviewTa
   const [coverImageUrl, setCoverImageUrl] = React.useState(course.coverImageUrl || "");
   const [isSaving, setIsSaving] = React.useState(false);
   const [msg, setMsg] = React.useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
+  const totalKnowledgeChecks = course.modules.reduce(
+    (s, m) => s + m.lessons.filter((l) => isKnowledgeCheckLesson(l.lessonType)).length,
+    0,
+  );
+  const totalQuestions = course.modules.reduce(
+    (s, m) =>
+      s +
+      m.lessons.reduce((qSum, l) => qSum + (l.quiz?.questions.length || (isKnowledgeCheckLesson(l.lessonType) ? 5 : 0)), 0),
+    0,
+  );
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +77,45 @@ export function OverviewTab({ course, categories, instructors = [] }: OverviewTa
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-6">
+    <div className="space-y-6">
+      {/* Curriculum & Knowledge Check Summary Metrics */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-2xl border border-line bg-surface-elevated/40 p-3.5 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+            <Layers className="h-3.5 w-3.5 text-primary" />
+            <span>Modules</span>
+          </div>
+          <p className="font-display text-xl font-bold text-ink">{course.modules.length}</p>
+        </div>
+
+        <div className="rounded-2xl border border-line bg-surface-elevated/40 p-3.5 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+            <BookOpen className="h-3.5 w-3.5 text-blue-500" />
+            <span>Total Lessons</span>
+          </div>
+          <p className="font-display text-xl font-bold text-ink">{totalLessons}</p>
+        </div>
+
+        <div className="rounded-2xl border border-line bg-surface-elevated/40 p-3.5 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Knowledge Checks</span>
+          </div>
+          <p className="font-display text-xl font-bold text-ink">
+            {totalKnowledgeChecks} <span className="text-xs font-normal text-ink-muted">/ {course.modules.length}</span>
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-line bg-surface-elevated/40 p-3.5 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+            <FileQuestion className="h-3.5 w-3.5 text-purple-500" />
+            <span>Practice Questions</span>
+          </div>
+          <p className="font-display text-xl font-bold text-ink">{totalQuestions}</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSave} className="space-y-6">
       {msg && (
         <div
           className={`rounded-xl p-3.5 text-xs font-semibold ${
@@ -238,5 +289,6 @@ export function OverviewTab({ course, categories, instructors = [] }: OverviewTa
         </Button>
       </div>
     </form>
+  </div>
   );
 }

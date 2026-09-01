@@ -1,9 +1,13 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ALL_STATIC_COURSES } from "@/lib/data/static-courses";
+import { ALL_STATIC_QUIZZES } from "@/lib/data/static-quizzes";
 import type {
   AdminCourseDetail,
   AdminCourseListItem,
   AdminDashboardMetrics,
   AdminInstructorDetail,
+  AdminKnowledgeCheckItem,
+  AdminKnowledgeChecksData,
   AdminLearnerListItem,
   AdminLearningPathDetail,
   AdminLearningPathItemDetail,
@@ -1310,6 +1314,266 @@ export async function getAdminInstructorsList(): Promise<AdminInstructorDetail[]
     }));
   } catch {
     return [];
+  }
+}
+
+/**
+ * Fetch all Knowledge Checks across the platform with full questions and stats for Admin Management.
+ */
+export async function getAdminKnowledgeChecksOverview(): Promise<AdminKnowledgeChecksData> {
+  const supabase = await createSupabaseServerClient();
+
+  const fallbackData: AdminKnowledgeChecksData = (() => {
+    const items: AdminKnowledgeCheckItem[] = [];
+    let singleChoice = 0;
+    let multipleChoice = 0;
+    let trueFalse = 0;
+    let totalQ = 0;
+
+    for (const course of ALL_STATIC_COURSES) {
+      for (const mod of course.modules) {
+        for (const lesson of mod.lessons) {
+          if (lesson.lessonType === "knowledge_check" || lesson.lessonType === "quiz") {
+            const quizDef = ALL_STATIC_QUIZZES[lesson.slug];
+            const questions: AdminQuestionDetail[] = (quizDef?.questions || []).map((q, qIdx) => {
+              if (q.questionType === "single_choice") singleChoice++;
+              else if (q.questionType === "multiple_choice") multipleChoice++;
+              else if (q.questionType === "true_false") trueFalse++;
+              totalQ++;
+
+              return {
+                id: q.id,
+                quizId: `quiz-${lesson.id}`,
+                questionType: q.questionType,
+                questionText: q.questionText,
+                topic: q.topic || null,
+                codeContent: q.codeContent || null,
+                codeLanguage: q.codeLanguage || null,
+                explanation: q.explanation || null,
+                position: qIdx + 1,
+                options: q.options.map((opt, oIdx) => ({
+                  id: opt.id,
+                  text: opt.optionText,
+                  position: oIdx + 1,
+                  isCorrect: opt.isCorrect,
+                })),
+              };
+            });
+
+            items.push({
+              id: `quiz-${lesson.id}`,
+              lessonId: lesson.id,
+              courseId: course.id,
+              courseTitle: course.title,
+              courseSlug: course.slug,
+              moduleId: mod.id,
+              moduleTitle: mod.title,
+              modulePosition: mod.position,
+              lessonTitle: lesson.title,
+              lessonSlug: lesson.slug,
+              quizTitle: quizDef?.title || lesson.title,
+              quizDescription: quizDef?.description || null,
+              estimatedMinutes: quizDef?.estimatedMinutes || lesson.estimatedMinutes || 5,
+              isPublished: lesson.isPublished,
+              questionCount: questions.length,
+              questions,
+            });
+          }
+        }
+      }
+    }
+
+    const courseStats = ALL_STATIC_COURSES.map((c) => {
+      const courseQuizzes = items.filter((i) => i.courseId === c.id);
+      return {
+        courseId: c.id,
+        courseTitle: c.title,
+        courseSlug: c.slug,
+        quizCount: courseQuizzes.length,
+        questionCount: courseQuizzes.reduce((s, q) => s + q.questionCount, 0),
+      };
+    });
+
+    return {
+      items,
+      totalQuizzes: items.length,
+      totalQuestions: totalQ,
+      singleChoiceCount: singleChoice,
+      multipleChoiceCount: multipleChoice,
+      trueFalseCount: trueFalse,
+      courseStats,
+    };
+  })();
+
+  if (!supabase) return fallbackData;
+
+  try {
+    const { data: dbCourses } = await supabase
+      .from("courses")
+      .select(`
+        id,
+        title,
+        slug,
+        modules:course_modules (
+          id,
+          title,
+          position,
+          lessons:lessons (
+            id,
+            title,
+            slug,
+            lesson_type,
+            estimated_minutes,
+            is_published,
+            quizzes:practice_quizzes (
+              id,
+              title,
+              description,
+              estimated_minutes,
+              is_published,
+              questions:practice_questions (
+                id,
+                quiz_id,
+                question_type,
+                question_text,
+                topic,
+                code_content,
+                code_language,
+                explanation,
+                position,
+                options:practice_question_options (id, option_text, position),
+                correct_options:practice_question_correct_options (option_id)
+              )
+            )
+          )
+        )
+      `)
+      .order("title", { ascending: true });
+
+    if (!dbCourses || dbCourses.length === 0) {
+      return fallbackData;
+    }
+
+    const items: AdminKnowledgeCheckItem[] = [];
+    let singleChoice = 0;
+    let multipleChoice = 0;
+    let trueFalse = 0;
+    let totalQ = 0;
+
+    for (const c of dbCourses) {
+      const cModules = Array.isArray(c.modules) ? c.modules : [];
+      for (const m of cModules) {
+        const mLessons = Array.isArray(m.lessons) ? m.lessons : [];
+        for (const l of mLessons) {
+          if (l.lesson_type === "knowledge_check" || l.lesson_type === "quiz") {
+            const rawQuiz = Array.isArray(l.quizzes) ? l.quizzes[0] : l.quizzes;
+            const staticDef = ALL_STATIC_QUIZZES[l.slug];
+
+            let questions: AdminQuestionDetail[] = [];
+            if (rawQuiz && Array.isArray(rawQuiz.questions) && rawQuiz.questions.length > 0) {
+              questions = rawQuiz.questions.map((q: any) => {
+                const correctIds = new Set(
+                  (q.correct_options || []).map((co: any) => co.option_id),
+                );
+                if (q.question_type === "single_choice") singleChoice++;
+                else if (q.question_type === "multiple_choice") multipleChoice++;
+                else if (q.question_type === "true_false") trueFalse++;
+                totalQ++;
+
+                return {
+                  id: q.id,
+                  quizId: q.quiz_id,
+                  questionType: q.question_type,
+                  questionText: q.question_text,
+                  topic: q.topic || null,
+                  codeContent: q.code_content || null,
+                  codeLanguage: q.code_language || null,
+                  explanation: q.explanation || null,
+                  position: q.position,
+                  options: (q.options || [])
+                    .sort((a: any, b: any) => a.position - b.position)
+                    .map((opt: any) => ({
+                      id: opt.id,
+                      text: opt.option_text,
+                      position: opt.position,
+                      isCorrect: correctIds.has(opt.id),
+                    })),
+                };
+              });
+            } else if (staticDef) {
+              questions = staticDef.questions.map((q, qIdx) => {
+                if (q.questionType === "single_choice") singleChoice++;
+                else if (q.questionType === "multiple_choice") multipleChoice++;
+                else if (q.questionType === "true_false") trueFalse++;
+                totalQ++;
+
+                return {
+                  id: q.id,
+                  quizId: rawQuiz?.id || `quiz-${l.id}`,
+                  questionType: q.questionType,
+                  questionText: q.questionText,
+                  topic: q.topic || null,
+                  codeContent: q.codeContent || null,
+                  codeLanguage: q.codeLanguage || null,
+                  explanation: q.explanation || null,
+                  position: qIdx + 1,
+                  options: q.options.map((opt, oIdx) => ({
+                    id: opt.id,
+                    text: opt.optionText,
+                    position: oIdx + 1,
+                    isCorrect: opt.isCorrect,
+                  })),
+                };
+              });
+            }
+
+            items.push({
+              id: rawQuiz?.id || `quiz-${l.id}`,
+              lessonId: l.id,
+              courseId: c.id,
+              courseTitle: c.title,
+              courseSlug: c.slug,
+              moduleId: m.id,
+              moduleTitle: m.title,
+              modulePosition: m.position,
+              lessonTitle: l.title,
+              lessonSlug: l.slug,
+              quizTitle: rawQuiz?.title || staticDef?.title || l.title,
+              quizDescription: rawQuiz?.description || staticDef?.description || null,
+              estimatedMinutes: rawQuiz?.estimated_minutes || staticDef?.estimatedMinutes || l.estimated_minutes || 5,
+              isPublished: l.is_published,
+              questionCount: questions.length,
+              questions,
+            });
+          }
+        }
+      }
+    }
+
+    if (items.length === 0) return fallbackData;
+
+    const courseStats = dbCourses.map((c) => {
+      const courseQuizzes = items.filter((i) => i.courseId === c.id);
+      return {
+        courseId: c.id,
+        courseTitle: c.title,
+        courseSlug: c.slug,
+        quizCount: courseQuizzes.length,
+        questionCount: courseQuizzes.reduce((s, q) => s + q.questionCount, 0),
+      };
+    });
+
+    return {
+      items,
+      totalQuizzes: items.length,
+      totalQuestions: totalQ,
+      singleChoiceCount: singleChoice,
+      multipleChoiceCount: multipleChoice,
+      trueFalseCount: trueFalse,
+      courseStats,
+    };
+  } catch {
+    return fallbackData;
   }
 }
 

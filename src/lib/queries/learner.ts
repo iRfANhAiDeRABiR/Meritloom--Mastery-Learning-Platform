@@ -1,6 +1,7 @@
 import { getLessonPracticeData } from "@/lib/practice/queries";
 import { getCategories, getCourseDetailBySlug } from "@/lib/queries";
 import { ALL_LESSON_DETAILS_MAP } from "@/lib/data/static-courses";
+import { ALL_STATIC_QUIZZES } from "@/lib/data/static-quizzes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ActiveEnrollmentDetail,
@@ -1647,57 +1648,27 @@ export async function getPracticeQuizData(
 
     // Fallback high-quality practice questions if database has no rows yet
     if (questions.length === 0) {
-      questions = [
-        {
-          id: `q1-${rawTargetLesson.id}`,
+      const staticDef = ALL_STATIC_QUIZZES[lessonSlug];
+      if (staticDef) {
+        questions = staticDef.questions.map((q, idx) => ({
+          id: q.id,
           quizId,
-          questionType: "single_choice",
-          questionText: "What will the following code output when executed?",
-          topic: "Lexical Scope",
-          codeContent: `function outer() {\n  let count = 10;\n  function inner() {\n    console.log(count);\n  }\n  return inner;\n}\n\nconst fn = outer();\nfn();`,
-          codeLanguage: "javascript",
+          questionType: q.questionType,
+          questionText: q.questionText,
+          topic: q.topic || null,
+          codeContent: q.codeContent || null,
+          codeLanguage: q.codeLanguage || (courseSlug.includes("javascript") ? "javascript" : courseSlug.includes("css") ? "css" : "html"),
           imageUrl: null,
-          position: 1,
-          options: [
-            { id: `opt-1a-${rawTargetLesson.id}`, questionId: `q1-${rawTargetLesson.id}`, optionText: "undefined", position: 1 },
-            { id: `opt-1b-${rawTargetLesson.id}`, questionId: `q1-${rawTargetLesson.id}`, optionText: "10", position: 2 },
-            { id: `opt-1c-${rawTargetLesson.id}`, questionId: `q1-${rawTargetLesson.id}`, optionText: "ReferenceError", position: 3 },
-            { id: `opt-1d-${rawTargetLesson.id}`, questionId: `q1-${rawTargetLesson.id}`, optionText: "null", position: 4 },
-          ],
-        },
-        {
-          id: `q2-${rawTargetLesson.id}`,
-          quizId,
-          questionType: "multiple_choice",
-          questionText: "Which of the following statements about JavaScript closures are true?",
-          topic: "Closures",
-          codeContent: null,
-          codeLanguage: null,
-          imageUrl: null,
-          position: 2,
-          options: [
-            { id: `opt-2a-${rawTargetLesson.id}`, questionId: `q2-${rawTargetLesson.id}`, optionText: "Closures retain access to variables from their enclosing lexical scope.", position: 1 },
-            { id: `opt-2b-${rawTargetLesson.id}`, questionId: `q2-${rawTargetLesson.id}`, optionText: "Closures only work with global variables.", position: 2 },
-            { id: `opt-2c-${rawTargetLesson.id}`, questionId: `q2-${rawTargetLesson.id}`, optionText: "Functions in JavaScript remember where they were defined, not where they are called.", position: 3 },
-            { id: `opt-2d-${rawTargetLesson.id}`, questionId: `q2-${rawTargetLesson.id}`, optionText: "Closures prevent garbage collection of captured variables while referenced.", position: 4 },
-          ],
-        },
-        {
-          id: `q3-${rawTargetLesson.id}`,
-          quizId,
-          questionType: "true_false",
-          questionText: "Block-scoped variables declared with 'let' or 'const' are accessible outside the block where they were defined.",
-          topic: "Block Scope",
-          codeContent: `{\n  let temp = "active";\n}\nconsole.log(temp);`,
-          codeLanguage: "javascript",
-          imageUrl: null,
-          position: 3,
-          options: [
-            { id: `opt-3a-${rawTargetLesson.id}`, questionId: `q3-${rawTargetLesson.id}`, optionText: "True", position: 1 },
-            { id: `opt-3b-${rawTargetLesson.id}`, questionId: `q3-${rawTargetLesson.id}`, optionText: "False", position: 2 },
-          ],
-        },
-      ];
+          position: idx + 1,
+          // CRITICAL: Options sent to client do NOT leak isCorrect
+          options: q.options.map((opt) => ({
+            id: opt.id,
+            questionId: q.id,
+            optionText: opt.optionText,
+            position: opt.position,
+          })),
+        }));
+      }
     }
 
     // 4. Fetch user's latest in-progress attempt if any

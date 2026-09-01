@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
+import { generateSlug } from "@/lib/utils/youtube-importer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { YouTubePlaylistItemParsed } from "@/lib/types";
 
@@ -882,6 +883,104 @@ export async function saveLessonQuizAction(
 
     revalidatePath(`/admin/courses/${courseId}`);
     return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Quickly create a Knowledge Check lesson at the end of a module with duplicate protection.
+ */
+export async function createModuleKnowledgeCheckAction(
+  moduleId: string,
+  courseId: string,
+  title?: string,
+): Promise<{ success: boolean; lessonId?: string; quizId?: string; error?: string }> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { success: false, error: "Database unavailable." };
+
+  try {
+    // 1. Check if module already has a knowledge check or quiz lesson
+    const { data: existingLessons } = await supabase
+      .from("lessons")
+      .select("id, slug, title, lesson_type")
+      .eq("module_id", moduleId)
+      .in("lesson_type", ["knowledge_check", "quiz"]);
+
+    if (existingLessons && existingLessons.length > 0) {
+      return {
+        success: false,
+        error: `This module already has a Knowledge Check: "${existingLessons[0].title}".`,
+        lessonId: existingLessons[0].id,
+      };
+    }
+
+    // 2. Fetch module title and highest position in module
+    const { data: mod } = await supabase
+      .from("course_modules")
+      .select("title")
+      .eq("id", moduleId)
+      .single();
+
+    const modTitle = mod?.title || "Module";
+    const checkTitle = title?.trim() || `Knowledge Check — ${modTitle}`;
+    const baseSlug = generateSlug(checkTitle);
+    const uniqueSlug = `${baseSlug}-${Date.now().toString(36)}`;
+
+    const { data: maxPosRow } = await supabase
+      .from("lessons")
+      .select("position")
+      .eq("module_id", moduleId)
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const nextPos = (maxPosRow?.position ?? 0) + 1;
+
+    // 3. Insert lesson
+    const { data: lesson, error: lessonErr } = await supabase
+      .from("lessons")
+      .insert({
+        module_id: moduleId,
+        title: checkTitle,
+        slug: uniqueSlug,
+        lesson_type: "knowledge_check",
+        position: nextPos,
+        estimated_minutes: 5,
+        is_preview: false,
+        is_bonus: false,
+        is_published: true,
+        summary: `Review and verify key concepts learned in ${modTitle}.`,
+        key_takeaway: `Checking your knowledge helps solidify key terminology and core concepts.`,
+      })
+      .select("id")
+      .single();
+
+    if (lessonErr || !lesson) {
+      return { success: false, error: lessonErr?.message || "Failed to create Knowledge Check lesson." };
+    }
+
+    // 4. Insert practice_quizzes record
+    const { data: quiz, error: quizErr } = await supabase
+      .from("practice_quizzes")
+      .insert({
+        lesson_id: lesson.id,
+        title: `${modTitle} Check`,
+        description: `Review your knowledge from ${modTitle}.`,
+        estimated_minutes: 5,
+        is_published: true,
+      })
+      .select("id")
+      .single();
+
+    if (quizErr || !quiz) {
+      return { success: false, error: quizErr?.message || "Failed to initialize quiz shell." };
+    }
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    return { success: true, lessonId: lesson.id, quizId: quiz.id };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
     return { success: false, error: errorMsg };

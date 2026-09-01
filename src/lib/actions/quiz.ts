@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ALL_STATIC_QUIZZES } from "@/lib/data/static-quizzes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface SubmitAnswerResult {
@@ -145,22 +146,35 @@ export async function submitPracticeAnswerAction(params: {
 
     // Fallback grading check if using seed/demo questions
     if (correctOptionIds.length === 0) {
-      for (const [key, val] of Object.entries(FALLBACK_CORRECT_MAP)) {
-        if (questionId.startsWith(key)) {
-          // match options with prefix
-          const expectedPrefix = val.correctIds[0].split("-")[0]; // e.g. "opt-1b"
-          correctOptionIds = selectedOptionIds.filter((id) =>
-            val.correctIds.some((cId) => id.includes(cId) || id.startsWith(expectedPrefix)),
-          );
-          if (correctOptionIds.length === 0) {
-            // map default matching IDs
-            correctOptionIds = val.correctIds.map((cId) => {
-              const suffix = questionId.replace(key, "");
-              return `${cId}${suffix}`;
-            });
-          }
-          explanation = val.explanation;
+      for (const quizDef of Object.values(ALL_STATIC_QUIZZES)) {
+        const matchingQ = quizDef.questions.find((q) => q.id === questionId);
+        if (matchingQ) {
+          correctOptionIds = matchingQ.options
+            .filter((o) => o.isCorrect)
+            .map((o) => o.id);
+          explanation = matchingQ.explanation;
           break;
+        }
+      }
+
+      if (correctOptionIds.length === 0) {
+        for (const [key, val] of Object.entries(FALLBACK_CORRECT_MAP)) {
+          if (questionId.startsWith(key)) {
+            // match options with prefix
+            const expectedPrefix = val.correctIds[0].split("-")[0]; // e.g. "opt-1b"
+            correctOptionIds = selectedOptionIds.filter((id) =>
+              val.correctIds.some((cId) => id.includes(cId) || id.startsWith(expectedPrefix)),
+            );
+            if (correctOptionIds.length === 0) {
+              // map default matching IDs
+              correctOptionIds = val.correctIds.map((cId) => {
+                const suffix = questionId.replace(key, "");
+                return `${cId}${suffix}`;
+              });
+            }
+            explanation = val.explanation;
+            break;
+          }
         }
       }
     }

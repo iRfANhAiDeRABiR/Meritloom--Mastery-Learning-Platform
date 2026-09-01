@@ -16,6 +16,10 @@ export type LessonType =
   | "quiz"
   | "knowledge_check";
 
+export function isKnowledgeCheckLesson(lessonType: string | null | undefined): boolean {
+  return lessonType === "knowledge_check" || lessonType === "quiz";
+}
+
 export type PrimaryLearningGoal = "explore" | "practical" | "deepen";
 
 export type StudyPace =
@@ -839,6 +843,41 @@ export interface AdminQuestionDetail {
   explanation: string | null;
   position: number;
   options: { id: string; text: string; position: number; isCorrect?: boolean }[];
+}
+
+export interface AdminKnowledgeCheckItem {
+  id: string;
+  lessonId: string;
+  courseId: string;
+  courseTitle: string;
+  courseSlug: string;
+  moduleId: string;
+  moduleTitle: string;
+  modulePosition: number;
+  lessonTitle: string;
+  lessonSlug: string;
+  quizTitle: string;
+  quizDescription: string | null;
+  estimatedMinutes: number;
+  isPublished: boolean;
+  questionCount: number;
+  questions: AdminQuestionDetail[];
+}
+
+export interface AdminKnowledgeChecksData {
+  items: AdminKnowledgeCheckItem[];
+  totalQuizzes: number;
+  totalQuestions: number;
+  singleChoiceCount: number;
+  multipleChoiceCount: number;
+  trueFalseCount: number;
+  courseStats: {
+    courseId: string;
+    courseTitle: string;
+    courseSlug: string;
+    quizCount: number;
+    questionCount: number;
+  }[];
 }
 
 export interface YouTubePlaylistItemParsed {

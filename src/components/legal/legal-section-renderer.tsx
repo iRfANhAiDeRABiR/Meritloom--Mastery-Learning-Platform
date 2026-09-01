@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { LegalCallout } from "./legal-callout";
+import { routes } from "@/lib/routes";
 
 interface LegalSectionData {
   id: string;

@@ -14,8 +14,8 @@ export const HTML_FUNDAMENTALS_SUMMARY: CourseSummary = {
   shortDescription:
     "Learn the foundations of HTML and build well-structured web pages using headings, text, links, images, forms, tables, practice activities, and knowledge checks.",
   difficulty: "beginner",
-  estimatedMinutes: 215,
-  lessonCount: 37,
+  estimatedMinutes: 250,
+  lessonCount: 30,
   categoryName: "Web Development",
   categorySlug: "web-development",
   thumbnailUrl: null,
@@ -33,9 +33,9 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
     "HTML is the foundation of every website. In this beginner-friendly course powered by the official W3Schools HTML video series, learners will understand how web pages are structured using HTML and gradually build confidence with the most important HTML elements. The course covers HTML basics, text styling, colors, CSS integration, links, images, tables, lists, layout concepts, iframes, scripting, head metadata, and interactive forms. Lessons use real W3Schools video tutorials alongside original Meritloom summaries, takeaways, and learning objectives.",
   difficulty: "beginner",
   language: "English",
-  estimatedMinutes: 215,
-  lessonCount: 37,
-  requiredLessonsCount: 36,
+  estimatedMinutes: 250,
+  lessonCount: 30,
+  requiredLessonsCount: 29,
   bonusLessonsCount: 1,
   moduleCount: 8,
   isFree: true,
@@ -92,7 +92,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Understand what HTML is, configure text editors, and learn the anatomy of HTML elements and attributes.",
       position: 1,
       estimatedMinutes: 18,
-      lessonCount: 4,
+      lessonCount: 5,
       isBonus: false,
       lessons: [
         {
@@ -143,6 +143,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isBonus: false,
           youtubeVideoId: "yMX901oVtn8",
         },
+        {
+          id: "les-1-5-quiz",
+          slug: "html-basics-knowledge-check",
+          title: "Knowledge Check — HTML Basics",
+          lessonType: "knowledge_check",
+          position: 5,
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -152,7 +163,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Master headings, paragraphs, inline styles, text formatting tags, and developer comments.",
       position: 2,
       estimatedMinutes: 21,
-      lessonCount: 5,
+      lessonCount: 6,
       isBonus: false,
       lessons: [
         {
@@ -215,6 +226,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isBonus: false,
           youtubeVideoId: "229HYq40vaA",
         },
+        {
+          id: "les-2-6-quiz",
+          slug: "html-text-formatting-knowledge-check",
+          title: "Knowledge Check — Text & Formatting",
+          lessonType: "knowledge_check",
+          position: 6,
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -224,7 +246,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Learn color representation formats, linking CSS stylesheets, and creating hyperlinks and bookmark anchors.",
       position: 3,
       estimatedMinutes: 17,
-      lessonCount: 3,
+      lessonCount: 4,
       isBonus: false,
       lessons: [
         {
@@ -263,6 +285,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isBonus: false,
           youtubeVideoId: "HA6bByKdAQM",
         },
+        {
+          id: "les-3-4-quiz",
+          slug: "html-colors-css-links-knowledge-check",
+          title: "Knowledge Check — Colors, CSS & Links",
+          lessonType: "knowledge_check",
+          position: 4, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -272,7 +305,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Embed images with accessible alt text, present tabular data with tables, and organize items into ordered and unordered lists.",
       position: 4,
       estimatedMinutes: 18,
-      lessonCount: 3,
+      lessonCount: 4,
       isBonus: false,
       lessons: [
         {
@@ -311,6 +344,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isBonus: false,
           youtubeVideoId: "-QuK8taGLCs",
         },
+        {
+          id: "les-4-4-quiz",
+          slug: "html-images-tables-lists-knowledge-check",
+          title: "Knowledge Check — Images, Tables & Lists",
+          lessonType: "knowledge_check",
+          position: 4, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -320,7 +364,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Understand block vs inline element behavior and use class and id attributes for styling and targeting.",
       position: 5,
       estimatedMinutes: 14,
-      lessonCount: 3,
+      lessonCount: 4,
       isBonus: false,
       lessons: [
         {
@@ -359,6 +403,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isBonus: false,
           youtubeVideoId: "rZ0k516qZmc",
         },
+        {
+          id: "les-5-4-quiz",
+          slug: "html-layout-concepts-knowledge-check",
+          title: "Knowledge Check — HTML Layout Concepts",
+          lessonType: "knowledge_check",
+          position: 4, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -368,7 +423,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Embed external pages with iframes and connect client-side JavaScript for dynamic behavior.",
       position: 6,
       estimatedMinutes: 10,
-      lessonCount: 2,
+      lessonCount: 3,
       isBonus: false,
       lessons: [
         {
@@ -395,6 +450,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isBonus: false,
           youtubeVideoId: "uSgcWDkwc3U",
         },
+        {
+          id: "les-6-3-quiz",
+          slug: "html-embedding-scripting-knowledge-check",
+          title: "Knowledge Check — Embedding & Scripting",
+          lessonType: "knowledge_check",
+          position: 3, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -404,7 +470,7 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
         "Configure <head> document metadata and build accessible user input forms with common controls.",
       position: 7,
       estimatedMinutes: 12,
-      lessonCount: 2,
+      lessonCount: 3,
       isBonus: false,
       lessons: [
         {
@@ -430,6 +496,17 @@ export const HTML_FUNDAMENTALS_COURSE: CourseDetail = {
           isPublished: true,
           isBonus: false,
           youtubeVideoId: "VLeERv_dR6Q",
+        },
+        {
+          id: "les-7-3-quiz",
+          slug: "html-head-forms-knowledge-check",
+          title: "Knowledge Check — Head Metadata & Forms",
+          lessonType: "knowledge_check",
+          position: 3, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
         },
       ],
     },
@@ -464,18 +541,126 @@ export const HTML_LESSON_DETAILS_MAP: Record<
   string,
   {
     videoPosition: number;
-    youtubeVideoId: string;
-    videoUrl: string;
-    sourceUrl: string;
-    sourceChannel: string;
-    playlistId: string;
+    youtubeVideoId: string | null;
+    videoUrl: string | null;
+    sourceUrl: string | null;
+    sourceChannel: string | null;
+    playlistId: string | null;
     isBonus: boolean;
     keyTakeaway: string;
     summary: string;
     objectives: string[];
-    content: string;
+    content?: string;
   }
 > = {
+  "html-basics-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Understanding the core syntax of elements, tags, and attributes is the foundation for creating valid web pages.",
+    summary: "Test your understanding of foundational HTML concepts, elements, attributes, and text editor configuration.",
+    objectives: [
+      "Verify understanding of HTML tags, elements, and void elements",
+      "Identify correct usage of HTML attributes and the <!DOCTYPE html> declaration"
+],
+  },
+  "html-text-formatting-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Semantic text tags give structure and meaning to web content while improving accessibility.",
+    summary: "Test your understanding of heading hierarchy, paragraph spacing, text formatting elements, and HTML comments.",
+    objectives: [
+      "Review heading levels from <h1> to <h6>",
+      "Verify understanding of formatting tags and inline CSS style attributes"
+],
+  },
+  "html-colors-css-links-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Hyperlinks interconnect the web, and understanding href targets and CSS linking is essential for navigation and styling.",
+    summary: "Test your understanding of color representations, CSS inclusion, hyperlinks, and target attributes.",
+    objectives: [
+      "Understand href attributes and target=_blank navigation",
+      "Verify color formats and internal/external CSS stylesheet linking"
+],
+  },
+  "html-images-tables-lists-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Structured data representations like tables and lists organize content clearly for both humans and search engines.",
+    summary: "Test your understanding of embedding images with alt text, building table structures, and creating ordered and unordered lists.",
+    objectives: [
+      "Understand <img> src, alt, width, and height attributes",
+      "Structure HTML tables using <table>, <tr>, <th>, and <td>",
+      "Differentiate between unordered <ul> and ordered <ol> lists"
+],
+  },
+  "html-layout-concepts-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Understanding block and inline display models and class/id attributes is the gateway to CSS layout design.",
+    summary: "Test your understanding of block vs inline elements, container elements, class vs id attributes, and semantic layout tags.",
+    objectives: [
+      "Distinguish between block-level and inline elements",
+      "Understand the difference between class and id attributes",
+      "Apply generic <div> and <span> containers appropriately"
+],
+  },
+  "html-embedding-scripting-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "iframes and script tags allow web pages to embed third-party media and add rich client-side interactivity.",
+    summary: "Test your understanding of embedding external content with iframes and integrating JavaScript scripts into HTML.",
+    objectives: [
+      "Understand <iframe> embedding and sandbox security",
+      "Verify script tag usage, inline vs external JS, and script placement"
+],
+  },
+  "html-head-forms-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Head metadata configures SEO and character encodings, while forms collect and submit user inputs.",
+    summary: "Test your understanding of <head> metadata, <title>, character encoding, and building accessible interactive HTML forms.",
+    objectives: [
+      "Understand <head> metadata, <title>, and <meta charset>",
+      "Structure forms with <form>, <input>, and accessible <label> elements"
+],
+  },
+
   "html-introduction": {
     videoPosition: 1,
     youtubeVideoId: "it1rTvBcfRg",
@@ -1213,9 +1398,9 @@ export const CSS_FUNDAMENTALS_SUMMARY: CourseSummary = {
   slug: "css-fundamentals",
   title: "CSS Fundamentals",
   shortDescription:
-    "Master CSS syntax, colors, backgrounds, the box model, and complete practical projects with guided practice and knowledge checks.",
+    "Master CSS from the ground up: learn selectors, syntax, colors, backgrounds, the box model, and build responsive web layouts.",
   difficulty: "beginner",
-  estimatedMinutes: 125,
+  estimatedMinutes: 215,
   lessonCount: 22,
   categoryName: "Web Development",
   categorySlug: "web-development",
@@ -1229,14 +1414,14 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
   slug: "css-fundamentals",
   title: "CSS Fundamentals",
   summary:
-    "Learn how to style modern web pages with CSS, from selectors, colors and the box model to layout, Flexbox, responsive design and practical styling.",
+    "Master CSS from the ground up: understand selectors, color systems, background styling, and box model layouts.",
   description:
-    "CSS controls how web pages look and feel. In this beginner-friendly course, you'll learn how to transform plain HTML into attractive, organized and responsive web pages. Starting with CSS syntax and selectors, the course gradually introduces colors, backgrounds, borders, spacing, typography, layout and modern CSS techniques. The video lessons come from the W3Schools CSS tutorial series and are organized inside Meritloom with structured modules, lesson summaries, practice activities and progress tracking. A basic understanding of HTML is recommended before starting this course.",
+    "CSS is the styling engine of the modern web. In this comprehensive beginner-friendly course, learners master styling syntax, simple and advanced selectors, color formats (RGB, HEX, HSL), background properties, spacing, borders, and practical layout integration.",
   difficulty: "beginner",
   language: "English",
-  estimatedMinutes: 65,
-  lessonCount: 18,
-  requiredLessonsCount: 18,
+  estimatedMinutes: 215,
+  lessonCount: 22,
+  requiredLessonsCount: 22,
   bonusLessonsCount: 0,
   moduleCount: 4,
   isFree: true,
@@ -1290,7 +1475,7 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
         "Understand what CSS is, learn the syntax of rules and declaration blocks, explore simple selectors, and discover the three ways to add CSS to HTML.",
       position: 1,
       estimatedMinutes: 19,
-      lessonCount: 6,
+      lessonCount: 7,
       isBonus: false,
       lessons: [
         {
@@ -1364,6 +1549,17 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
           isPublished: true,
           isBonus: false,
         },
+        {
+          id: "les-css-1-7-quiz",
+          slug: "css-introduction-knowledge-check",
+          title: "Knowledge Check — CSS Introduction & Selectors",
+          lessonType: "knowledge_check",
+          position: 7, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -1373,7 +1569,7 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
         "Master the web color system: named colors, RGB, RGBA with opacity, Hexadecimal color codes, and intuitive HSL / HSLA coordinates.",
       position: 2,
       estimatedMinutes: 20,
-      lessonCount: 5,
+      lessonCount: 6,
       isBonus: false,
       lessons: [
         {
@@ -1435,6 +1631,17 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
           isPublished: true,
           isBonus: false,
         },
+        {
+          id: "les-css-2-6-quiz",
+          slug: "css-colors-knowledge-check",
+          title: "Knowledge Check — CSS Colors & Formats",
+          lessonType: "knowledge_check",
+          position: 6, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -1444,7 +1651,7 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
         "Learn all aspects of CSS backgrounds: background colors, background images, repeat modes, positioning, attachment scrolling, and shorthand notation.",
       position: 3,
       estimatedMinutes: 19,
-      lessonCount: 6,
+      lessonCount: 7,
       isBonus: false,
       lessons: [
         {
@@ -1518,6 +1725,17 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
           isPublished: true,
           isBonus: false,
         },
+        {
+          id: "les-css-3-7-quiz",
+          slug: "css-backgrounds-knowledge-check",
+          title: "Knowledge Check — CSS Backgrounds",
+          lessonType: "knowledge_check",
+          position: 7, // position will be sequential
+          estimatedMinutes: 5,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
       ],
     },
     {
@@ -1527,7 +1745,7 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
         "Synthesize all CSS fundamentals into a complete, beautifully styled multi-section personal website.",
       position: 4,
       estimatedMinutes: 15,
-      lessonCount: 1,
+      lessonCount: 2,
       isBonus: false,
       lessons: [
         {
@@ -1537,6 +1755,17 @@ export const CSS_FUNDAMENTALS_COURSE: CourseDetail = {
           lessonType: "practice",
           position: 1,
           estimatedMinutes: 15,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
+        {
+          id: "les-css-4-2-quiz",
+          slug: "css-applied-styling-knowledge-check",
+          title: "Knowledge Check — Applied CSS Styling",
+          lessonType: "knowledge_check",
+          position: 2, // position will be sequential
+          estimatedMinutes: 5,
           isPreview: false,
           isPublished: true,
           isBonus: false,
@@ -1559,9 +1788,70 @@ export const CSS_LESSON_DETAILS_MAP: Record<
     keyTakeaway: string;
     summary: string;
     objectives: string[];
-    content: string;
+    content?: string;
   }
 > = {
+  "css-introduction-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "CSS controls the visual layout, typography, and styling of HTML elements using selective rule declarations.",
+    summary: "Test your understanding of CSS syntax, rule declarations, selectors, stylesheet inclusion, and CSS comments.",
+    objectives: [
+      "Understand CSS selectors, properties, and values",
+      "Identify the 3 ways to apply CSS to HTML documents"
+],
+  },
+  "css-colors-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Mastering RGB, HEX, and HSL color notations gives you complete control over brand palettes and opacity.",
+    summary: "Test your understanding of CSS color properties, RGB, RGBA alpha transparency, HEX codes, and HSL/HSLA values.",
+    objectives: [
+      "Differentiate between color and background-color",
+      "Understand HEX, RGB/RGBA, and HSL/HSLA color notation systems"
+],
+  },
+  "css-backgrounds-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "CSS background properties let you style containers with solid fills, gradient accents, or fixed hero images.",
+    summary: "Test your understanding of background colors, images, repeat patterns, position, attachment, and shorthand syntax.",
+    objectives: [
+      "Understand background-image url() and background-repeat options",
+      "Apply background-position, background-attachment, and shorthand syntax"
+],
+  },
+  "css-applied-styling-knowledge-check": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Combining box model spacing, typography, and clean selector architecture enables polished website layouts.",
+    summary: "Test your understanding of the CSS Box Model, the cascade, font stacks, and practical page styling.",
+    objectives: [
+      "Understand the CSS Box Model (content, padding, border, margin)",
+      "Understand the CSS cascade and font-family stacks"
+],
+  },
+
   "css-introduction": {
     videoPosition: 1,
     youtubeVideoId: "AGDDdsiZ0Ko",
@@ -2254,9 +2544,9 @@ export const JAVASCRIPT_FUNDAMENTALS_SUMMARY: CourseSummary = {
   slug: "javascript-fundamentals",
   title: "JavaScript Fundamentals",
   shortDescription:
-    "Master JavaScript foundations: statements, variables, scope, arithmetic operators, expressions, coding exercises, and knowledge checks.",
+    "Learn JavaScript fundamentals: statements, syntax, variables, let, const, arithmetic operators, and build interactive projects.",
   difficulty: "beginner",
-  estimatedMinutes: 130,
+  estimatedMinutes: 180,
   lessonCount: 18,
   categoryName: "Web Development",
   categorySlug: "web-development",
@@ -2270,14 +2560,14 @@ export const JAVASCRIPT_FUNDAMENTALS_COURSE: CourseDetail = {
   slug: "javascript-fundamentals",
   title: "JavaScript Fundamentals",
   summary:
-    "Learn the foundations of JavaScript and make web pages interactive with variables, functions, objects, conditions, loops, arrays, events and practical browser scripting.",
+    "Master the essential building blocks of JavaScript: statements, variables, scoping with let and const, arithmetic operators, and practical projects.",
   description:
-    "JavaScript adds behavior and interactivity to websites. In this beginner-friendly course, you'll learn the core concepts behind JavaScript step by step, starting with basic syntax and values before moving into variables, operators, functions, objects, conditions, loops and browser interactions. The video lessons come from the W3Schools JavaScript tutorial series and are organized inside Meritloom into clear modules with short summaries, objectives, hands-on practice activities and progress tracking. A basic understanding of HTML is recommended, and some CSS knowledge will help when building interactive webpage projects.",
+    "JavaScript brings web pages to life. This foundational course covers JavaScript basics, script placement, output techniques, statement structures, variables (var, let, const), arithmetic operations, and ends with a complete interactive web page project.",
   difficulty: "beginner",
   language: "English",
-  estimatedMinutes: 105,
-  lessonCount: 17,
-  requiredLessonsCount: 17,
+  estimatedMinutes: 180,
+  lessonCount: 18,
+  requiredLessonsCount: 18,
   bonusLessonsCount: 0,
   moduleCount: 4,
   isFree: true,
@@ -2555,7 +2845,7 @@ export const JAVASCRIPT_FUNDAMENTALS_COURSE: CourseDetail = {
         "Connect HTML structure, CSS styling, and JavaScript logic to build a fully interactive personal portfolio and greeting web page.",
       position: 4,
       estimatedMinutes: 30,
-      lessonCount: 1,
+      lessonCount: 2,
       isBonus: false,
       lessons: [
         {
@@ -2565,6 +2855,17 @@ export const JAVASCRIPT_FUNDAMENTALS_COURSE: CourseDetail = {
           lessonType: "practice",
           position: 1,
           estimatedMinutes: 30,
+          isPreview: false,
+          isPublished: true,
+          isBonus: false,
+        },
+        {
+          id: "les-js-4-2-quiz",
+          slug: "quiz-javascript-applied-project",
+          title: "Knowledge Check — Applied JavaScript Concepts",
+          lessonType: "knowledge_check",
+          position: 2,
+          estimatedMinutes: 5,
           isPreview: false,
           isPublished: true,
           isBonus: false,
@@ -2587,6 +2888,23 @@ export const JS_LESSON_DETAILS_MAP: Record<string, {
   objectives: string[];
   content?: string;
 }> = {
+  "quiz-javascript-applied-project": {
+    videoPosition: 5,
+    youtubeVideoId: null,
+    videoUrl: null,
+    sourceUrl: null,
+    sourceChannel: null,
+    playlistId: null,
+    isBonus: false,
+    keyTakeaway: "Connecting JavaScript event listeners and DOM manipulation transforms static HTML/CSS pages into dynamic applications.",
+    summary: "Test your understanding of DOM selection, event listeners, updating elements, and organizing modular JavaScript code for interactive projects.",
+    objectives: [
+      "Select DOM elements using document.querySelector()",
+      "Attach event listeners and update DOM content dynamically",
+      "Debug script execution using browser console tools"
+],
+  },
+
   "javascript-introduction": {
     videoPosition: 1,
     youtubeVideoId: "zofMnllkVfI",

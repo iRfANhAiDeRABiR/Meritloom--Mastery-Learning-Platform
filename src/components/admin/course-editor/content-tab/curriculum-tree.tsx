@@ -2,16 +2,20 @@
 
 import * as React from "react";
 import {
+  AlertCircle,
   ArrowDown,
   ArrowUp,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
   Code2,
   FileQuestion,
   FileText,
   FolderPlus,
+  HelpCircle,
   Loader2,
   Plus,
+  Sparkles,
   Trash2,
   Video,
 } from "lucide-react";
@@ -20,13 +24,14 @@ import { Badge } from "@/components/ui/badge";
 import {
   createLessonAction,
   createModuleAction,
+  createModuleKnowledgeCheckAction,
   deleteLessonAction,
   deleteModuleAction,
   reorderLessonsAction,
   reorderModulesAction,
 } from "@/lib/actions/admin";
 import { generateSlug } from "@/lib/utils/youtube-importer";
-import type { AdminCourseDetail, AdminLessonDetail, AdminModuleDetail } from "@/lib/types";
+import { isKnowledgeCheckLesson, type AdminCourseDetail, type AdminLessonDetail, type AdminModuleDetail } from "@/lib/types";
 
 interface CurriculumTreeProps {
   course: AdminCourseDetail;
@@ -55,6 +60,7 @@ export function CurriculumTree({
   const [showNewModuleModal, setShowNewModuleModal] = React.useState(false);
   const [newModTitle, setNewModTitle] = React.useState("");
   const [isCreatingMod, setIsCreatingMod] = React.useState(false);
+  const [creatingQuizModId, setCreatingQuizModId] = React.useState<string | null>(null);
 
   // New Lesson Modal
   const [newLessonModalModuleId, setNewLessonModalModuleId] = React.useState<string | null>(null);
@@ -150,11 +156,33 @@ export function CurriculumTree({
     onRefresh();
   };
 
+  const handleQuickAddKnowledgeCheck = async (mod: AdminModuleDetail) => {
+    if (creatingQuizModId) return;
+    const existing = mod.lessons.find((l) => isKnowledgeCheckLesson(l.lessonType));
+    if (existing) {
+      onSelectLesson(existing);
+      return;
+    }
+
+    setCreatingQuizModId(mod.id);
+    try {
+      const res = await createModuleKnowledgeCheckAction(mod.id, course.id);
+      if (res.success && res.lessonId) {
+        onRefresh();
+      } else if (res.error) {
+        alert(res.error);
+      }
+    } finally {
+      setCreatingQuizModId(null);
+    }
+  };
+
   const getLessonIcon = (type: string) => {
     switch (type) {
       case "video":
         return <Video className="h-3.5 w-3.5 text-rose-500 shrink-0" />;
       case "knowledge_check":
+      case "quiz":
         return <FileQuestion className="h-3.5 w-3.5 text-purple-500 shrink-0" />;
       case "practice":
       case "exercise":
@@ -199,6 +227,8 @@ export function CurriculumTree({
           {course.modules.map((mod, modIdx) => {
             const isExpanded = expandedModules.has(mod.id);
             const isModSelected = selectedModuleId === mod.id && !selectedLessonId;
+            const kcLesson = mod.lessons.find((l) => isKnowledgeCheckLesson(l.lessonType));
+            const questionCount = kcLesson?.quiz?.questions.length || 5;
 
             return (
               <div
@@ -207,65 +237,115 @@ export function CurriculumTree({
               >
                 {/* Module Header */}
                 <div
-                  className={`flex items-center justify-between p-3 transition ${
+                  className={`flex flex-col gap-2 p-3 transition ${
                     isModSelected ? "bg-primary/10 border-l-4 border-l-primary" : "bg-surface-elevated/40 hover:bg-surface-elevated/70"
                   }`}
                 >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <button
-                      type="button"
-                      onClick={() => toggleExpand(mod.id)}
-                      className="p-0.5 text-ink-muted hover:text-ink"
-                    >
-                      {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onSelectModule(mod)}
-                      className="text-left font-display text-xs font-bold text-ink hover:text-primary truncate"
-                    >
-                      <span>Module {modIdx + 1}: {mod.title}</span>
-                    </button>
-                    <Badge variant="outline" className="text-[10px] border-line px-1.5 py-0">
-                      {mod.lessons.length}
-                    </Badge>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(mod.id)}
+                        className="p-0.5 text-ink-muted hover:text-ink"
+                      >
+                        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onSelectModule(mod)}
+                        className="text-left font-display text-xs font-bold text-ink hover:text-primary truncate"
+                      >
+                        <span>Module {modIdx + 1}: {mod.title}</span>
+                      </button>
+                      <Badge variant="outline" className="text-[10px] border-line px-1.5 py-0">
+                        {mod.lessons.length}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        disabled={modIdx === 0}
+                        onClick={() => handleMoveModule(modIdx, "up")}
+                        className="p-1 text-ink-muted hover:text-ink disabled:opacity-20"
+                        title="Move Module Up"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={modIdx === course.modules.length - 1}
+                        onClick={() => handleMoveModule(modIdx, "down")}
+                        className="p-1 text-ink-muted hover:text-ink disabled:opacity-20"
+                        title="Move Module Down"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewLessonModalModuleId(mod.id)}
+                        className="p-1 text-primary hover:bg-primary/10 rounded"
+                        title="Add Lesson to this Module"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteModule(mod)}
+                        className="p-1 text-rose-500 hover:bg-rose-500/10 rounded"
+                        title="Delete Module"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      disabled={modIdx === 0}
-                      onClick={() => handleMoveModule(modIdx, "up")}
-                      className="p-1 text-ink-muted hover:text-ink disabled:opacity-20"
-                      title="Move Module Up"
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={modIdx === course.modules.length - 1}
-                      onClick={() => handleMoveModule(modIdx, "down")}
-                      className="p-1 text-ink-muted hover:text-ink disabled:opacity-20"
-                      title="Move Module Down"
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewLessonModalModuleId(mod.id)}
-                      className="p-1 text-primary hover:bg-primary/10 rounded"
-                      title="Add Lesson to this Module"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteModule(mod)}
-                      className="p-1 text-rose-500 hover:bg-rose-500/10 rounded"
-                      title="Delete Module"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                  {/* Knowledge Check Status Bar */}
+                  <div className="flex items-center justify-between border-t border-line/50 pt-2 text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      {kcLesson ? (
+                        <button
+                          type="button"
+                          onClick={() => onSelectLesson(kcLesson)}
+                          className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition"
+                          title="Click to edit Knowledge Check"
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>Knowledge Check ({questionCount} Qs)</span>
+                        </button>
+                      ) : mod.title.toLowerCase().includes("bonus") || mod.lessons.some((l) => l.isBonus) ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-purple-500/10 px-2 py-0.5 font-semibold text-purple-600 dark:text-purple-400">
+                          <Sparkles className="h-3 w-3" />
+                          <span>Bonus (Quiz Exempt)</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 font-semibold text-amber-600 dark:text-amber-400">
+                          <AlertCircle className="h-3 w-3" />
+                          <span>Check Missing</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {!kcLesson && !mod.title.toLowerCase().includes("bonus") && (
+                      <button
+                        type="button"
+                        disabled={creatingQuizModId === mod.id}
+                        onClick={() => handleQuickAddKnowledgeCheck(mod)}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50"
+                      >
+                        {creatingQuizModId === mod.id ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span>Adding...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-3 w-3" />
+                            <span>+ Add Knowledge Check</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
 

@@ -6,6 +6,7 @@ import {
   BookOpen,
   ChevronRight,
   DatabaseBackup,
+  FileQuestion,
   GraduationCap,
   Layers,
   LayoutDashboard,
@@ -28,6 +29,12 @@ const NAV_ITEMS = [
     label: "Courses",
     href: "/admin/courses",
     icon: BookOpen,
+    exact: false,
+  },
+  {
+    label: "Knowledge Checks",
+    href: "/admin/quizzes",
+    icon: FileQuestion,
     exact: false,
   },
   {
