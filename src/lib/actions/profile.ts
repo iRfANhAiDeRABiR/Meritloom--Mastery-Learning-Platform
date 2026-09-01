@@ -398,9 +398,10 @@ export async function updatePasswordAction(params: {
         };
       }
 
-      // 2. Perform password update with the freshly authenticated session
+      // 2. Perform password update with the freshly authenticated session and current_password payload
       const { error: updateError } = await authClient.auth.updateUser({
         password: newPassword,
+        current_password: currentPassword,
       });
 
       if (updateError) {
@@ -418,6 +419,12 @@ export async function updatePasswordAction(params: {
           };
         }
         if (msg.includes("invalid") && msg.includes("credentials")) {
+          return {
+            success: false,
+            fieldErrors: { currentPassword: "Current password is incorrect." },
+          };
+        }
+        if (msg.includes("current password") || msg.includes("reauthentication")) {
           return {
             success: false,
             fieldErrors: { currentPassword: "Current password is incorrect." },
