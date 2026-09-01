@@ -37,6 +37,7 @@ export function PracticeQuiz({ data }: PracticeQuizProps) {
   const [attemptId, setAttemptId] = React.useState<string>(
     currentAttempt?.id || "",
   );
+  const [isCourseCompleted, setIsCourseCompleted] = React.useState(false);
 
   // Map of question ID -> submitted & graded answer
   const [answers, setAnswers] = React.useState<Record<string, QuizAttemptAnswer>>(
@@ -146,7 +147,22 @@ export function PracticeQuiz({ data }: PracticeQuizProps) {
     } else {
       // Completed all questions
       setIsSubmitting(true);
-      await completeQuizAttemptAction(attemptId, courseSlug, lessonSlug);
+      const res = await completeQuizAttemptAction(attemptId, courseSlug, lessonSlug);
+      if (res?.justCompleted) {
+        notify.success({
+          title: "Course completed",
+          description: "You completed all required activities in this course!",
+          action: {
+            label: "View summary",
+            onClick: () => {
+              window.location.href = `/learn/courses/${courseSlug}/complete`;
+            },
+          },
+        });
+      }
+      if (res?.isCourseCompleted) {
+        setIsCourseCompleted(true);
+      }
       setIsSubmitting(false);
       setIsCompleted(true);
     }
@@ -210,6 +226,7 @@ export function PracticeQuiz({ data }: PracticeQuizProps) {
           questions={questions}
           answers={answers}
           nextLesson={nextLesson}
+          isCourseCompleted={isCourseCompleted}
           onRetry={handleRetry}
           onReviewQuestions={() => {
             setIsCompleted(false);

@@ -15,8 +15,10 @@ export const routes = {
   dashboard: "/learn",
   learn: "/learn",
   learnCourses: "/learn/courses",
+  learnCourseComplete: (slug: string) => `/learn/courses/${slug}/complete`,
   learnSaved: "/learn/saved",
   learnNotes: "/learn/notes",
+  learnPathComplete: (slug: string) => `/learn/learning-paths/${slug}/complete`,
   profile: "/profile",
   courses: {
     index: "/courses",

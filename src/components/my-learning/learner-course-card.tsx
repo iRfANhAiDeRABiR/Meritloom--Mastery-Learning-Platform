@@ -297,16 +297,22 @@ export function LearnerCourseCard({ course }: LearnerCourseCardProps) {
           <div className="flex flex-col gap-3 pt-1">
             <p className="text-xs text-muted flex items-center gap-1.5">
               <CheckCircle2 className="size-3.5 text-mint-ink" aria-hidden="true" />
-              <span>All lessons completed</span>
+              <span>All required activities completed</span>
             </p>
 
-            <div className="pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
               <Link
                 href={courseHref}
-                className="inline-flex h-9.5 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-surface border border-line px-5 text-xs font-bold text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:text-primary"
+                className="inline-flex h-9.5 items-center justify-center gap-2 rounded-xl bg-surface border border-line px-4 text-xs font-bold text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:text-primary"
               >
                 <RotateCcw className="size-3.5" aria-hidden="true" />
                 <span>Review course</span>
+              </Link>
+              <Link
+                href={`/learn/courses/${course.courseSlug}/complete`}
+                className="inline-flex h-9.5 items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3.5 text-xs font-bold text-primary shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/20"
+              >
+                <span>Summary</span>
                 <ArrowRight className="size-3.5" aria-hidden="true" />
               </Link>
             </div>

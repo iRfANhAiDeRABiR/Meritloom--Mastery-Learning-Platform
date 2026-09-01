@@ -14,6 +14,7 @@ interface QuizResultsCardProps {
   questions: PracticeQuestion[];
   answers: Record<string, QuizAttemptAnswer>;
   nextLesson: LessonNavigationItem | null;
+  isCourseCompleted?: boolean;
   onRetry: () => void;
   onReviewQuestions: () => void;
 }
@@ -27,6 +28,7 @@ export function QuizResultsCard({
   questions,
   answers,
   nextLesson,
+  isCourseCompleted,
   onRetry,
   onReviewQuestions,
 }: QuizResultsCardProps) {
@@ -53,9 +55,17 @@ export function QuizResultsCard({
     }
   }
 
-  const nextHref = nextLesson
+  const nextHref = isCourseCompleted
+    ? `/learn/courses/${courseSlug}/complete`
+    : nextLesson
     ? `/learn/courses/${courseSlug}/lessons/${nextLesson.slug}`
     : `/learn/courses/${courseSlug}`;
+
+  const ctaLabel = isCourseCompleted
+    ? "View course summary"
+    : nextLesson
+    ? "Continue learning"
+    : "Return to course";
 
   return (
     <div className="w-full rounded-[20px] border border-line bg-card p-6 sm:p-10 shadow-lift flex flex-col gap-8">
@@ -152,7 +162,7 @@ export function QuizResultsCard({
           href={nextHref}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-xs font-bold text-white shadow-soft transition-all duration-200 hover:bg-primary-hover hover:-translate-y-0.5"
         >
-          <span>{nextLesson ? "Continue learning" : "Return to course"}</span>
+          <span>{ctaLabel}</span>
           <ArrowRight className="size-4" aria-hidden="true" />
         </Link>
       </div>

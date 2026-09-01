@@ -121,6 +121,30 @@ export function CourseStartCard({
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </Button>
+          ) : isEnrolled && enrollment.status === "completed" ? (
+            /* Completed learner */
+            <div className="flex flex-col gap-2.5">
+              <Button
+                asChild
+                size="lg"
+                className="w-full bg-surface border border-line hover:border-primary/40 text-ink text-base font-bold shadow-soft"
+              >
+                <Link href={`/learn/courses/${course.slug}`}>
+                  <span>Review Course</span>
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 text-xs font-semibold"
+              >
+                <Link href={`/learn/courses/${course.slug}/complete`}>
+                  <span>View Completion Summary</span>
+                </Link>
+              </Button>
+            </div>
           ) : isEnrolled ? (
             /* Enrolled learner */
             <Button

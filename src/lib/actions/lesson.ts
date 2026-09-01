@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { syncCourseCompletion } from "@/lib/completion/sync";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface ToggleLessonResult {
   success: boolean;
   completed?: boolean;
+  isCourseCompleted?: boolean;
+  justCompleted?: boolean;
   error?: string;
 }
 
@@ -149,77 +152,22 @@ export async function toggleLessonProgressAction(
       return { success: false, error: upsertError.message };
     }
 
-    // 5. Update course_enrollments last_accessed_at & check if course is completed
-    try {
-      // Check total required lessons vs completed required lessons
-      const { data: modules } = await supabase
-        .from("course_modules")
-        .select(
-          `
-          id,
-          lessons (
-            id,
-            is_bonus,
-            is_published
-          )
-        `,
-        )
-        .eq("course_id", course.id);
-
-      const requiredLessonIds: string[] = [];
-      if (modules) {
-        for (const m of modules) {
-          if (Array.isArray(m.lessons)) {
-            for (const l of m.lessons) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const les = l as any;
-              if (!les.is_bonus && les.is_published !== false) {
-                requiredLessonIds.push(les.id);
-              }
-            }
-          }
-        }
-      }
-
-      let isAllCompleted = false;
-      if (requiredLessonIds.length > 0) {
-        const { count: completedRequiredCount } = await supabase
-          .from("lesson_progress")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("course_id", course.id)
-          .eq("completed", true)
-          .in("lesson_id", requiredLessonIds);
-
-        if (
-          typeof completedRequiredCount === "number" &&
-          completedRequiredCount >= requiredLessonIds.length
-        ) {
-          isAllCompleted = true;
-        }
-      }
-
-      await supabase
-        .from("course_enrollments")
-        .update({
-          status: isAllCompleted ? "completed" : "active",
-          completed_at: isAllCompleted ? new Date().toISOString() : null,
-          last_accessed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id)
-        .eq("course_id", course.id);
-    } catch {
-      // Non-critical update
-    }
+    // 5. Update course_enrollments & check if course is completed
+    const syncResult = await syncCourseCompletion(user.id, course.id);
 
     // 6. Revalidate all relevant paths
     revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
     revalidatePath(`/learn/courses/${courseSlug}`);
+    revalidatePath(`/learn/courses/${courseSlug}/complete`);
     revalidatePath("/learn/courses");
     revalidatePath("/learn");
 
-    return { success: true, completed };
+    return {
+      success: true,
+      completed,
+      isCourseCompleted: syncResult.isComplete,
+      justCompleted: syncResult.justCompleted,
+    };
   } catch (err: unknown) {
     const error = err as { message?: string };
     console.error("[toggleLessonProgressAction] Unexpected exception:", error?.message || err);

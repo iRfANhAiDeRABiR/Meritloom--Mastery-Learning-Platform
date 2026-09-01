@@ -24,8 +24,8 @@ export function LearningPathHero({ path, user }: LearningPathHeroProps) {
     primaryHref = "/courses/html-fundamentals";
     primaryLabel = "Start learning";
   } else if (learnerProgress.pathStatus === "completed") {
-    primaryHref = "/courses/javascript-fundamentals";
-    primaryLabel = "Review final project";
+    primaryHref = `/learn/learning-paths/${path.slug}/complete`;
+    primaryLabel = "View your summary";
   } else {
     // In progress: route to current step course
     const currentItem = path.items.find((i) => i.isCurrentStep && i.itemType === "course");

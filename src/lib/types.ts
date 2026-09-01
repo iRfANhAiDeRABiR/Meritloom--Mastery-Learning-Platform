@@ -1001,3 +1001,6 @@ export interface MyNotesPageData {
   bookmarks: LearnerLessonBookmarkItem[];
   availableCourses: { slug: string; title: string }[];
 }
+
+export type { CourseCompletionData, LearningPathCompletionData } from "@/lib/completion/types";
+

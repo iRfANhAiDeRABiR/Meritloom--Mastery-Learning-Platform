@@ -62,6 +62,17 @@ export function LessonBottomNav({
       setCompleted(!nextState);
       onCompletionChanged?.(!nextState);
       notify.error({ title: result.error || "Could not update progress." });
+    } else if (result.justCompleted) {
+      notify.success({
+        title: "Course completed",
+        description: "You completed all required activities in this course!",
+        action: {
+          label: "View summary",
+          onClick: () => {
+            window.location.href = `/learn/courses/${courseSlug}/complete`;
+          },
+        },
+      });
     } else if (nextState) {
       notify.success({ title: "Lesson marked complete" });
     }
@@ -146,9 +157,9 @@ export function LessonBottomNav({
               <div className="hidden sm:block" />
             )}
 
-            {/* Primary Action: Complete Course / Back to Course */}
+            {/* Primary Action: Complete Course / View Summary */}
             <Link
-              href={courseOverviewHref}
+              href={`/learn/courses/${courseSlug}/complete`}
               className="group flex items-center justify-between gap-3 rounded-[16px] border border-mint-ink/30 bg-mint/15 p-4 text-right transition-all hover:border-mint-ink/50 hover:bg-mint/25 shadow-soft"
             >
               <div className="flex flex-col min-w-0 text-left sm:text-right">
@@ -156,7 +167,7 @@ export function LessonBottomNav({
                   Requirements Completed
                 </span>
                 <span className="truncate text-xs font-bold text-ink group-hover:text-mint-ink transition-colors">
-                  Complete Course / Back to Roadmap
+                  View Course Summary
                 </span>
               </div>
               <div className="grid size-9 place-items-center rounded-xl bg-[#19B99A] text-white shadow-soft transition-transform group-hover:scale-105 shrink-0">
@@ -207,15 +218,15 @@ export function LessonBottomNav({
 
           {/* Next Lesson or Finish Course Button */}
           <Link
-            href={nextHref}
+            href={isLastLesson ? `/learn/courses/${courseSlug}/complete` : nextHref}
             className="group flex items-center justify-between gap-3 rounded-[16px] border border-primary/30 bg-gradient-to-r from-card via-card to-lavender/40 p-4 text-right transition-all hover:border-primary hover:shadow-soft"
           >
             <div className="flex flex-col min-w-0 text-left sm:text-right">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
-                {isLastLesson ? "Final Lesson" : "Next Lesson"}
+                {isLastLesson ? "Course Complete" : "Next Lesson"}
               </span>
               <span className="truncate text-xs font-bold text-ink group-hover:text-primary transition-colors">
-                {isLastLesson ? "Return to Course Overview" : nextLesson?.title}
+                {isLastLesson ? "View Course Summary" : nextLesson?.title}
               </span>
             </div>
 

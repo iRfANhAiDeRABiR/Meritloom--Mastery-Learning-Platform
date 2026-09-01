@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { ALL_STATIC_QUIZZES } from "@/lib/data/static-quizzes";
+import { syncCourseCompletion } from "@/lib/completion/sync";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface SubmitAnswerResult {
@@ -16,6 +17,8 @@ export interface CompleteQuizResult {
   success: boolean;
   correctCount?: number;
   totalQuestions?: number;
+  isCourseCompleted?: boolean;
+  justCompleted?: boolean;
   error?: string;
 }
 
@@ -268,6 +271,9 @@ export async function completeQuizAttemptAction(
     }
 
     // Mark the knowledge-check lesson complete in lesson_progress
+    let isCourseCompleted = false;
+    let justCompleted = false;
+
     try {
       const { data: course } = await supabase
         .from("courses")
@@ -294,6 +300,11 @@ export async function completeQuizAttemptAction(
           },
           { onConflict: "user_id,lesson_id" },
         );
+
+        // Sync course completion
+        const syncResult = await syncCourseCompletion(user.id, course.id);
+        isCourseCompleted = syncResult.isComplete;
+        justCompleted = syncResult.justCompleted;
       }
     } catch {
       // Ignore
@@ -301,6 +312,7 @@ export async function completeQuizAttemptAction(
 
     revalidatePath(`/learn/courses/${courseSlug}/lessons/${lessonSlug}`);
     revalidatePath(`/learn/courses/${courseSlug}`);
+    revalidatePath(`/learn/courses/${courseSlug}/complete`);
     revalidatePath("/learn/courses");
     revalidatePath("/learn");
 
@@ -308,6 +320,8 @@ export async function completeQuizAttemptAction(
       success: true,
       correctCount,
       totalQuestions,
+      isCourseCompleted,
+      justCompleted,
     };
   } catch {
     return { success: false, error: "Failed to complete quiz attempt." };
