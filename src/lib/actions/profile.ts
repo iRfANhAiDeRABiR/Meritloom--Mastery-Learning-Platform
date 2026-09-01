@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseConfig } from "@/lib/env";
 import { getUserAuthMethods } from "@/lib/auth/methods";
 import type {
   ContentPreference,
@@ -358,8 +360,8 @@ export async function updatePasswordAction(params: {
     }
 
     const authMethods = getUserAuthMethods(user);
+    const { url, anonKey } = getSupabaseConfig();
 
-    // If account has an existing password, enforce current password verification
     if (authMethods.hasPassword) {
       if (!currentPassword || currentPassword.trim().length === 0) {
         return {
@@ -375,43 +377,108 @@ export async function updatePasswordAction(params: {
         };
       }
 
-      // Reauthenticate via Supabase Auth
-      const { error: reauthError } = await supabase.auth.signInWithPassword({
+      // 1. Authenticate with current credentials on an isolated client instance
+      // so the newly minted session token is directly bound for the /user mutation
+      const authClient = createClient(url, anonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
+
+      const { data: signInData, error: signInError } = await authClient.auth.signInWithPassword({
         email: user.email,
         password: currentPassword,
       });
 
-      if (reauthError) {
+      if (signInError || !signInData?.session) {
         return {
           success: false,
           fieldErrors: { currentPassword: "Current password is incorrect." },
         };
       }
-    }
 
-    // Update password with verified session
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+      // 2. Perform password update with the freshly authenticated session
+      const { error: updateError } = await authClient.auth.updateUser({
+        password: newPassword,
+      });
 
-    if (updateError) {
-      const msg = updateError.message?.toLowerCase() || "";
-      if (msg.includes("same") || msg.includes("different")) {
+      if (updateError) {
+        const msg = updateError.message?.toLowerCase() || "";
+        if (msg.includes("same") || msg.includes("different") || msg.includes("identical")) {
+          return {
+            success: false,
+            fieldErrors: { newPassword: "Choose a password different from your current password." },
+          };
+        }
+        if (msg.includes("weak") || msg.includes("short") || msg.includes("least 8") || msg.includes("least 6")) {
+          return {
+            success: false,
+            fieldErrors: { newPassword: "Password must be at least 8 characters long." },
+          };
+        }
+        if (msg.includes("invalid") && msg.includes("credentials")) {
+          return {
+            success: false,
+            fieldErrors: { currentPassword: "Current password is incorrect." },
+          };
+        }
         return {
           success: false,
-          fieldErrors: { newPassword: "Choose a password different from your current password." },
+          error: updateError.message || "We couldn't update your password. Please try again.",
         };
       }
-      if (msg.includes("weak") || msg.includes("short")) {
+
+      // 3. Update cookies on the SSR server client so browser stays logged in with new password
+      try {
+        await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: newPassword,
+        });
+      } catch {
+        // Safe cookie refresh
+      }
+    } else {
+      // Google-only user setting an initial password
+      const { data: sessionData } = await supabase.auth.getSession();
+      const activeToken = sessionData?.session?.access_token;
+
+      let updateError: { message?: string } | null = null;
+
+      if (activeToken) {
+        const authClient = createClient(url, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+          global: { headers: { Authorization: `Bearer ${activeToken}` } },
+        });
+        const res = await authClient.auth.updateUser({ password: newPassword });
+        updateError = res.error;
+      } else {
+        const res = await supabase.auth.updateUser({ password: newPassword });
+        updateError = res.error;
+      }
+
+      if (updateError) {
+        const msg = updateError.message?.toLowerCase() || "";
+        if (msg.includes("weak") || msg.includes("short") || msg.includes("least 8") || msg.includes("least 6")) {
+          return {
+            success: false,
+            fieldErrors: { newPassword: "Password must be at least 8 characters long." },
+          };
+        }
         return {
           success: false,
-          fieldErrors: { newPassword: "Password must be at least 8 characters long." },
+          error: updateError.message || "We couldn't set your password. Please try again.",
         };
       }
-      return {
-        success: false,
-        error: "We couldn't update your password. Please try again.",
-      };
+
+      try {
+        await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: newPassword,
+        });
+      } catch {
+        // Safe cookie refresh
+      }
     }
 
     return { success: true };

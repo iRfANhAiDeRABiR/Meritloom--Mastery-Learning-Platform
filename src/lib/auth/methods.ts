@@ -51,3 +51,4 @@ export function getUserAuthMethods(user: User | null): UserAuthMethods {
     primaryProvider,
   };
 }
+
