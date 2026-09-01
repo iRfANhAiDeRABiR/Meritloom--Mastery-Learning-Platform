@@ -1,5 +1,6 @@
 import { getCategories } from "@/lib/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAuthMethods } from "@/lib/auth/methods";
 import type {
   ContentPreference,
   CourseDifficulty,
@@ -114,14 +115,8 @@ export async function getProfileSettingsData(
     // 4. Fetch all active categories
     const categories = await getCategories();
 
-    // 5. Determine auth provider
-    let provider: "email" | "google" | "unknown" = "email";
-    const appProvider = user.app_metadata?.provider;
-    if (appProvider === "google") {
-      provider = "google";
-    } else if (user.identities && user.identities.some((i) => i.provider === "google")) {
-      provider = "google";
-    }
+    // 5. Determine auth methods & providers from trusted state
+    const authMethods = getUserAuthMethods(user);
 
     // 6. Validate active tab
     const validTabs: ProfileTabId[] = ["profile", "learning", "appearance", "account"];
@@ -147,7 +142,9 @@ export async function getProfileSettingsData(
       },
       selectedCategoryIds,
       categories,
-      provider,
+      provider: authMethods.primaryProvider,
+      hasPassword: authMethods.hasPassword,
+      hasGoogle: authMethods.hasGoogle,
       activeTab,
     };
   } catch {

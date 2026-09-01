@@ -46,7 +46,12 @@ export function ProfileSettingsLayout({ data }: ProfileSettingsLayoutProps) {
           {activeTab === "appearance" && <AppearanceTab />}
 
           {activeTab === "account" && (
-            <AccountTab profile={profile} provider={provider} />
+            <AccountTab
+              profile={profile}
+              provider={provider}
+              hasPassword={data.hasPassword}
+              hasGoogle={data.hasGoogle}
+            />
           )}
         </main>
       </div>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAuthMethods } from "@/lib/auth/methods";
 import type {
   ContentPreference,
   CourseDifficulty,
@@ -288,45 +289,137 @@ export async function updateLearningPreferencesAction(params: {
   }
 }
 
+export interface UpdatePasswordResult {
+  success: boolean;
+  error?: string;
+  fieldErrors?: {
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  };
+}
+
 /**
  * Update user's password securely via Supabase Auth.
+ * Reauthenticates current password for password accounts and supports setting password for OAuth accounts.
  */
 export async function updatePasswordAction(params: {
+  currentPassword?: string;
   newPassword: string;
-}): Promise<{ success: boolean; error?: string }> {
-  const { newPassword } = params;
+  confirmPassword?: string;
+}): Promise<UpdatePasswordResult> {
+  const { currentPassword, newPassword, confirmPassword } = params;
 
-  if (!newPassword || newPassword.length < 8) {
+  // 1. Basic validation
+  if (!newPassword || newPassword.trim().length === 0) {
     return {
       success: false,
-      error: "Password must be at least 8 characters long.",
+      fieldErrors: { newPassword: "Enter a new password." },
+    };
+  }
+
+  if (newPassword.length < 8) {
+    return {
+      success: false,
+      fieldErrors: { newPassword: "Password must be at least 8 characters long." },
+    };
+  }
+
+  if (confirmPassword !== undefined && confirmPassword !== newPassword) {
+    return {
+      success: false,
+      fieldErrors: { confirmPassword: "Passwords don't match." },
     };
   }
 
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return { success: false, error: "Service unavailable." };
+  if (!supabase) {
+    return { success: false, error: "Service unavailable. Please try again." };
+  }
 
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return { success: false, error: "Please sign in." };
+    if (!user || !user.email) {
+      return { success: false, error: "Please sign in to manage your password." };
+    }
 
-    const { error } = await supabase.auth.updateUser({
+    // Check account status
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.account_status === "suspended") {
+      return { success: false, error: "Suspended accounts cannot modify credentials." };
+    }
+
+    const authMethods = getUserAuthMethods(user);
+
+    // If account has an existing password, enforce current password verification
+    if (authMethods.hasPassword) {
+      if (!currentPassword || currentPassword.trim().length === 0) {
+        return {
+          success: false,
+          fieldErrors: { currentPassword: "Enter your current password." },
+        };
+      }
+
+      if (currentPassword === newPassword) {
+        return {
+          success: false,
+          fieldErrors: { newPassword: "Choose a password different from your current password." },
+        };
+      }
+
+      // Reauthenticate via Supabase Auth
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (reauthError) {
+        return {
+          success: false,
+          fieldErrors: { currentPassword: "Current password is incorrect." },
+        };
+      }
+    }
+
+    // Update password with verified session
+    const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
     });
 
-    if (error) {
+    if (updateError) {
+      const msg = updateError.message?.toLowerCase() || "";
+      if (msg.includes("same") || msg.includes("different")) {
+        return {
+          success: false,
+          fieldErrors: { newPassword: "Choose a password different from your current password." },
+        };
+      }
+      if (msg.includes("weak") || msg.includes("short")) {
+        return {
+          success: false,
+          fieldErrors: { newPassword: "Password must be at least 8 characters long." },
+        };
+      }
       return {
         success: false,
-        error: error.message || "We couldn't update your password.",
+        error: "We couldn't update your password. Please try again.",
       };
     }
 
     return { success: true };
   } catch {
-    return { success: false, error: "We couldn't update your password." };
+    return {
+      success: false,
+      error: "We couldn't update your password. Please try again.",
+    };
   }
 }
 

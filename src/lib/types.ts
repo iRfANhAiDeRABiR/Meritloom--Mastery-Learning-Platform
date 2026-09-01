@@ -631,6 +631,8 @@ export interface ProfileSettingsData {
   selectedCategoryIds: string[];
   categories: Category[];
   provider: "email" | "google" | "unknown";
+  hasPassword?: boolean;
+  hasGoogle?: boolean;
   activeTab: ProfileTabId;
 }
 
