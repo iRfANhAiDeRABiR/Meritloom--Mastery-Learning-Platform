@@ -11,7 +11,7 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://meritloom.jabir.me";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://meritloom.iabir.me";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

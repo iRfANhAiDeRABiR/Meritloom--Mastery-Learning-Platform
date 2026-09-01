@@ -38,7 +38,7 @@ export async function getFullSystemHealthDashboard(
 
   const domain =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "") ||
-    "meritloom.jabir.me";
+    "meritloom.iabir.me";
 
   const commit = process.env.VERCEL_GIT_COMMIT_SHA
     ? process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)

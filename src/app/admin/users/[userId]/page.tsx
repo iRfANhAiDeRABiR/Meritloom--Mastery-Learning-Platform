@@ -31,3 +31,4 @@ export default async function AdminUserDetailPage({ params }: UserDetailPageProp
 
   return <UserDetailView user={user} />;
 }
+

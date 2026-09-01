@@ -10,8 +10,8 @@ export const SYSTEM_THRESHOLDS = {
   responseP95DegradedMax: 1500, // 800 - 1500ms
 
   // Database Latency
-  dbLatencyHealthyMax: 150, // < 150ms
-  dbLatencyDegradedMax: 500, // 150 - 500ms
+  dbLatencyHealthyMax: 250, // <= 250ms (Healthy)
+  dbLatencyDegradedMax: 600, // > 250ms (Degraded)
 
   // Error Rate (5xx)
   serverErrorRateDegradedMin: 1.0, // > 1% errors is degraded
@@ -20,7 +20,6 @@ export const SYSTEM_THRESHOLDS = {
 
 export function evaluateDbStatus(latencyMs: number, readPassed: boolean): SystemStatus {
   if (!readPassed || latencyMs > 2000) return "critical";
-  if (latencyMs > SYSTEM_THRESHOLDS.dbLatencyDegradedMax) return "degraded";
   if (latencyMs > SYSTEM_THRESHOLDS.dbLatencyHealthyMax) return "degraded";
   return "healthy";
 }

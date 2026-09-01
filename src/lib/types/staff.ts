@@ -219,3 +219,4 @@ export interface AdminAuditLogEntry {
   metadata: Record<string, unknown>;
   createdAt: string;
 }
+

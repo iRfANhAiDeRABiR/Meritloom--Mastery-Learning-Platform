@@ -55,7 +55,7 @@ export function DatabaseHealthPanel({ database, integrity: initialIntegrity }: D
             {database.latencyMs} <span className="text-sm font-normal text-ink-muted">ms</span>
           </div>
           <p className="mt-1 text-xs text-ink-muted">
-            Threshold: &lt;150ms (Healthy), &lt;500ms (Degraded)
+            Threshold: &le;250ms (Healthy), &gt;250ms (Degraded)
           </p>
         </div>
 

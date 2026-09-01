@@ -211,3 +211,4 @@ export function assertCanManageUser(
   // 4. Instructors and Learners have zero management authority
   throw new Error("Unauthorized: You do not have permission to manage accounts.");
 }
+

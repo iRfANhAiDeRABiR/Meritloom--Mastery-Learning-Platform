@@ -38,3 +38,4 @@ export default async function AdminStaffDetailPage({ params }: StaffDetailPagePr
 
   return <StaffDetailView staff={staff} availableCourses={availableCourses} />;
 }
+
