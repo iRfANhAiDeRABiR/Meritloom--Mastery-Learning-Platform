@@ -109,3 +109,4 @@ export function SlowRoutesTable({ routes }: SlowRoutesTableProps) {
     </div>
   );
 }
+

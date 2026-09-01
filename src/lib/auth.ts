@@ -21,9 +21,13 @@ export const getCurrentUser = cache(async function getCurrentUser(): Promise<Lea
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, full_name, avatar_url")
+      .select("role, full_name, avatar_url, account_status")
       .eq("id", user.id)
       .maybeSingle();
+
+    if (profile?.account_status === "suspended") {
+      return null;
+    }
 
     const metadata = user.user_metadata ?? {};
     const name =

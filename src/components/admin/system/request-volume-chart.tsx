@@ -83,3 +83,4 @@ export function RequestVolumeChart({ trend }: RequestVolumeChartProps) {
     </div>
   );
 }
+

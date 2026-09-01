@@ -162,3 +162,4 @@ export function ResponseTimeChart({ trend }: ResponseTimeChartProps) {
     </div>
   );
 }
+

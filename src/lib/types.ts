@@ -688,6 +688,13 @@ export interface AdminDashboardMetrics {
     p95Ms: number;
     errorRate: number;
   };
+  userManagement?: {
+    totalAccounts: number;
+    activeAccounts: number;
+    suspendedAccounts: number;
+    instructorsCount: number;
+    subAdminsCount: number;
+  };
 }
 
 export type SupportMessageStatus = "new" | "reviewing" | "resolved" | "closed";

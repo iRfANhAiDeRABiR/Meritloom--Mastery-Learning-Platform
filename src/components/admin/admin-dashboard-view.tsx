@@ -3,18 +3,16 @@
 import Link from "next/link";
 import {
   Activity,
-  Award,
   BookOpen,
   CheckCircle2,
   Clock,
   Eye,
   FileEdit,
-  GraduationCap,
   Layers,
   Mail,
   Plus,
   Route,
-  UserCheck,
+  ShieldCheck,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -117,32 +115,47 @@ export function AdminDashboardView({ metrics }: AdminDashboardViewProps) {
         </div>
 
         <Link
-          href="/admin/learners"
+          href="/admin/users"
           className="group rounded-2xl border border-line bg-surface p-5 shadow-sm transition hover:border-blue-500/40 hover:bg-surface-elevated/60"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-ink-muted">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-500" />
-              <span>Learners</span>
+              <span>Total Accounts</span>
             </div>
+            {metrics.userManagement && metrics.userManagement.suspendedAccounts > 0 && (
+              <Badge className="border-rose-500/20 bg-rose-500/10 text-[10px] text-rose-600 dark:text-rose-400 font-bold">
+                {metrics.userManagement.suspendedAccounts} suspended
+              </Badge>
+            )}
           </div>
           <div className="mt-2 font-display text-3xl font-bold text-ink">
-            {metrics.learnersCount ?? 0}
+            {metrics.userManagement?.totalAccounts ?? metrics.learnersCount ?? 0}
+          </div>
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-ink-muted">
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+              {metrics.userManagement?.activeAccounts ?? metrics.learnersCount ?? 0} active
+            </span>
           </div>
         </Link>
 
         <Link
-          href="/admin/learners"
-          className="group rounded-2xl border border-line bg-surface p-5 shadow-sm transition hover:border-cyan-500/40 hover:bg-surface-elevated/60"
+          href="/admin/staff"
+          className="group rounded-2xl border border-line bg-surface p-5 shadow-sm transition hover:border-purple-500/40 hover:bg-surface-elevated/60"
         >
           <div className="flex items-center justify-between text-xs font-semibold text-ink-muted">
             <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-cyan-500" />
-              <span>Enrollments</span>
+              <ShieldCheck className="h-4 w-4 text-purple-500" />
+              <span>Staff Team</span>
             </div>
           </div>
           <div className="mt-2 font-display text-3xl font-bold text-ink">
-            {metrics.enrollmentsCount ?? 0}
+            {(metrics.userManagement?.instructorsCount ?? 0) + (metrics.userManagement?.subAdminsCount ?? 0)}
+          </div>
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-ink-muted">
+            <span>{metrics.userManagement?.instructorsCount ?? 0} instructors</span>
+            <span>·</span>
+            <span>{metrics.userManagement?.subAdminsCount ?? 0} sub-admins</span>
           </div>
         </Link>
 

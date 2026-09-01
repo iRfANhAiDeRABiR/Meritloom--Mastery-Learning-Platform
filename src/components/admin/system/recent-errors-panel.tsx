@@ -82,3 +82,4 @@ export function RecentErrorsPanel({ errors }: RecentErrorsPanelProps) {
     </div>
   );
 }
+

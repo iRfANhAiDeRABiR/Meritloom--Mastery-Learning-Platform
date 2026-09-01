@@ -10,16 +10,18 @@ export interface AdminUserSession {
     id: string;
     name: string;
     avatarUrl: string | null;
-    role: "admin";
+    role: "admin" | "sub_admin";
+    accountStatus?: string;
   };
 }
 
 /**
  * Server-only admin authorization guard.
  *
- * Verifies that the user is authenticated and has an 'admin' role in Supabase.
+ * Verifies that the user is authenticated, active, and has an 'admin' or 'sub_admin' role in Supabase.
  * - If unauthenticated: redirects to /auth/sign-in?next=/admin
- * - If authenticated learner (not admin): triggers notFound() so private admin routes are not disclosed
+ * - If suspended: redirects to /account-suspended
+ * - If authenticated learner (not admin/sub_admin): triggers notFound() so private admin routes are not disclosed
  * - If authorized: returns the verified admin session
  */
 export async function requireAdmin(): Promise<AdminUserSession> {
@@ -39,11 +41,15 @@ export async function requireAdmin(): Promise<AdminUserSession> {
   // 1. Query profiles role from database
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, avatar_url, role")
+    .select("id, full_name, avatar_url, role, account_status")
     .eq("id", user.id)
     .maybeSingle();
 
-  const isDbAdmin = profile?.role === "admin";
+  if (profile?.account_status === "suspended") {
+    redirect("/account-suspended");
+  }
+
+  const isDbAdmin = profile?.role === "admin" || profile?.role === "sub_admin";
   const isMetaAdmin = user.user_metadata?.role === "admin";
 
   if (!isDbAdmin && !isMetaAdmin) {
@@ -58,6 +64,8 @@ export async function requireAdmin(): Promise<AdminUserSession> {
     user.email?.split("@")[0] ||
     "Admin";
 
+  const resolvedRole = (profile?.role === "sub_admin" ? "sub_admin" : "admin") as "admin" | "sub_admin";
+
   return {
     user: {
       id: user.id,
@@ -67,7 +75,8 @@ export async function requireAdmin(): Promise<AdminUserSession> {
       id: user.id,
       name,
       avatarUrl: profile?.avatar_url || (typeof metadata.avatar_url === "string" ? metadata.avatar_url : null),
-      role: "admin",
+      role: resolvedRole,
+      accountStatus: profile?.account_status || "active",
     },
   };
 }

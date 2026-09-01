@@ -123,3 +123,4 @@ export interface SystemHealthDashboardData {
   security: SecurityAuditResult;
   integrity: DataIntegrityResult;
 }
+

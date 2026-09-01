@@ -46,3 +46,4 @@ export function calculateOverallStatus(statuses: SystemStatus[]): SystemStatus {
   if (statuses.includes("healthy")) return "healthy";
   return "unknown";
 }
+

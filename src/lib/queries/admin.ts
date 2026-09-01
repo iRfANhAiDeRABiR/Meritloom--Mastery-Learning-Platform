@@ -59,7 +59,7 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
       supabase.from("lessons").select("id, is_published"),
       supabase.from("categories").select("id", { count: "exact", head: true }),
       supabase.from("learning_paths").select("id", { count: "exact", head: true }),
-      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id, role, account_status"),
       supabase.from("course_enrollments").select("id", { count: "exact", head: true }),
       supabase.from("support_messages").select("id", { count: "exact", head: true }).eq("status", "new"),
     ]);
@@ -71,9 +71,15 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
     const publishedLessons = (lessonsRes.data || []).filter((l) => l.is_published);
     const categoriesCount = catRes.count ?? (catRes.data || []).length;
     const learningPathsCount = pathsRes.count ?? 0;
-    const learnersCount = profilesRes.count ?? 0;
     const enrollmentsCount = enrollmentsRes.count ?? 0;
     const unreadMessagesCount = messagesRes.count ?? 0;
+
+    const profilesData = profilesRes.data || [];
+    const totalAccounts = profilesData.length;
+    const activeAccounts = profilesData.filter((p) => p.account_status !== "suspended").length;
+    const suspendedAccounts = profilesData.filter((p) => p.account_status === "suspended").length;
+    const instructorsCount = profilesData.filter((p) => p.role === "instructor").length;
+    const subAdminsCount = profilesData.filter((p) => p.role === "sub_admin").length;
 
     const recentCoursesList = await getAdminCoursesList({});
 
@@ -83,7 +89,7 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
       publishedLessonsCount: publishedLessons.length,
       categoriesCount,
       learningPathsCount,
-      learnersCount,
+      learnersCount: totalAccounts,
       enrollmentsCount,
       unreadMessagesCount,
       recentCourses: recentCoursesList.slice(0, 5),
@@ -92,6 +98,13 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
         latencyMs,
         p95Ms: Math.round(latencyMs * 1.5),
         errorRate: 0.0,
+      },
+      userManagement: {
+        totalAccounts,
+        activeAccounts,
+        suspendedAccounts,
+        instructorsCount,
+        subAdminsCount,
       },
     };
   } catch {

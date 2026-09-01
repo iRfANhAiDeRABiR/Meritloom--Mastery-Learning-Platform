@@ -182,3 +182,4 @@ export function DatabaseHealthPanel({ database, integrity: initialIntegrity }: D
     </div>
   );
 }
+

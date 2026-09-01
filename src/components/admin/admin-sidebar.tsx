@@ -12,8 +12,9 @@ import {
   LayoutDashboard,
   Mail,
   Route,
+  ScrollText,
+  ShieldCheck,
   Sparkles,
-  UserCheck,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,12 +25,6 @@ const NAV_ITEMS = [
     href: "/admin",
     icon: LayoutDashboard,
     exact: true,
-  },
-  {
-    label: "System Health",
-    href: "/admin/system",
-    icon: Activity,
-    exact: false,
   },
   {
     label: "Courses",
@@ -50,9 +45,27 @@ const NAV_ITEMS = [
     exact: false,
   },
   {
-    label: "Learners & Users",
-    href: "/admin/learners",
+    label: "Users",
+    href: "/admin/users",
     icon: Users,
+    exact: false,
+  },
+  {
+    label: "Staff",
+    href: "/admin/staff",
+    icon: ShieldCheck,
+    exact: false,
+  },
+  {
+    label: "System Health",
+    href: "/admin/system",
+    icon: Activity,
+    exact: false,
+  },
+  {
+    label: "Audit Log",
+    href: "/admin/audit-log",
+    icon: ScrollText,
     exact: false,
   },
   {
@@ -62,9 +75,9 @@ const NAV_ITEMS = [
     exact: false,
   },
   {
-    label: "Instructors",
-    href: "/admin/instructors",
-    icon: UserCheck,
+    label: "Content Tools",
+    href: "/admin/content-tools",
+    icon: DatabaseBackup,
     exact: false,
   },
   {
@@ -77,12 +90,6 @@ const NAV_ITEMS = [
     label: "Skills",
     href: "/admin/skills",
     icon: Sparkles,
-    exact: false,
-  },
-  {
-    label: "Content Tools",
-    href: "/admin/content-tools",
-    icon: DatabaseBackup,
     exact: false,
   },
 ];
