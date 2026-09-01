@@ -16,11 +16,12 @@ export function getSafeNextUrl(
 
   const trimmed = nextParam.trim();
 
-  // Must start with '/' and not '//' or '/\'
+  // Must start with '/' and not '//' or '/\' or contain '\\'
   if (
     !trimmed.startsWith("/") ||
     trimmed.startsWith("//") ||
-    trimmed.startsWith("/\\")
+    trimmed.startsWith("/\\") ||
+    trimmed.includes("\\")
   ) {
     return fallback;
   }
@@ -31,6 +32,32 @@ export function getSafeNextUrl(
   }
 
   return trimmed;
+}
+
+/** Alias for getSafeNextUrl */
+export const getSafeNextPath = getSafeNextUrl;
+
+/**
+ * Resolves the request origin cleanly, accounting for reverse proxies
+ * (such as Vercel, Cloudflare, etc.) using x-forwarded-host and x-forwarded-proto.
+ */
+export function getRequestOrigin(request: Request): string {
+  try {
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+    if (forwardedHost) {
+      return `${forwardedProto}://${forwardedHost}`;
+    }
+
+    const url = new URL(request.url);
+    if (url.origin && url.origin !== "null") {
+      return url.origin;
+    }
+  } catch {
+    // fallback
+  }
+
+  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 }
 
 /**

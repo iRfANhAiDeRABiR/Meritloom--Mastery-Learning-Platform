@@ -32,9 +32,9 @@ yarn-error.log*
 
 # env and secrets files (can opt-in for committing if needed)
 .env*
+!.env.example
 client_secret*.json
 *.secret.json
-
 # vercel
 .vercel
 

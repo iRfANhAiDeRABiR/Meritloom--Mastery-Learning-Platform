@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSafeNextUrl } from "@/lib/auth-helpers";
+import { getRequestOrigin, getSafeNextUrl } from "@/lib/auth-helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
+  const origin = getRequestOrigin(request);
   const code = requestUrl.searchParams.get("code");
   const error = requestUrl.searchParams.get("error");
   const errorDescription = requestUrl.searchParams.get("error_description");
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     const errorCode =
       error === "access_denied" ? "oauth_cancelled" : "oauth_callback_failed";
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/sign-in?error=${errorCode}`,
+      new URL(`/auth/sign-in?error=${errorCode}`, origin),
     );
   }
 
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
           console.warn("[auth/callback] Non-critical profile sync warning:", syncErr);
         }
 
-        return NextResponse.redirect(`${requestUrl.origin}${safeNext}`);
+        return NextResponse.redirect(new URL(safeNext, origin));
       }
 
       if (exchangeError) {
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
           exchangeError.message,
         );
         return NextResponse.redirect(
-          `${requestUrl.origin}/auth/sign-in?error=oauth_callback_failed`,
+          new URL("/auth/sign-in?error=oauth_callback_failed", origin),
         );
       }
     }
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
 
   // If code is missing or service unavailable, redirect to sign-in
   return NextResponse.redirect(
-    `${requestUrl.origin}/auth/sign-in?error=oauth_callback_failed`,
+    new URL("/auth/sign-in?error=oauth_callback_failed", origin),
   );
 }
 
