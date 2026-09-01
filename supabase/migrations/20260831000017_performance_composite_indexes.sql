@@ -20,3 +20,4 @@ create index if not exists lesson_notes_user_lesson_idx
 -- 5. Composite index for fast bookmark lookups per lesson
 create index if not exists lesson_bookmarks_user_lesson_idx
   on public.lesson_bookmarks (user_id, lesson_id);
+
