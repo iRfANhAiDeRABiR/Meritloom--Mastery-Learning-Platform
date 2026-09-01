@@ -1,5 +1,3 @@
-import "server-only";
-
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 

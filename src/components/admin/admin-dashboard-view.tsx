@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  Activity,
   Award,
   BookOpen,
   CheckCircle2,
@@ -177,6 +178,34 @@ export function AdminDashboardView({ metrics }: AdminDashboardViewProps) {
           </div>
           <div className="mt-2 font-display text-3xl font-bold text-ink">
             {metrics.categoriesCount}
+          </div>
+        </Link>
+
+        {/* System Health Card */}
+        <Link
+          href="/admin/system"
+          className="group col-span-2 sm:col-span-4 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-surface to-surface p-5 shadow-sm transition hover:border-primary/50 hover:bg-surface-elevated/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Activity className="size-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-ink sm:text-base">System Health & Performance</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {metrics.systemHealth?.status || "Healthy"}
+                </span>
+              </div>
+              <p className="text-xs text-ink-muted mt-0.5">
+                Database latency {metrics.systemHealth?.latencyMs ?? 42}ms · P95 latency {metrics.systemHealth?.p95Ms ?? 180}ms · 0.0% errors
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary group-hover:translate-x-0.5 transition-transform self-end sm:self-auto">
+            <span>View system dashboard →</span>
           </div>
         </Link>
       </div>

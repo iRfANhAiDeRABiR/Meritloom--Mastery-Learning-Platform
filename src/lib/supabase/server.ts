@@ -14,14 +14,20 @@ export async function createSupabaseServerClient() {
   if (!isSupabaseConfigured) return null;
 
   const { url, anonKey } = getSupabaseConfig();
-  const cookieStore = await cookies();
+  let cookieStore: Awaited<ReturnType<typeof cookies>> | null = null;
+  try {
+    cookieStore = await cookies();
+  } catch {
+    // Called outside Next.js request context (e.g. static generation, background tasks, or scripts)
+  }
 
   return createServerClient(url, anonKey, {
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return cookieStore?.getAll?.() ?? [];
       },
       setAll(cookiesToSet) {
+        if (!cookieStore) return;
         try {
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);

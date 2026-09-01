@@ -682,6 +682,12 @@ export interface AdminDashboardMetrics {
   enrollmentsCount?: number;
   unreadMessagesCount?: number;
   recentCourses: AdminCourseListItem[];
+  systemHealth?: {
+    status: "healthy" | "degraded" | "critical";
+    latencyMs: number;
+    p95Ms: number;
+    errorRate: number;
+  };
 }
 
 export type SupportMessageStatus = "new" | "reviewing" | "resolved" | "closed";

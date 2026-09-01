@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   BookOpen,
   ChevronRight,
   DatabaseBackup,
   FileQuestion,
-  GraduationCap,
   Layers,
   LayoutDashboard,
   Mail,
@@ -24,6 +24,12 @@ const NAV_ITEMS = [
     href: "/admin",
     icon: LayoutDashboard,
     exact: true,
+  },
+  {
+    label: "System Health",
+    href: "/admin/system",
+    icon: Activity,
+    exact: false,
   },
   {
     label: "Courses",
