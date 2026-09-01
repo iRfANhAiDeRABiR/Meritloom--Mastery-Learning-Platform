@@ -16,9 +16,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except static assets and images so auth refresh
-     * does not interfere with CSS, JS or image delivery.
+     * Match all request paths except static assets, fonts, icons, manifests,
+     * and robots so auth refresh does not run for static asset delivery.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf|css|js)$).*)",
   ],
 };

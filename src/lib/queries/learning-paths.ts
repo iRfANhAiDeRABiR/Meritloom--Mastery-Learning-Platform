@@ -1,3 +1,4 @@
+import { cache } from "react";
 import {
   ALL_STATIC_LEARNING_PATHS,
   WEB_DEV_FOUNDATIONS_PATH,
@@ -161,7 +162,7 @@ async function enrichPathWithLearnerProgress(
  * Fetch detailed learning path by its slug, merging dynamic Supabase data,
  * course relationships, and individual learner progress when authenticated.
  */
-export async function getLearningPathBySlug(
+export const getLearningPathBySlug = cache(async function getLearningPathBySlug(
   slug: string,
   userId?: string | null,
 ): Promise<LearningPathDetail | null> {
@@ -397,7 +398,7 @@ export async function getLearningPathBySlug(
   }
 
   return pathDetail;
-}
+});
 
 /**
  * Fetch all published learning paths for the explorer page.
@@ -417,8 +418,10 @@ export async function getAllPublishedLearningPaths(
         .order("position", { ascending: true });
 
       if (data && !error && data.length > 0) {
-        for (const row of data) {
-          const detail = await getLearningPathBySlug(row.slug, userId);
+        const details = await Promise.all(
+          data.map((row) => getLearningPathBySlug(row.slug, userId)),
+        );
+        for (const detail of details) {
           if (detail && detail.isPublished) {
             results.push(detail);
           }

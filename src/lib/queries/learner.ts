@@ -95,12 +95,9 @@ export async function getLearnerDashboardData(
     };
     defaultResult.onboardingCompleted = onboardingCompleted;
 
-    // 2. Query active enrollments
-    const enrolledCourseIds: string[] = [];
-    const activeCourses: ActiveEnrollmentDetail[] = [];
-
-    try {
-      const { data: enrollments } = await supabase
+    // 2. Concurrently query enrollments and recommendations
+    const [enrollmentsRes, recCoursesRes] = await Promise.all([
+      supabase
         .from("course_enrollments")
         .select(
           `
@@ -139,103 +136,8 @@ export async function getLearnerDashboardData(
         .eq("user_id", userId)
         .eq("status", "active")
         .order("last_accessed_at", { ascending: false })
-        .limit(6);
-
-      if (enrollments && enrollments.length > 0) {
-        for (const row of enrollments) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
-          if (!course || !course.is_published) continue;
-
-          enrolledCourseIds.push(course.id);
-
-          let completedLessons = 0;
-          let totalLessons = 0;
-          let nextLessonTitle: string | null = null;
-          let nextLessonSlug: string | null = null;
-
-          try {
-            const { data: progressRows } = await supabase
-              .from("lesson_progress")
-              .select("lesson_id, completed")
-              .eq("user_id", userId)
-              .eq("course_id", course.id)
-              .eq("completed", true);
-
-            const completedSet = new Set(progressRows?.map((p) => p.lesson_id) || []);
-
-            const rawModules = Array.isArray(course.modules) ? course.modules : [];
-            const sortedModules = [...rawModules].sort(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (a: any, b: any) => (a.position || 0) - (b.position || 0),
-            );
-
-            for (const mod of sortedModules) {
-              const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
-              const sortedLessons = [...rawLessons]
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .filter((l: any) => l.is_published !== false)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
-
-              for (const les of sortedLessons) {
-                if (!les.is_bonus) {
-                  totalLessons++;
-                  if (completedSet.has(les.id)) {
-                    completedLessons++;
-                  } else if (!nextLessonTitle) {
-                    nextLessonTitle = les.title;
-                    nextLessonSlug = les.slug;
-                  }
-                }
-              }
-            }
-          } catch {
-            completedLessons = 0;
-          }
-
-          if (totalLessons === 0 && course.slug === "html-fundamentals") {
-            totalLessons = 22;
-            if (!nextLessonTitle) {
-              nextLessonTitle = "HTML - Introduction";
-              nextLessonSlug = "html-introduction";
-            }
-          }
-
-          const progressPercent =
-            totalLessons > 0 ? Math.min(100, Math.round((completedLessons / totalLessons) * 100)) : 0;
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const cat = Array.isArray(course.category) ? course.category[0] : (course.category as any);
-
-          activeCourses.push({
-            id: row.id,
-            courseId: course.id,
-            courseSlug: course.slug,
-            courseTitle: course.title,
-            categoryName: cat?.name ?? null,
-            categorySlug: cat?.slug ?? null,
-            thumbnailUrl: course.cover_image_url ?? null,
-            difficulty: (course.difficulty as CourseDifficulty) || "beginner",
-            totalLessons,
-            completedLessons,
-            progressPercent,
-            nextLessonTitle,
-            nextLessonSlug,
-            lastAccessedAt: row.last_accessed_at || row.enrolled_at || null,
-          });
-        }
-      }
-    } catch {
-      // Ignore if course_enrollments does not exist yet
-    }
-
-    defaultResult.activeCourses = activeCourses;
-    defaultResult.continueCourse = activeCourses[0] || null;
-
-    // 3. Query Recommended published free courses
-    try {
-      let query = supabase
+        .limit(6),
+      supabase
         .from("courses")
         .select(
           `
@@ -257,19 +159,133 @@ export async function getLearnerDashboardData(
         `,
         )
         .eq("is_published", true)
-        .eq("is_free", true);
+        .eq("is_free", true)
+        .order("created_at", { ascending: false })
+        .limit(8),
+    ]);
+
+    const enrollments = enrollmentsRes.data || [];
+    const activeCourses: ActiveEnrollmentDetail[] = [];
+    const enrolledCourseIds: string[] = [];
+
+    if (enrollments.length > 0) {
+      for (const row of enrollments) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const c = Array.isArray(row.course) ? row.course[0] : (row.course as any);
+        if (c?.id && c.is_published) {
+          enrolledCourseIds.push(c.id);
+        }
+      }
+
+      // Batch query ALL progress for all enrolled courses in ONE single database request
+      const { data: allProgressRows } = enrolledCourseIds.length > 0
+        ? await supabase
+            .from("lesson_progress")
+            .select("course_id, lesson_id, completed")
+            .eq("user_id", userId)
+            .in("course_id", enrolledCourseIds)
+            .eq("completed", true)
+        : { data: [] };
+
+      const progressByCourse = new Map<string, Set<string>>();
+      for (const p of allProgressRows || []) {
+        if (p.course_id && p.lesson_id) {
+          if (!progressByCourse.has(p.course_id)) {
+            progressByCourse.set(p.course_id, new Set());
+          }
+          progressByCourse.get(p.course_id)!.add(p.lesson_id);
+        }
+      }
+
+      for (const row of enrollments) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
+        if (!course || !course.is_published) continue;
+
+        const completedSet = progressByCourse.get(course.id) || new Set<string>();
+        let completedLessons = 0;
+        let totalLessons = 0;
+        let nextLessonTitle: string | null = null;
+        let nextLessonSlug: string | null = null;
+
+        const rawModules = Array.isArray(course.modules) ? course.modules : [];
+        const sortedModules = [...rawModules].sort(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (a: any, b: any) => (a.position || 0) - (b.position || 0),
+        );
+
+        for (const mod of sortedModules) {
+          const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
+          const sortedLessons = [...rawLessons]
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((l: any) => l.is_published !== false)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+
+          for (const les of sortedLessons) {
+            if (!les.is_bonus) {
+              totalLessons++;
+              if (completedSet.has(les.id)) {
+                completedLessons++;
+              } else if (!nextLessonTitle) {
+                nextLessonTitle = les.title;
+                nextLessonSlug = les.slug;
+              }
+            }
+          }
+        }
+
+        if (totalLessons === 0 && course.slug === "html-fundamentals") {
+          totalLessons = 22;
+          if (!nextLessonTitle) {
+            nextLessonTitle = "HTML - Introduction";
+            nextLessonSlug = "html-introduction";
+          }
+        }
+
+        const progressPercent =
+          totalLessons > 0 ? Math.min(100, Math.round((completedLessons / totalLessons) * 100)) : 0;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cat = Array.isArray(course.category) ? course.category[0] : (course.category as any);
+
+        activeCourses.push({
+          id: row.id,
+          courseId: course.id,
+          courseSlug: course.slug,
+          courseTitle: course.title,
+          categoryName: cat?.name ?? null,
+          categorySlug: cat?.slug ?? null,
+          thumbnailUrl: course.cover_image_url ?? null,
+          difficulty: (course.difficulty as CourseDifficulty) || "beginner",
+          totalLessons,
+          completedLessons,
+          progressPercent,
+          nextLessonTitle,
+          nextLessonSlug,
+          lastAccessedAt: row.last_accessed_at || row.enrolled_at || null,
+        });
+      }
+    }
+
+    defaultResult.activeCourses = activeCourses;
+    defaultResult.continueCourse = activeCourses[0] || null;
+
+    // 3. Process Recommended published free courses
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let recCourses = (recCoursesRes.data || []) as any[];
 
       // Filter by preferred difficulty if specified
       if (userLevel && ["beginner", "intermediate", "advanced"].includes(userLevel)) {
-        query = query.eq("difficulty", userLevel);
+        recCourses = recCourses.filter((c) => c.difficulty === userLevel);
       }
 
       // Exclude already enrolled courses
       if (enrolledCourseIds.length > 0) {
-        query = query.not("id", "in", `(${enrolledCourseIds.join(",")})`);
+        const enrolledSet = new Set(enrolledCourseIds);
+        recCourses = recCourses.filter((c) => !enrolledSet.has(c.id));
       }
-
-      const { data: recCourses } = await query.limit(8);
 
       if (recCourses && recCourses.length > 0) {
         // Map and rank by category match if interests exist
@@ -443,38 +459,35 @@ export async function getMyLearningCoursesData(
       ? metadata.saved_course_ids
       : [];
 
-    // 2. Fetch real counts
+    // 2. Fetch real counts concurrently
     try {
-      const { count: activeCnt } = await supabase
-        .from("course_enrollments")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "active");
-
-      const { count: completedCnt } = await supabase
-        .from("course_enrollments")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "completed");
-
-      // Check saved_courses table if exists
-      let savedCnt = savedCourseIds.length;
-      try {
-        const { count: tableSavedCount } = await supabase
+      const [activeCntRes, completedCntRes, tableSavedRes] = await Promise.all([
+        supabase
+          .from("course_enrollments")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("status", "active"),
+        supabase
+          .from("course_enrollments")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("status", "completed"),
+        supabase
           .from("saved_courses")
           .select("id", { count: "exact", head: true })
-          .eq("user_id", userId);
+          .eq("user_id", userId),
+      ]);
 
-        if (typeof tableSavedCount === "number" && tableSavedCount > 0) {
-          savedCnt = tableSavedCount;
-        }
-      } catch {
-        // fallback to metadata
+      const activeCnt = activeCntRes.count ?? 0;
+      const completedCnt = completedCntRes.count ?? 0;
+      let savedCnt = savedCourseIds.length;
+      if (typeof tableSavedRes.count === "number" && tableSavedRes.count > 0) {
+        savedCnt = tableSavedRes.count;
       }
 
       result.counts = {
-        activeCount: activeCnt ?? 0,
-        completedCount: completedCnt ?? 0,
+        activeCount: activeCnt,
+        completedCount: completedCnt,
         savedCount: savedCnt,
       };
     } catch {
@@ -529,6 +542,35 @@ export async function getMyLearningCoursesData(
 
         if (enrollments && enrollments.length > 0) {
           const items: LearnerCourseItem[] = [];
+          const enrolledCourseIds: string[] = [];
+
+          for (const row of enrollments) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const c = Array.isArray(row.course) ? row.course[0] : (row.course as any);
+            if (c?.id && c.is_published) {
+              enrolledCourseIds.push(c.id);
+            }
+          }
+
+          // Batch query ALL progress for enrolled courses in ONE single database request
+          const { data: allProgressRows } = enrolledCourseIds.length > 0
+            ? await supabase
+                .from("lesson_progress")
+                .select("course_id, lesson_id, completed")
+                .eq("user_id", userId)
+                .in("course_id", enrolledCourseIds)
+                .eq("completed", true)
+            : { data: [] };
+
+          const progressByCourse = new Map<string, Set<string>>();
+          for (const p of allProgressRows || []) {
+            if (p.course_id && p.lesson_id) {
+              if (!progressByCourse.has(p.course_id)) {
+                progressByCourse.set(p.course_id, new Set());
+              }
+              progressByCourse.get(p.course_id)!.add(p.lesson_id);
+            }
+          }
 
           for (let i = 0; i < enrollments.length; i++) {
             const row = enrollments[i];
@@ -536,49 +578,37 @@ export async function getMyLearningCoursesData(
             const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
             if (!course || !course.is_published) continue;
 
+            const completedSet = progressByCourse.get(course.id) || new Set<string>();
             let completedLessons = 0;
             let totalLessons = 0;
             let nextLessonTitle: string | null = null;
             let nextLessonSlug: string | null = null;
 
-            try {
-              const { data: progressRows } = await supabase
-                .from("lesson_progress")
-                .select("lesson_id, completed")
-                .eq("user_id", userId)
-                .eq("course_id", course.id)
-                .eq("completed", true);
+            const rawModules = Array.isArray(course.modules) ? course.modules : [];
+            const sortedModules = [...rawModules].sort(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (a: any, b: any) => (a.position || 0) - (b.position || 0),
+            );
 
-              const completedSet = new Set(progressRows?.map((p) => p.lesson_id) || []);
-
-              const rawModules = Array.isArray(course.modules) ? course.modules : [];
-              const sortedModules = [...rawModules].sort(
+            for (const mod of sortedModules) {
+              const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
+              const sortedLessons = [...rawLessons]
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (a: any, b: any) => (a.position || 0) - (b.position || 0),
-              );
+                .filter((l: any) => l.is_published !== false)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
 
-              for (const mod of sortedModules) {
-                const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
-                const sortedLessons = [...rawLessons]
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  .filter((l: any) => l.is_published !== false)
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
-
-                for (const les of sortedLessons) {
-                  if (!les.is_bonus) {
-                    totalLessons++;
-                    if (completedSet.has(les.id)) {
-                      completedLessons++;
-                    } else if (!nextLessonTitle) {
-                      nextLessonTitle = les.title;
-                      nextLessonSlug = les.slug;
-                    }
+              for (const les of sortedLessons) {
+                if (!les.is_bonus) {
+                  totalLessons++;
+                  if (completedSet.has(les.id)) {
+                    completedLessons++;
+                  } else if (!nextLessonTitle) {
+                    nextLessonTitle = les.title;
+                    nextLessonSlug = les.slug;
                   }
                 }
               }
-            } catch {
-              completedLessons = 0;
             }
 
             if (totalLessons === 0) {
@@ -788,11 +818,24 @@ export async function getCourseLearningOverviewData(
   if (!supabase) return null;
 
   try {
-    // 1. Fetch user auth & onboarding metadata (study pace)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // 1. Concurrently fetch user metadata, enrollment, and lesson progress
+    const [userRes, enrollRes, progressRes] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase
+        .from("course_enrollments")
+        .select("id, status, enrolled_at, completed_at")
+        .eq("user_id", userId)
+        .eq("course_id", course.id)
+        .maybeSingle(),
+      supabase
+        .from("lesson_progress")
+        .select("lesson_id, completed")
+        .eq("user_id", userId)
+        .eq("course_id", course.id)
+        .eq("completed", true),
+    ]);
 
+    const user = userRes.data?.user;
     const metadata = user?.user_metadata ?? {};
     const pace = typeof metadata.study_pace === "string" ? metadata.study_pace : null;
 
@@ -824,50 +867,29 @@ export async function getCourseLearningOverviewData(
         studyPaceLabel = null;
     }
 
-    // 2. Check enrollment
+    // 2. Process enrollment
     let isEnrolled = false;
     let enrollmentId: string | null = null;
     let enrolledAt: string | null = null;
     let completedAt: string | null = null;
 
-    try {
-      const { data: enrollment } = await supabase
-        .from("course_enrollments")
-        .select("id, status, enrolled_at, completed_at")
-        .eq("user_id", userId)
-        .eq("course_id", course.id)
-        .maybeSingle();
-
-      if (enrollment) {
-        isEnrolled = true;
-        enrollmentId = enrollment.id;
-        enrolledAt = enrollment.enrolled_at || null;
-        completedAt = enrollment.completed_at || null;
-      }
-    } catch {
-      // Ignore
+    const enrollment = enrollRes.data;
+    if (enrollment) {
+      isEnrolled = true;
+      enrollmentId = enrollment.id;
+      enrolledAt = enrollment.enrolled_at || null;
+      completedAt = enrollment.completed_at || null;
     }
 
-    // 3. Fetch lesson progress rows for this course
+    // 3. Process lesson progress
     const completedLessonIds = new Set<string>();
-
-    try {
-      const { data: progressRows } = await supabase
-        .from("lesson_progress")
-        .select("lesson_id, completed")
-        .eq("user_id", userId)
-        .eq("course_id", course.id)
-        .eq("completed", true);
-
-      if (progressRows) {
-        for (const row of progressRows) {
-          if (row.lesson_id) {
-            completedLessonIds.add(row.lesson_id);
-          }
+    const progressRows = progressRes.data;
+    if (progressRows) {
+      for (const row of progressRows) {
+        if (row.lesson_id) {
+          completedLessonIds.add(row.lesson_id);
         }
       }
-    } catch {
-      // Ignore
     }
 
     // 4. Map modules and lessons
@@ -1092,38 +1114,22 @@ export async function getLessonPlayerData(
       return null;
     }
 
-    // 2. Check enrollment and ensure enrolled
+    // 2. Concurrently query enrollment, note, bookmark, and progress
     let isEnrolled = false;
-    try {
-      const { data: enrollment } = await supabase
-        .from("course_enrollments")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("course_id", course.id)
-        .maybeSingle();
-
-      if (enrollment) {
-        isEnrolled = true;
-      } else {
-        // Auto-enroll if free and published
-        await supabase.from("course_enrollments").insert({
-          user_id: userId,
-          course_id: course.id,
-          status: "active",
-          enrolled_at: new Date().toISOString(),
-          last_accessed_at: new Date().toISOString(),
-        });
-        isEnrolled = true;
-      }
-    } catch {
-      // Ignore
-    }
-
-    // 2.5 Query private note & bookmark state
     let initialNote = "";
     let isBookmarked = false;
+    const completedLessonIds = new Set<string>();
+    let currentLessonCompleted = false;
+    let currentLessonCompletedAt: string | null = null;
+
     try {
-      const [noteRes, bookmarkRes] = await Promise.all([
+      const [enrollmentRes, noteRes, bookmarkRes, progressRes] = await Promise.all([
+        supabase
+          .from("course_enrollments")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("course_id", course.id)
+          .maybeSingle(),
         supabase
           .from("lesson_notes")
           .select("content")
@@ -1136,26 +1142,34 @@ export async function getLessonPlayerData(
           .eq("user_id", userId)
           .eq("lesson_id", rawTargetLesson.id)
           .maybeSingle(),
+        supabase
+          .from("lesson_progress")
+          .select("lesson_id, completed, completed_at")
+          .eq("user_id", userId)
+          .eq("course_id", course.id),
       ]);
+
+      if (enrollmentRes.data) {
+        isEnrolled = true;
+      } else {
+        // Auto-enroll if free and published (non-blocking)
+        supabase
+          .from("course_enrollments")
+          .insert({
+            user_id: userId,
+            course_id: course.id,
+            status: "active",
+            enrolled_at: new Date().toISOString(),
+            last_accessed_at: new Date().toISOString(),
+          })
+          .then(() => {});
+        isEnrolled = true;
+      }
 
       initialNote = noteRes.data?.content || "";
       isBookmarked = Boolean(bookmarkRes.data);
-    } catch {
-      // Ignore
-    }
 
-    // 3. Query lesson progress & update last_viewed_at
-    const completedLessonIds = new Set<string>();
-    let currentLessonCompleted = false;
-    let currentLessonCompletedAt: string | null = null;
-
-    try {
-      const { data: progressRows } = await supabase
-        .from("lesson_progress")
-        .select("lesson_id, completed, completed_at")
-        .eq("user_id", userId)
-        .eq("course_id", course.id);
-
+      const progressRows = progressRes.data;
       if (progressRows) {
         for (const row of progressRows) {
           if (row.completed && row.lesson_id) {

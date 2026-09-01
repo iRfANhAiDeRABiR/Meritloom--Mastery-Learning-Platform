@@ -16,6 +16,20 @@ export async function updateSession(
 ) {
   if (!isSupabaseConfigured) return response;
 
+  // Performance fast-path: If request has no Supabase auth cookies,
+  // skip the remote network round-trip to Supabase Auth API.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some(
+      (c) =>
+        (c.name.startsWith("sb-") && c.name.includes("-auth-token")) ||
+        c.name === "supabase-auth-token",
+    );
+
+  if (!hasAuthCookie) {
+    return response;
+  }
+
   const { url, anonKey } = getSupabaseConfig();
 
   const supabase = createServerClient(url, anonKey, {
@@ -34,7 +48,7 @@ export async function updateSession(
     },
   });
 
-  // IMPORTANT: do not remove — this refreshes the auth token when it expires.
+  // Refreshes the auth token when it expires.
   await supabase.auth.getUser();
 
   return response;

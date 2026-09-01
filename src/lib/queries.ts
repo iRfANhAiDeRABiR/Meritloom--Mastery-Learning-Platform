@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   HTML_FUNDAMENTALS_CATEGORY,
@@ -62,7 +63,7 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
+export const getFeaturedCourses = cache(async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
   const supabase = await getClient();
   if (!supabase) return ALL_STATIC_SUMMARIES;
 
@@ -119,9 +120,9 @@ export async function getFeaturedCourses(limit = 6): Promise<CourseSummary[]> {
   } catch {
     return ALL_STATIC_SUMMARIES;
   }
-}
+});
 
-export async function getCategories(): Promise<Category[]> {
+export const getCategories = cache(async function getCategories(): Promise<Category[]> {
   const supabase = await getClient();
   if (!supabase) return [HTML_FUNDAMENTALS_CATEGORY];
 
@@ -152,7 +153,7 @@ export async function getCategories(): Promise<Category[]> {
   } catch {
     return [HTML_FUNDAMENTALS_CATEGORY];
   }
-}
+});
 
 export async function getCatalogCategories(): Promise<Category[]> {
   return await getCategories();
@@ -318,7 +319,7 @@ export async function getCatalogCourses(
 /**
  * Fetch detailed information for a single published, free course by its slug.
  */
-export async function getCourseDetailBySlug(
+export const getCourseDetailBySlug = cache(async function getCourseDetailBySlug(
   slug: string,
 ): Promise<CourseDetail | null> {
   const supabase = await getClient();
@@ -733,7 +734,7 @@ export async function getCourseDetailBySlug(
       return JAVASCRIPT_FUNDAMENTALS_COURSE;
     return null;
   }
-}
+});
 
 /**
  * Fetch related free courses, preferably from the same category.

@@ -1,13 +1,14 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { LearnerProfile } from "@/lib/types";
 
 /**
  * Resolve the signed-in learner from the request cookies, if any.
  *
- * Returns `null` when Supabase is not configured, when there is no session, or
- * when the lookup fails — the landing page must never break because of auth.
+ * Request-memoized using React `cache()` so multiple layout, page, and component
+ * calls within the same request lifecycle execute at most once.
  */
-export async function getCurrentUser(): Promise<LearnerProfile | null> {
+export const getCurrentUser = cache(async function getCurrentUser(): Promise<LearnerProfile | null> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
 
@@ -52,4 +53,4 @@ export async function getCurrentUser(): Promise<LearnerProfile | null> {
   } catch {
     return null;
   }
-}
+});

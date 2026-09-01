@@ -22,26 +22,18 @@ export async function getSavedCoursesPageData(
   if (!supabase) return null;
 
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || user.id !== userId) return null;
-
-    const categories = await getCategories();
-    const categoryMap = new Map(categories.map((c) => [c.id, c]));
-
-    // 1. Fetch saved courses from saved_courses table
-    let savedRows: {
-      id: string;
-      course_id: string;
-      created_at: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      course?: any;
-    }[] = [];
-
-    try {
-      const { data: rows } = await supabase
+    // Concurrently fetch user, categories, saved courses, enrollments, progress, and catalog
+    const [
+      userRes,
+      categories,
+      savedRes,
+      enrollmentsRes,
+      progressRes,
+      catalogResult,
+    ] = await Promise.all([
+      supabase.auth.getUser(),
+      getCategories(),
+      supabase
         .from("saved_courses")
         .select(
           `
@@ -66,57 +58,50 @@ export async function getSavedCoursesPageData(
         `,
         )
         .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (rows) {
-        // Filter only published courses
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        savedRows = rows.filter((r: any) => r.course && r.course.is_published);
-      }
-    } catch {
-      // Ignore
-    }
-
-    // 2. Fetch enrollments for this user
-    const enrollmentMap = new Map<string, string>();
-    try {
-      const { data: enrollments } = await supabase
+        .order("created_at", { ascending: false }),
+      supabase
         .from("course_enrollments")
         .select("course_id, status")
-        .eq("user_id", userId);
-
-      if (enrollments) {
-        for (const e of enrollments) {
-          enrollmentMap.set(e.course_id, e.status);
-        }
-      }
-    } catch {
-      // Ignore
-    }
-
-    // 3. Fetch completed lesson progress counts
-    const completedProgressMap = new Map<string, number>();
-    try {
-      const { data: progressRows } = await supabase
+        .eq("user_id", userId),
+      supabase
         .from("lesson_progress")
         .select("course_id, completed")
         .eq("user_id", userId)
-        .eq("completed", true);
+        .eq("completed", true),
+      getCatalogCourses({}, 6),
+    ]);
 
-      if (progressRows) {
-        for (const p of progressRows) {
-          const current = completedProgressMap.get(p.course_id) || 0;
-          completedProgressMap.set(p.course_id, current + 1);
-        }
+    const user = userRes.data?.user;
+    if (!user || user.id !== userId) return null;
+
+    const categoryMap = new Map(categories.map((c) => [c.id, c]));
+
+    // 1. Filter only published courses
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const savedRows = (savedRes.data || []).filter((r: any) => r.course && r.course.is_published);
+
+    // 2. Map enrollments
+    const enrollmentMap = new Map<string, string>();
+    for (const e of enrollmentsRes.data || []) {
+      if (e.course_id && e.status) {
+        enrollmentMap.set(e.course_id, e.status);
       }
-    } catch {
-      // Ignore
+    }
+
+    // 3. Map completed progress
+    const completedProgressMap = new Map<string, number>();
+    for (const p of progressRes.data || []) {
+      if (p.course_id) {
+        const current = completedProgressMap.get(p.course_id) || 0;
+        completedProgressMap.set(p.course_id, current + 1);
+      }
     }
 
     // 4. Build transformed SavedCourseItem array
-    const allSavedItems: SavedCourseItem[] = savedRows.map((r) => {
-      const c = r.course;
-      const cat = c.category_id ? categoryMap.get(c.category_id) : null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allSavedItems: SavedCourseItem[] = savedRows.map((r: any) => {
+      const c = Array.isArray(r.course) ? r.course[0] : r.course;
+      const cat = c?.category_id ? categoryMap.get(c.category_id) : null;
 
       // Count lessons
       let lessonCount = 0;
@@ -212,18 +197,11 @@ export async function getSavedCoursesPageData(
       return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime();
     });
 
-    // 6. Fetch Recommendations (up to 3 published courses not in saved list)
+    // 6. Process Recommendations (up to 3 published courses not in saved list)
     const savedCourseIds = new Set(allSavedItems.map((s) => s.courseId));
-    let recommendations: CourseSummary[] = [];
-
-    try {
-      const catalogResult = await getCatalogCourses({}, 6);
-      recommendations = catalogResult.courses
-        .filter((c: CourseSummary) => !savedCourseIds.has(c.id))
-        .slice(0, 3);
-    } catch {
-      // Ignore
-    }
+    const recommendations: CourseSummary[] = (catalogResult?.courses || [])
+      .filter((c: CourseSummary) => !savedCourseIds.has(c.id))
+      .slice(0, 3);
 
     return {
       courses: filtered,
