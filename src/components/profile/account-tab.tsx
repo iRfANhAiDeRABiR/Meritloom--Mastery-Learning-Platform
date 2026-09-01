@@ -109,7 +109,16 @@ export function AccountTab({ profile, provider }: AccountTabProps) {
     const result = await deleteAccountAction({ confirmationText: deleteConfirmText });
 
     if (result.success) {
-      notify.success({ title: "Account deleted" });
+      notify.success({
+        title: "Account deleted",
+        description: "Your account and all associated learning data have been permanently removed.",
+      });
+
+      const supabase = createSupabaseBrowserClient();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+
       router.push("/");
       router.refresh();
     } else {

@@ -349,19 +349,47 @@ export async function deleteAccountAction(params: {
   try {
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) return { success: false, error: "Please sign in." };
+    if (authError || !user) {
+      return { success: false, error: "Please sign in to delete your account." };
+    }
 
-    // Delete user profile (cascades to preferences, enrollments, progress)
-    await supabase.from("profiles").delete().eq("id", user.id);
+    // 1. Attempt to invoke complete delete_user_account RPC
+    const { error: rpcError } = await supabase.rpc("delete_user_account");
 
-    // Sign out session
+    if (rpcError) {
+      console.warn(
+        "[deleteAccountAction] RPC delete_user_account not found or failed, deleting profile directly:",
+        rpcError.message,
+      );
+
+      // 2. Fallback to direct profile delete (cascades to enrollments, notes, bookmarks, drafts)
+      const { error: profileDeleteError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user.id);
+
+      if (profileDeleteError) {
+        console.error(
+          "[deleteAccountAction] Failed to delete profile:",
+          profileDeleteError.message,
+        );
+        return {
+          success: false,
+          error: "Failed to delete account. Please try again.",
+        };
+      }
+    }
+
+    // 3. Sign out session cleanly
     await supabase.auth.signOut();
 
     return { success: true };
-  } catch {
-    return { success: false, error: "Failed to delete account." };
+  } catch (err) {
+    console.error("[deleteAccountAction] Unexpected exception during account deletion:", err);
+    return { success: false, error: "Failed to delete account. Please try again." };
   }
 }
 
