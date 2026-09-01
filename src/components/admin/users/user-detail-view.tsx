@@ -195,9 +195,9 @@ export function UserDetailView({ user }: UserDetailViewProps) {
                 setIsRoleDialogOpen(true);
               }}
               variant="outline"
-              className="rounded-xl border-line text-xs font-semibold shadow-xs"
+              className="h-11 min-h-[44px] rounded-xl border-line px-4 text-xs font-semibold shadow-xs cursor-pointer"
             >
-              <UserCheck className="mr-1.5 size-3.5 text-ink-muted" />
+              <UserCheck className="mr-1.5 size-4 text-ink-muted" />
               <span>Change Role</span>
             </Button>
 
@@ -205,17 +205,17 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               <Button
                 onClick={() => setIsSuspendDialogOpen(true)}
                 variant="outline"
-                className="rounded-xl border-rose-500/30 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 shadow-xs"
+                className="h-11 min-h-[44px] rounded-xl border-rose-500/30 px-4 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 shadow-xs cursor-pointer"
               >
-                <AlertOctagon className="mr-1.5 size-3.5" />
+                <AlertOctagon className="mr-1.5 size-4" />
                 <span>Suspend</span>
               </Button>
             ) : (
               <Button
                 onClick={() => setIsReactivateDialogOpen(true)}
-                className="rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700 text-xs shadow-xs"
+                className="h-11 min-h-[44px] rounded-xl bg-emerald-600 px-4 font-semibold text-white hover:bg-emerald-700 text-xs shadow-xs cursor-pointer"
               >
-                <CheckCircle2 className="mr-1.5 size-3.5" />
+                <CheckCircle2 className="mr-1.5 size-4" />
                 <span>Reactivate</span>
               </Button>
             )}
@@ -440,7 +440,7 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               type="button"
               variant="ghost"
               onClick={() => setIsSuspendDialogOpen(false)}
-              className="rounded-xl text-xs"
+              className="h-11 min-h-[44px] rounded-xl text-xs"
             >
               Cancel
             </Button>
@@ -448,7 +448,7 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               type="button"
               disabled={isSubmitting}
               onClick={handleSuspendSubmit}
-              className="rounded-xl bg-rose-600 font-semibold text-white hover:bg-rose-700 text-xs"
+              className="h-11 min-h-[44px] rounded-xl bg-rose-600 font-semibold text-white hover:bg-rose-700 text-xs cursor-pointer"
             >
               {isSubmitting ? "Suspending..." : "Confirm Suspension"}
             </Button>
@@ -474,7 +474,7 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               type="button"
               variant="ghost"
               onClick={() => setIsReactivateDialogOpen(false)}
-              className="rounded-xl text-xs"
+              className="h-11 min-h-[44px] rounded-xl text-xs"
             >
               Cancel
             </Button>
@@ -482,7 +482,7 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               type="button"
               disabled={isSubmitting}
               onClick={handleReactivateSubmit}
-              className="rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700 text-xs"
+              className="h-11 min-h-[44px] rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700 text-xs cursor-pointer"
             >
               {isSubmitting ? "Reactivating..." : "Reactivate Account"}
             </Button>
@@ -538,7 +538,7 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               type="button"
               variant="ghost"
               onClick={() => setIsRoleDialogOpen(false)}
-              className="rounded-xl text-xs"
+              className="h-11 min-h-[44px] rounded-xl text-xs"
             >
               Cancel
             </Button>
@@ -546,7 +546,7 @@ export function UserDetailView({ user }: UserDetailViewProps) {
               type="button"
               disabled={isSubmitting}
               onClick={handleRoleChangeSubmit}
-              className="rounded-xl bg-primary font-semibold text-white hover:bg-primary/90 text-xs"
+              className="h-11 min-h-[44px] rounded-xl bg-primary font-semibold text-white hover:bg-primary/90 text-xs cursor-pointer"
             >
               {isSubmitting ? "Saving..." : "Save Role"}
             </Button>

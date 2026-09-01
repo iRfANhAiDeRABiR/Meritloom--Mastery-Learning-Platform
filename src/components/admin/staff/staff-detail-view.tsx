@@ -195,9 +195,9 @@ export function StaffDetailView({ staff, availableCourses }: StaffDetailViewProp
             <Button
               onClick={() => setIsRemoveStaffDialogOpen(true)}
               variant="outline"
-              className="rounded-xl border-rose-500/30 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 shadow-xs"
+              className="h-11 min-h-[44px] rounded-xl border-rose-500/30 px-4 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 shadow-xs cursor-pointer"
             >
-              <UserMinus className="mr-1.5 size-3.5" />
+              <UserMinus className="mr-1.5 size-4" />
               <span>Remove Staff Access</span>
             </Button>
           </div>
@@ -223,7 +223,7 @@ export function StaffDetailView({ staff, availableCourses }: StaffDetailViewProp
             <Button
               disabled={isSavingCourses}
               onClick={handleSaveCourses}
-              className="rounded-xl bg-primary font-semibold text-white hover:bg-primary/90 text-xs shadow-xs"
+              className="h-11 min-h-[44px] rounded-xl bg-primary px-5 font-semibold text-white hover:bg-primary/90 text-xs shadow-xs cursor-pointer"
             >
               {isSavingCourses ? "Saving..." : "Save Course Assignments"}
             </Button>
@@ -288,11 +288,11 @@ export function StaffDetailView({ staff, availableCourses }: StaffDetailViewProp
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <select
                 value={selectedPreset}
                 onChange={(e) => handlePresetSelect(e.target.value)}
-                className="rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink shadow-xs outline-none"
+                className="h-11 min-h-[44px] cursor-pointer rounded-xl border border-line bg-surface px-3.5 text-xs font-semibold text-ink shadow-xs outline-none focus:border-primary"
               >
                 <option value="content_manager">Preset: Content Manager</option>
                 <option value="user_support">Preset: User Support</option>
@@ -304,7 +304,7 @@ export function StaffDetailView({ staff, availableCourses }: StaffDetailViewProp
               <Button
                 disabled={isSavingPermissions}
                 onClick={handleSavePermissions}
-                className="rounded-xl bg-primary font-semibold text-white hover:bg-primary/90 text-xs shadow-xs"
+                className="h-11 min-h-[44px] rounded-xl bg-primary px-5 font-semibold text-white hover:bg-primary/90 text-xs shadow-xs cursor-pointer"
               >
                 {isSavingPermissions ? "Saving..." : "Save Permissions"}
               </Button>
@@ -377,7 +377,7 @@ export function StaffDetailView({ staff, availableCourses }: StaffDetailViewProp
               type="button"
               variant="ghost"
               onClick={() => setIsRemoveStaffDialogOpen(false)}
-              className="rounded-xl text-xs"
+              className="h-11 min-h-[44px] rounded-xl text-xs"
             >
               Cancel
             </Button>
@@ -385,7 +385,7 @@ export function StaffDetailView({ staff, availableCourses }: StaffDetailViewProp
               type="button"
               disabled={isDemoting}
               onClick={handleRemoveStaffAccess}
-              className="rounded-xl bg-rose-600 font-semibold text-white hover:bg-rose-700 text-xs"
+              className="h-11 min-h-[44px] rounded-xl bg-rose-600 font-semibold text-white hover:bg-rose-700 text-xs cursor-pointer"
             >
               {isDemoting ? "Removing..." : "Confirm Remove Staff Access"}
             </Button>

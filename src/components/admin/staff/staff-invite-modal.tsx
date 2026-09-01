@@ -184,7 +184,7 @@ export function StaffInviteModal({
                   placeholder="colleague@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-surface-elevated/40 pl-8 pr-3 py-2 text-xs text-ink placeholder:text-ink-muted outline-none focus:border-primary"
+                  className="w-full rounded-xl border border-line bg-surface-elevated/40 pl-9 pr-3.5 h-11 min-h-[44px] text-xs text-ink placeholder:text-ink-muted outline-none focus:border-primary"
                 />
               </div>
             </div>
@@ -198,7 +198,7 @@ export function StaffInviteModal({
                 placeholder="e.g. Sarah Rahman"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-line bg-surface-elevated/40 px-3 py-2 text-xs text-ink placeholder:text-ink-muted outline-none focus:border-primary"
+                className="mt-1 w-full rounded-xl border border-line bg-surface-elevated/40 px-3.5 h-11 min-h-[44px] text-xs text-ink placeholder:text-ink-muted outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -257,7 +257,7 @@ export function StaffInviteModal({
                 <select
                   value={selectedPreset}
                   onChange={(e) => handlePresetChange(e.target.value)}
-                  className="rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-ink shadow-xs outline-none"
+                  className="h-10 min-h-[40px] rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-ink shadow-xs outline-none"
                 >
                   <option value="content_manager">Content Manager</option>
                   <option value="user_support">User Support</option>
@@ -306,14 +306,14 @@ export function StaffInviteModal({
               type="button"
               variant="ghost"
               onClick={() => setIsOpen(false)}
-              className="rounded-xl text-xs"
+              className="h-11 min-h-[44px] rounded-xl text-xs cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-primary font-semibold text-white hover:bg-primary/90 text-xs"
+              className="h-11 min-h-[44px] rounded-xl bg-primary font-semibold text-white hover:bg-primary/90 text-xs cursor-pointer"
             >
               {isSubmitting ? "Sending..." : "Send Staff Invitation"}
             </Button>

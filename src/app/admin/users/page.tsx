@@ -37,10 +37,13 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
 
   return (
     <UsersTableView
-      initialUsers={users}
+      users={users}
       totalCount={totalCount}
       currentPage={page}
       totalPages={totalPages}
+      searchQuery={params.q || ""}
+      roleFilter={params.role || "all"}
+      statusFilter={params.status || "all"}
     />
   );
 }
