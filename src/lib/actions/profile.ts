@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSupabaseConfig } from "@/lib/env";
 import { getUserAuthMethods } from "@/lib/auth/methods";
 import type {
   ContentPreference,
@@ -302,8 +300,95 @@ export interface UpdatePasswordResult {
 }
 
 /**
+ * Map Supabase Auth password-update errors to user-friendly field or general errors.
+ */
+function mapPasswordUpdateError(error: {
+  message?: string;
+  status?: number;
+  code?: string;
+}): UpdatePasswordResult {
+  const msg = (error.message ?? "").toLowerCase();
+  const code = (error.code ?? "").toLowerCase();
+
+  // Current password is wrong or missing
+  if (
+    msg.includes("current password") ||
+    msg.includes("invalid credentials") ||
+    code === "invalid_credentials" ||
+    code === "same_password"
+  ) {
+    if (msg.includes("required") || msg.includes("missing")) {
+      return {
+        success: false,
+        fieldErrors: { currentPassword: "Enter your current password." },
+      };
+    }
+    return {
+      success: false,
+      fieldErrors: { currentPassword: "Current password is incorrect." },
+    };
+  }
+
+  // Same password
+  if (msg.includes("same") || msg.includes("different") || msg.includes("identical")) {
+    return {
+      success: false,
+      fieldErrors: { newPassword: "Choose a password different from your current password." },
+    };
+  }
+
+  // Weak / short password
+  if (msg.includes("weak") || msg.includes("short") || msg.includes("least")) {
+    return {
+      success: false,
+      fieldErrors: { newPassword: "Password must be at least 8 characters long." },
+    };
+  }
+
+  // Session expired
+  if (
+    msg.includes("session") ||
+    msg.includes("not authenticated") ||
+    msg.includes("jwt") ||
+    code === "session_not_found" ||
+    error.status === 401
+  ) {
+    return {
+      success: false,
+      error: "Your session has expired. Please sign in again.",
+    };
+  }
+
+  // Rate limited
+  if (msg.includes("rate") || msg.includes("too many") || error.status === 429) {
+    return {
+      success: false,
+      error: "Too many attempts. Please wait a moment and try again.",
+    };
+  }
+
+  // Reauthentication nonce required
+  if (msg.includes("reauthentication") || msg.includes("nonce")) {
+    return {
+      success: false,
+      error: "Additional verification required. Please use the forgot-password link to reset your password.",
+    };
+  }
+
+  return {
+    success: false,
+    error: "We couldn't update your password. Please try again.",
+  };
+}
+
+/**
  * Update user's password securely via Supabase Auth.
- * Reauthenticates current password for password accounts and supports setting password for OAuth accounts.
+ *
+ * For email/password accounts: uses native `current_password` parameter
+ * supported in @supabase/supabase-js >= 2.102.0.
+ *
+ * For Google-only accounts: sets initial password via updateUser without
+ * current_password since none exists.
  */
 export async function updatePasswordAction(params: {
   currentPassword?: string;
@@ -312,7 +397,8 @@ export async function updatePasswordAction(params: {
 }): Promise<UpdatePasswordResult> {
   const { currentPassword, newPassword, confirmPassword } = params;
 
-  // 1. Basic validation
+  // --- Client-side validation (also enforced here server-side) ---
+
   if (!newPassword || newPassword.trim().length === 0) {
     return {
       success: false,
@@ -340,29 +426,32 @@ export async function updatePasswordAction(params: {
   }
 
   try {
+    // Verify authenticated user
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser();
 
-    if (!user || !user.email) {
-      return { success: false, error: "Please sign in to manage your password." };
+    if (userError || !user || !user.email) {
+      return { success: false, error: "Your session has expired. Please sign in again." };
     }
 
     // Check account status
-    const { data: profile } = await supabase
+    const { data: profileRow } = await supabase
       .from("profiles")
       .select("account_status")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.account_status === "suspended") {
+    if (profileRow?.account_status === "suspended") {
       return { success: false, error: "Suspended accounts cannot modify credentials." };
     }
 
     const authMethods = getUserAuthMethods(user);
-    const { url, anonKey } = getSupabaseConfig();
 
     if (authMethods.hasPassword) {
+      // --- Email/Password account: require current password ---
+
       if (!currentPassword || currentPassword.trim().length === 0) {
         return {
           success: false,
@@ -377,119 +466,46 @@ export async function updatePasswordAction(params: {
         };
       }
 
-      // 1. Authenticate with current credentials on an isolated client instance
-      // so the newly minted session token is directly bound for the /user mutation
-      const authClient = createClient(url, anonKey, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      });
-
-      const { data: signInData, error: signInError } = await authClient.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-      });
-
-      if (signInError || !signInData?.session) {
-        return {
-          success: false,
-          fieldErrors: { currentPassword: "Current password is incorrect." },
-        };
-      }
-
-      // 2. Perform password update with the freshly authenticated session and current_password payload
-      const { error: updateError } = await authClient.auth.updateUser({
+      // Use native Supabase current_password verification
+      const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
         current_password: currentPassword,
       });
 
       if (updateError) {
-        const msg = updateError.message?.toLowerCase() || "";
-        if (msg.includes("same") || msg.includes("different") || msg.includes("identical")) {
-          return {
-            success: false,
-            fieldErrors: { newPassword: "Choose a password different from your current password." },
-          };
+        if (process.env.NODE_ENV === "development") {
+          console.error("[change-password]", {
+            code: updateError.code,
+            status: updateError.status,
+            message: updateError.message,
+          });
         }
-        if (msg.includes("weak") || msg.includes("short") || msg.includes("least 8") || msg.includes("least 6")) {
-          return {
-            success: false,
-            fieldErrors: { newPassword: "Password must be at least 8 characters long." },
-          };
-        }
-        if (msg.includes("invalid") && msg.includes("credentials")) {
-          return {
-            success: false,
-            fieldErrors: { currentPassword: "Current password is incorrect." },
-          };
-        }
-        if (msg.includes("current password") || msg.includes("reauthentication")) {
-          return {
-            success: false,
-            fieldErrors: { currentPassword: "Current password is incorrect." },
-          };
-        }
-        return {
-          success: false,
-          error: updateError.message || "We couldn't update your password. Please try again.",
-        };
-      }
-
-      // 3. Update cookies on the SSR server client so browser stays logged in with new password
-      try {
-        await supabase.auth.signInWithPassword({
-          email: user.email,
-          password: newPassword,
-        });
-      } catch {
-        // Safe cookie refresh
+        return mapPasswordUpdateError(updateError);
       }
     } else {
-      // Google-only user setting an initial password
-      const { data: sessionData } = await supabase.auth.getSession();
-      const activeToken = sessionData?.session?.access_token;
+      // --- Google-only account: set initial password (no current_password) ---
 
-      let updateError: { message?: string } | null = null;
-
-      if (activeToken) {
-        const authClient = createClient(url, anonKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-          global: { headers: { Authorization: `Bearer ${activeToken}` } },
-        });
-        const res = await authClient.auth.updateUser({ password: newPassword });
-        updateError = res.error;
-      } else {
-        const res = await supabase.auth.updateUser({ password: newPassword });
-        updateError = res.error;
-      }
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
 
       if (updateError) {
-        const msg = updateError.message?.toLowerCase() || "";
-        if (msg.includes("weak") || msg.includes("short") || msg.includes("least 8") || msg.includes("least 6")) {
-          return {
-            success: false,
-            fieldErrors: { newPassword: "Password must be at least 8 characters long." },
-          };
+        if (process.env.NODE_ENV === "development") {
+          console.error("[set-password]", {
+            code: updateError.code,
+            status: updateError.status,
+            message: updateError.message,
+          });
         }
-        return {
-          success: false,
-          error: updateError.message || "We couldn't set your password. Please try again.",
-        };
-      }
-
-      try {
-        await supabase.auth.signInWithPassword({
-          email: user.email,
-          password: newPassword,
-        });
-      } catch {
-        // Safe cookie refresh
+        return mapPasswordUpdateError(updateError);
       }
     }
 
     return { success: true };
-  } catch {
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[change-password] unexpected error:", err instanceof Error ? err.message : "unknown");
+    }
     return {
       success: false,
       error: "We couldn't update your password. Please try again.",
