@@ -52,7 +52,7 @@ export function LearnerTopbar({ user }: LearnerTopbarProps) {
         <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Quick Search Button */}
           <Link
-            href={routes.courses.index}
+            href={routes.learnExplore}
             className="flex items-center gap-2 rounded-full border border-line bg-card px-3.5 py-1.5 text-xs font-medium text-muted shadow-xs transition-all hover:border-primary/40 hover:text-ink"
             aria-label="Search courses in catalog"
           >

@@ -46,7 +46,7 @@ export function ContinueLearningHero({ course }: ContinueLearningHeroProps) {
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Link
-              href={routes.courses.index}
+              href={routes.learnExplore}
               className="group inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#172033] shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/95"
             >
               <span>Explore free courses</span>
@@ -57,7 +57,7 @@ export function ContinueLearningHero({ course }: ContinueLearningHeroProps) {
             </Link>
 
             <Link
-              href={routes.courses.index}
+              href={routes.learnExplore}
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-white/20 hover:border-white/40"
             >
               <Compass className="size-4" aria-hidden="true" />

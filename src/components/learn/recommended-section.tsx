@@ -39,7 +39,7 @@ export function RecommendedSection({
         </div>
 
         <Link
-          href={routes.courses.index}
+          href={routes.learnExplore}
           className="group mt-2 flex items-center gap-1.5 text-xs font-bold text-primary hover:underline sm:mt-0"
         >
           <span>Explore all courses</span>

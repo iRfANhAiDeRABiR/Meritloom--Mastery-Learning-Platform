@@ -295,6 +295,44 @@ export interface MyLearningPageData {
   categories: Category[];
 }
 
+export type ExploreCourseEnrollmentStatus = "not_started" | "in_progress" | "completed";
+
+export interface ExploreCourseItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  difficulty: CourseDifficulty;
+  estimatedMinutes: number;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  categoryName: string | null;
+  categorySlug: string | null;
+  thumbnailUrl: string | null;
+  isFree: boolean;
+  enrollmentStatus: ExploreCourseEnrollmentStatus;
+  isSaved: boolean;
+  nextLessonTitle?: string | null;
+  nextLessonSlug?: string | null;
+  enrolledAt?: string | null;
+  completedAt?: string | null;
+  lastAccessedAt?: string | null;
+}
+
+export interface LearnerExploreSearchParams {
+  q?: string;
+  level?: string;
+  category?: string;
+  status?: string;
+}
+
+export interface LearnerExplorePageData {
+  courses: ExploreCourseItem[];
+  totalCoursesCount: number;
+  categories: Category[];
+}
+
 export type ModuleState = "completed" | "in_progress" | "not_started";
 
 export interface LearnerLessonDetail {

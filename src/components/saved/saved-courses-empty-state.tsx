@@ -66,7 +66,7 @@ export function SavedCoursesEmptyState({
       </div>
 
       <Link
-        href={routes.courses.index}
+        href={routes.learnExplore}
         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-xs font-bold text-white shadow-soft transition-all duration-200 hover:bg-primary-hover hover:-translate-y-0.5 mt-2"
       >
         <Compass className="size-4" aria-hidden="true" />

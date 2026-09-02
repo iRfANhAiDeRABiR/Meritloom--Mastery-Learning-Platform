@@ -23,7 +23,7 @@ export function LearnerWelcome({ name }: LearnerWelcomeProps) {
 
       <div className="shrink-0">
         <Link
-          href={routes.courses.index}
+          href={routes.learnExplore}
           className="inline-flex items-center gap-2 rounded-xl border border-line bg-card px-4 py-2 text-xs font-bold text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface hover:text-primary"
         >
           <Compass className="size-4 text-primary" aria-hidden="true" />

@@ -43,7 +43,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Explore Courses",
-    href: routes.courses.index,
+    href: routes.learnExplore,
     icon: Compass,
     exact: false,
   },

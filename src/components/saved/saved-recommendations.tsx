@@ -38,7 +38,7 @@ export function SavedRecommendations({
         </div>
 
         <Link
-          href={routes.courses.index}
+          href={routes.learnExplore}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-hover transition-colors self-start sm:self-auto"
         >
           <span>View all courses</span>
