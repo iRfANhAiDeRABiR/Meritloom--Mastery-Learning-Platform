@@ -27,6 +27,9 @@ interface CourseEditorShellProps {
   categories: Category[];
   allSkills: { id: string; name: string; slug: string }[];
   instructors?: AdminInstructorDetail[];
+  backHref?: string;
+  isInstructorView?: boolean;
+  canPublish?: boolean;
 }
 
 export function CourseEditorShell({
@@ -34,6 +37,9 @@ export function CourseEditorShell({
   categories,
   allSkills,
   instructors = [],
+  backHref = "/admin/courses",
+  isInstructorView = false,
+  canPublish = true,
 }: CourseEditorShellProps) {
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "content" | "outcomes" | "skills" | "settings"
@@ -52,9 +58,9 @@ export function CourseEditorShell({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="outline" size="sm" className="rounded-xl border-line text-xs font-semibold">
-            <Link href="/admin/courses">
+            <Link href={backHref}>
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              <span>All Courses</span>
+              <span>{isInstructorView ? "My Courses" : "All Courses"}</span>
             </Link>
           </Button>
 
@@ -127,7 +133,7 @@ export function CourseEditorShell({
             { id: "overview", label: "Overview & Metadata", icon: FileEdit },
             { id: "outcomes", label: "Outcomes & Prerequisites", icon: CheckCircle2 },
             { id: "skills", label: "Skills", icon: Sparkles },
-            { id: "settings", label: "Health & Publishing", icon: Settings },
+            { id: "settings", label: isInstructorView ? "Course Health" : "Health & Publishing", icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -161,7 +167,7 @@ export function CourseEditorShell({
         )}
         {activeTab === "outcomes" && <OutcomesTab course={course} />}
         {activeTab === "skills" && <SkillsTab course={course} allSkills={allSkills} />}
-        {activeTab === "settings" && <SettingsTab course={course} />}
+        {activeTab === "settings" && <SettingsTab course={course} canPublish={canPublish} />}
       </div>
     </div>
   );

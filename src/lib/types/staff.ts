@@ -2,6 +2,14 @@ export type UserRole = "learner" | "instructor" | "sub_admin" | "admin";
 
 export type AccountStatus = "active" | "suspended";
 
+export interface AvailableWorkspaces {
+  learner: boolean;
+  instructor: boolean;
+  admin: boolean;
+}
+
+export type ActiveWorkspace = "learner" | "instructor" | "admin";
+
 export type StaffPermission =
   | "users.view"
   | "users.suspend"

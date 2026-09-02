@@ -2,6 +2,10 @@ import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import type { AvailableWorkspaces, StaffPermission } from "@/lib/types/staff";
+import { resolveAvailableWorkspaces } from "@/lib/auth/workspaces";
+import { resolveUserAvatar } from "@/lib/profile/avatar";
+
 export interface AdminUserSession {
   user: {
     id: string;
@@ -13,7 +17,9 @@ export interface AdminUserSession {
     avatarUrl: string | null;
     role: "admin" | "sub_admin";
     accountStatus?: string;
+    permissions?: StaffPermission[];
   };
+  workspaces: AvailableWorkspaces;
 }
 
 /**
@@ -69,6 +75,25 @@ export const requireAdmin = cache(async function requireAdmin(): Promise<AdminUs
     "Admin";
 
   const resolvedRole = (profile?.role === "sub_admin" ? "sub_admin" : "admin") as "admin" | "sub_admin";
+  let permissions: StaffPermission[] | undefined = undefined;
+
+  if (resolvedRole === "sub_admin") {
+    const { data: perms } = await supabase
+      .from("staff_permissions")
+      .select("permission")
+      .eq("staff_user_id", user.id);
+
+    permissions = (perms || []).map((p) => p.permission as StaffPermission);
+  }
+
+  const workspaces = await resolveAvailableWorkspaces(user.id, resolvedRole);
+
+  const resolvedAvatar = resolveUserAvatar(
+    profile?.avatar_url,
+    (typeof metadata.avatar_url === "string" && metadata.avatar_url) ||
+      (typeof metadata.picture === "string" && metadata.picture) ||
+      null,
+  );
 
   return {
     user: {
@@ -78,10 +103,12 @@ export const requireAdmin = cache(async function requireAdmin(): Promise<AdminUs
     profile: {
       id: user.id,
       name,
-      avatarUrl: profile?.avatar_url || (typeof metadata.avatar_url === "string" ? metadata.avatar_url : null),
+      avatarUrl: resolvedAvatar.src,
       role: resolvedRole,
       accountStatus: profile?.account_status || "active",
+      permissions,
     },
+    workspaces,
   };
 });
 

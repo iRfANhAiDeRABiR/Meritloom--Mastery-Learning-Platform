@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
   const error = requestUrl.searchParams.get("error");
   const errorDescription = requestUrl.searchParams.get("error_description");
   const next = requestUrl.searchParams.get("next");
-  const safeNext = getSafeNextUrl(next, "/learn");
 
   // 1. Handle OAuth cancellation or provider-returned errors
   if (error) {
@@ -35,6 +34,7 @@ export async function GET(request: NextRequest) {
 
       if (!exchangeError && data?.user) {
         // Ensure profile row exists with Google metadata (name, avatar) without overwriting custom data
+        let role = "learner";
         try {
           const user = data.user;
           const meta = user.user_metadata || {};
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
           const { data: existingProfile } = await supabase
             .from("profiles")
-            .select("id, full_name, avatar_url")
+            .select("id, full_name, avatar_url, role, account_status")
             .eq("id", user.id)
             .maybeSingle();
 
@@ -53,17 +53,32 @@ export async function GET(request: NextRequest) {
               full_name: fullName,
               avatar_url: avatarUrl,
             });
-          } else if (!existingProfile.full_name && fullName) {
-            await supabase
-              .from("profiles")
-              .update({ full_name: fullName })
-              .eq("id", user.id);
+          } else {
+            if (existingProfile.role) {
+              role = existingProfile.role;
+            }
+            if (!existingProfile.full_name && fullName) {
+              await supabase
+                .from("profiles")
+                .update({ full_name: fullName })
+                .eq("id", user.id);
+            }
           }
         } catch (syncErr) {
           console.warn("[auth/callback] Non-critical profile sync warning:", syncErr);
         }
 
-        return NextResponse.redirect(new URL(safeNext, origin));
+        // Determine destination based on explicit nextParam or primary role
+        let defaultDestination = "/learn";
+        if (role === "admin" || role === "sub_admin") {
+          defaultDestination = "/admin";
+        } else if (role === "instructor") {
+          defaultDestination = "/instructor";
+        }
+
+        const destination = next ? getSafeNextUrl(next, defaultDestination) : defaultDestination;
+
+        return NextResponse.redirect(new URL(destination, origin));
       }
 
       if (exchangeError) {
@@ -83,4 +98,3 @@ export async function GET(request: NextRequest) {
     new URL("/auth/sign-in?error=oauth_callback_failed", origin),
   );
 }
-

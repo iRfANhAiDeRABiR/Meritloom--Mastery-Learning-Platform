@@ -7,6 +7,7 @@ import {
   Bookmark,
   BookOpen,
   Compass,
+  GraduationCap,
   House,
   LogOut,
   PanelLeftClose,
@@ -208,10 +209,11 @@ export function LearnerSidebar({
             );
           })}
 
-          {user.role === "admin" && (
+          {/* Workspaces for Staff */}
+          {user.workspaces?.admin && (
             <Link
               href="/admin"
-              title={isCollapsed ? "Admin Panel" : undefined}
+              title={isCollapsed ? "Admin Studio" : undefined}
               className={cn(
                 "flex items-center rounded-xl text-sm font-bold transition-all duration-200 mt-2 border border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-white",
                 isCollapsed
@@ -220,7 +222,23 @@ export function LearnerSidebar({
               )}
             >
               <ShieldCheck className="size-5 shrink-0 text-purple-400" aria-hidden="true" />
-              {!isCollapsed && <span className="truncate">Admin Panel</span>}
+              {!isCollapsed && <span className="truncate">Admin Studio</span>}
+            </Link>
+          )}
+
+          {user.workspaces?.instructor && (
+            <Link
+              href="/instructor"
+              title={isCollapsed ? "Instructor Studio" : undefined}
+              className={cn(
+                "flex items-center rounded-xl text-sm font-bold transition-all duration-200 mt-2 border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 hover:text-white",
+                isCollapsed
+                  ? "justify-center size-12 mx-auto"
+                  : "gap-3 px-3.5 py-2.5",
+              )}
+            >
+              <GraduationCap className="size-5 shrink-0 text-cyan-400" aria-hidden="true" />
+              {!isCollapsed && <span className="truncate">Instructor Studio</span>}
             </Link>
           )}
         </nav>

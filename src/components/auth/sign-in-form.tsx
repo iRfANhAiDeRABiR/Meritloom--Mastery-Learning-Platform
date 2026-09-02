@@ -74,7 +74,31 @@ export function SignInForm() {
       }
 
       notify.success({ title: "Signed in", description: "Welcome back!" });
-      router.push(safeNext);
+
+      // Determine destination
+      let destination = safeNext;
+      if (!nextParam) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", user.id)
+              .maybeSingle();
+
+            if (profile?.role === "admin" || profile?.role === "sub_admin") {
+              destination = "/admin";
+            } else if (profile?.role === "instructor") {
+              destination = "/instructor";
+            }
+          }
+        } catch {
+          // Fall back to safeNext
+        }
+      }
+
+      router.push(destination);
       router.refresh();
     } catch (err) {
       setIsLoading(false);

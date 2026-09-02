@@ -1,7 +1,9 @@
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { StaffPermission, UserRole } from "@/lib/types/staff";
+import type { AvailableWorkspaces, StaffPermission, UserRole } from "@/lib/types/staff";
+import { resolveAvailableWorkspaces } from "@/lib/auth/workspaces";
+import { resolveUserAvatar } from "@/lib/profile/avatar";
 
 export interface AuthenticatedUserSession {
   user: {
@@ -16,6 +18,7 @@ export interface AuthenticatedUserSession {
     accountStatus: "active" | "suspended";
     permissions?: StaffPermission[];
   };
+  workspaces: AvailableWorkspaces;
 }
 
 /**
@@ -56,6 +59,16 @@ export const requireActiveUser = cache(async function requireActiveUser(): Promi
     user.email?.split("@")[0] ||
     "User";
 
+  const role = (profile?.role as UserRole) || "learner";
+  const workspaces = await resolveAvailableWorkspaces(user.id, role);
+
+  const resolvedAvatar = resolveUserAvatar(
+    profile?.avatar_url,
+    (typeof metadata.avatar_url === "string" && metadata.avatar_url) ||
+      (typeof metadata.picture === "string" && metadata.picture) ||
+      null,
+  );
+
   return {
     user: {
       id: user.id,
@@ -64,10 +77,11 @@ export const requireActiveUser = cache(async function requireActiveUser(): Promi
     profile: {
       id: user.id,
       name,
-      avatarUrl: profile?.avatar_url || (typeof metadata.avatar_url === "string" ? metadata.avatar_url : null),
-      role: (profile?.role as UserRole) || "learner",
+      avatarUrl: resolvedAvatar.src,
+      role,
       accountStatus: profile?.account_status || "active",
     },
+    workspaces,
   };
 });
 
@@ -179,6 +193,24 @@ export const requireCourseInstructor = cache(async function requireCourseInstruc
 
   notFound();
 });
+
+/**
+ * Requires instructor authorization (Instructor, Sub-Admin with courses permission, or Root Admin).
+ * If user is a regular learner, redirects safely to /learn.
+ * Request-memoized via React `cache()`.
+ */
+export const requireInstructorSession = cache(async function requireInstructorSession(): Promise<AuthenticatedUserSession> {
+  const session = await requireActiveUser();
+  const { role } = session.profile;
+
+  if (role !== "instructor" && role !== "admin" && role !== "sub_admin") {
+    redirect("/learn");
+  }
+
+  return session;
+});
+
+export const requireInstructorForCourse = requireCourseInstructor;
 
 /**
  * Hierarchy & self-protection validator.

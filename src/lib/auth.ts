@@ -1,6 +1,9 @@
 import { cache } from "react";
+import { resolveAvailableWorkspaces } from "@/lib/auth/workspaces";
+import { resolveUserAvatar } from "@/lib/profile/avatar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { LearnerProfile } from "@/lib/types";
+import type { UserRole } from "@/lib/types/staff";
 
 /**
  * Resolve the signed-in learner from the request cookies, if any.
@@ -37,22 +40,26 @@ export const getCurrentUser = cache(async function getCurrentUser(): Promise<Lea
       user.email?.split("@")[0] ||
       "Learner";
 
-    const avatarUrl =
-      (typeof profile?.avatar_url === "string" && profile.avatar_url.trim()) ||
-      (typeof metadata.avatar_url === "string" && metadata.avatar_url.trim()) ||
-      (typeof metadata.picture === "string" && metadata.picture.trim()) ||
-      null;
+    const resolvedAvatar = resolveUserAvatar(
+      profile?.avatar_url,
+      (typeof metadata.avatar_url === "string" && metadata.avatar_url) ||
+        (typeof metadata.picture === "string" && metadata.picture) ||
+        null,
+    );
 
-    const role = (profile?.role === "admin" || metadata.role === "admin"
-      ? "admin"
-      : "learner") as "learner" | "admin";
+    const role = ((profile?.role as UserRole) ||
+      (metadata.role as UserRole) ||
+      "learner") as UserRole;
+
+    const workspaces = await resolveAvailableWorkspaces(user.id, role);
 
     return {
       id: user.id,
       name,
-      avatarUrl,
+      avatarUrl: resolvedAvatar.src,
       email: user.email,
       role,
+      workspaces,
     };
   } catch {
     return null;

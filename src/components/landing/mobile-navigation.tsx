@@ -4,9 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Menu, X } from "lucide-react";
+import { GraduationCap, Menu, ShieldCheck, X } from "lucide-react";
 
 import { Logo } from "@/components/brand/logo";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import type { LearnerProfile } from "@/lib/types";
@@ -89,18 +90,50 @@ export function MobileNavigation({
           <div className="mt-auto flex flex-col gap-3">
             {user ? (
               <>
-                <p className="px-1 text-sm text-muted">
-                  Signed in as <span className="font-semibold text-ink">{user.name}</span>
-                </p>
+                <div className="flex items-center gap-3 p-2 rounded-xl bg-surface border border-line">
+                  <Avatar name={user.name} src={user.avatarUrl} className="size-9 ring-2 ring-primary/20" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="truncate text-xs font-bold text-ink">{user.name}</span>
+                    {user.email && (
+                      <span className="truncate text-[11px] text-muted">{user.email}</span>
+                    )}
+                  </div>
+                </div>
+
                 <DialogPrimitive.Close asChild>
                   <Button asChild size="lg" className="w-full">
                     <Link href={routes.myLearning}>Go to my learning</Link>
                   </Button>
                 </DialogPrimitive.Close>
-                {user.role === "admin" && (
+
+                {user.workspaces?.admin && (
                   <DialogPrimitive.Close asChild>
-                    <Button asChild variant="outline" size="lg" className="w-full border-primary/40 text-primary font-semibold">
-                      <Link href="/admin">Admin Dashboard</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="w-full border-purple-500/30 bg-purple-500/10 text-purple-300 font-bold hover:bg-purple-500/20 hover:text-white"
+                    >
+                      <Link href="/admin" className="flex items-center justify-center gap-2">
+                        <ShieldCheck className="size-4 text-purple-400" />
+                        <span>Admin Studio</span>
+                      </Link>
+                    </Button>
+                  </DialogPrimitive.Close>
+                )}
+
+                {user.workspaces?.instructor && (
+                  <DialogPrimitive.Close asChild>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="w-full border-cyan-500/30 bg-cyan-500/10 text-cyan-300 font-bold hover:bg-cyan-500/20 hover:text-white"
+                    >
+                      <Link href="/instructor" className="flex items-center justify-center gap-2">
+                        <GraduationCap className="size-4 text-cyan-400" />
+                        <span>Instructor Studio</span>
+                      </Link>
                     </Button>
                   </DialogPrimitive.Close>
                 )}

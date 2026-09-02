@@ -1,4 +1,5 @@
 import type { LessonPracticeSessionData } from "@/lib/practice/queries";
+import type { AvailableWorkspaces, UserRole } from "@/lib/types/staff";
 /**
  * Domain types for Meritloom's public content and learner data.
  *
@@ -228,7 +229,8 @@ export interface LearnerProfile {
   avatarUrl: string | null;
   email?: string | null;
   onboardingCompleted?: boolean;
-  role?: "learner" | "admin";
+  role?: UserRole;
+  workspaces?: AvailableWorkspaces;
 }
 
 export interface ActiveEnrollmentDetail {

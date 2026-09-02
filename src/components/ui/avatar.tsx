@@ -11,6 +11,16 @@ export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
+function isValidUrl(url: string): boolean {
+  if (url.startsWith("/")) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function Avatar({
   src,
   name,
@@ -27,16 +37,18 @@ export function Avatar({
   }
 
   const initials = React.useMemo(() => {
-    if (!name) return "L";
-    const parts = name.trim().split(/\s+/);
+    if (!name || typeof name !== "string") return "M";
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "M";
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   }, [name]);
 
   const cleanSrc = typeof src === "string" ? src.trim() : null;
+  const isUsableSrc = cleanSrc && cleanSrc.length > 0 && isValidUrl(cleanSrc);
   const displayName = name ? `${name}'s profile photo` : alt || "Profile photo";
 
-  if (cleanSrc && !hasError) {
+  if (isUsableSrc && !hasError) {
     return (
       <div
         className={cn(
@@ -70,4 +82,3 @@ export function Avatar({
     </div>
   );
 }
-

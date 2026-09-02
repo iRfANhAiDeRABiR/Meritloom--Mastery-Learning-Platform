@@ -22,9 +22,10 @@ import type { AdminCourseDetail } from "@/lib/types";
 
 interface SettingsTabProps {
   course: AdminCourseDetail;
+  canPublish?: boolean;
 }
 
-export function SettingsTab({ course }: SettingsTabProps) {
+export function SettingsTab({ course, canPublish = true }: SettingsTabProps) {
   const router = useRouter();
   const [isPublishing, setIsPublishing] = React.useState(false);
   const [isUnpublishing, setIsUnpublishing] = React.useState(false);
@@ -189,45 +190,59 @@ export function SettingsTab({ course }: SettingsTabProps) {
           Published courses appear in the catalog, search discovery, and are enrollable by learners.
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          {course.isPublished ? (
-            <Button
-              type="button"
-              onClick={handleUnpublish}
-              disabled={isUnpublishing}
-              variant="outline"
-              className="rounded-xl border-amber-500/30 bg-amber-500/10 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
-            >
-              {isUnpublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Globe className="mr-1.5 h-3.5 w-3.5" />}
-              <span>Unpublish Course</span>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={handlePublish}
-              disabled={isPublishing || publishedLessons === 0}
-              className="rounded-xl bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {isPublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Globe className="mr-1.5 h-3.5 w-3.5" />}
-              <span>Publish Course to Learners</span>
-            </Button>
-          )}
+        {canPublish ? (
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            {course.isPublished ? (
+              <Button
+                type="button"
+                onClick={handleUnpublish}
+                disabled={isUnpublishing}
+                variant="outline"
+                className="rounded-xl border-amber-500/30 bg-amber-500/10 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
+              >
+                {isUnpublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Globe className="mr-1.5 h-3.5 w-3.5" />}
+                <span>Unpublish Course</span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handlePublish}
+                disabled={isPublishing || publishedLessons === 0}
+                className="rounded-xl bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {isPublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Globe className="mr-1.5 h-3.5 w-3.5" />}
+                <span>Publish Course to Learners</span>
+              </Button>
+            )}
 
-          <Button
-            type="button"
-            onClick={handleRecalculate}
-            disabled={isRecalculating}
-            variant="outline"
-            className="rounded-xl border-line text-xs font-semibold"
-          >
-            {isRecalculating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Clock className="mr-1.5 h-3.5 w-3.5" />}
-            <span>Recalculate Duration</span>
-          </Button>
-        </div>
+            <Button
+              type="button"
+              onClick={handleRecalculate}
+              disabled={isRecalculating}
+              variant="outline"
+              className="rounded-xl border-line text-xs font-semibold"
+            >
+              {isRecalculating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Clock className="mr-1.5 h-3.5 w-3.5" />}
+              <span>Recalculate Duration</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-line bg-surface-elevated/40 p-3.5 text-xs text-ink-muted">
+            <span className="font-semibold text-ink">Publication Status:</span>{" "}
+            {course.isPublished ? (
+              <span className="font-bold text-emerald-500">Published</span>
+            ) : (
+              <span className="font-bold text-amber-500">Draft</span>
+            )}
+            <p className="mt-1 text-[11px]">
+              Course publishing and deletion are managed by platform administrators.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Danger Zone */}
-      {!course.isPublished && (
+      {/* Danger Zone (Root Admin / Authorized Staff Only) */}
+      {canPublish && !course.isPublished && (
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-5">
           <h3 className="font-display text-base font-bold text-rose-600 dark:text-rose-400">
             Danger Zone
