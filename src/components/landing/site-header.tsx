@@ -59,7 +59,7 @@ export function SiteHeader({ user }: { user: LearnerProfile | null }) {
                   Boolean(link.pathPrefix) && pathname.startsWith(link.pathPrefix);
 
                 return (
-                  <li key={link.label}>
+                  <li key={link.href}>
                     <Link
                       href={link.href}
                       className={cn(

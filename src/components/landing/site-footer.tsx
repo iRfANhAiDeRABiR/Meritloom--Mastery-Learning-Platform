@@ -3,7 +3,17 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { routes } from "@/lib/routes";
 
-const FOOTER_NAV = [
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface FooterGroup {
+  heading: string;
+  links: readonly FooterLink[];
+}
+
+const FOOTER_NAV: readonly FooterGroup[] = [
   {
     heading: "Learn",
     links: [
@@ -23,13 +33,11 @@ const FOOTER_NAV = [
   {
     heading: "Legal",
     links: [
-      { label: "Privacy", href: routes.help },
-      { label: "Terms", href: routes.help },
       { label: "Privacy", href: routes.privacy },
       { label: "Terms", href: routes.terms },
     ],
   },
-];
+] as const;
 
 const SOCIAL_LINKS = [
   {
@@ -93,7 +101,7 @@ export function SiteFooter() {
                 const Icon = social.icon;
                 return (
                   <a
-                    key={social.label}
+                    key={social.href}
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -119,7 +127,7 @@ export function SiteFooter() {
                 </p>
                 <ul className="flex flex-col gap-2.5">
                   {group.links.map((link) => (
-                    <li key={link.label}>
+                    <li key={`${group.heading}:${link.href}`}>
                       <Link
                         href={link.href}
                         className="text-sm font-medium text-muted transition-colors hover:text-primary"
