@@ -54,6 +54,7 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
       profilesRes,
       enrollmentsRes,
       messagesRes,
+      recentCoursesList,
     ] = await Promise.all([
       supabase.from("courses").select("id, is_published"),
       supabase.from("lessons").select("id, is_published"),
@@ -62,6 +63,7 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
       supabase.from("profiles").select("id, role, account_status"),
       supabase.from("course_enrollments").select("id", { count: "exact", head: true }),
       supabase.from("support_messages").select("id", { count: "exact", head: true }).eq("status", "new"),
+      getAdminCoursesList({}),
     ]);
     const latencyMs = Math.max(1, Date.now() - started);
 
@@ -80,8 +82,6 @@ export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics>
     const suspendedAccounts = profilesData.filter((p) => p.account_status === "suspended").length;
     const instructorsCount = profilesData.filter((p) => p.role === "instructor").length;
     const subAdminsCount = profilesData.filter((p) => p.role === "sub_admin").length;
-
-    const recentCoursesList = await getAdminCoursesList({});
 
     return {
       publishedCoursesCount: publishedCourses.length,

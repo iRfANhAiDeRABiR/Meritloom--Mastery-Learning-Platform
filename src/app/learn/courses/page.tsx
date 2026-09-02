@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { LearnerLayout } from "@/components/learn/learner-layout";
 import { CourseStatusTabs } from "@/components/my-learning/course-status-tabs";
 import { LearnerCourseCard } from "@/components/my-learning/learner-course-card";
 import { MyLearningEmptyState } from "@/components/my-learning/my-learning-empty-state";
@@ -60,32 +59,30 @@ export default async function MyLearningCoursesPage({
   );
 
   return (
-    <LearnerLayout user={user}>
-      <div className="flex flex-col gap-6 sm:gap-8">
-        {/* Header & Explore CTA */}
-        <MyLearningHeader />
+    <div className="flex flex-col gap-6 sm:gap-8">
+      {/* Header & Explore CTA */}
+      <MyLearningHeader />
 
-        {/* Status Tabs (In progress, Completed, Saved) */}
-        <CourseStatusTabs currentTab={data.status} counts={data.counts} />
+      {/* Status Tabs (In progress, Completed, Saved) */}
+      <CourseStatusTabs currentTab={data.status} counts={data.counts} />
 
-        {/* Search & Filters */}
-        <MyLearningFilters categories={data.categories} />
+      {/* Search & Filters */}
+      <MyLearningFilters categories={data.categories} />
 
-        {/* Course Grid or Empty State */}
-        {data.courses.length > 0 ? (
-          <div className="grid gap-6 lg:grid-cols-2">
-            {data.courses.map((course: LearnerCourseItem) => (
-              <LearnerCourseCard key={course.id} course={course} />
-            ))}
-          </div>
-        ) : (
-          <MyLearningEmptyState
-            status={data.status}
-            isSearchEmpty={hasSearchOrFilters}
-          />
-        )}
-      </div>
-    </LearnerLayout>
+      {/* Course Grid or Empty State */}
+      {data.courses.length > 0 ? (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {data.courses.map((course: LearnerCourseItem) => (
+            <LearnerCourseCard key={course.id} course={course} />
+          ))}
+        </div>
+      ) : (
+        <MyLearningEmptyState
+          status={data.status}
+          isSearchEmpty={hasSearchOrFilters}
+        />
+      )}
+    </div>
   );
 }
 

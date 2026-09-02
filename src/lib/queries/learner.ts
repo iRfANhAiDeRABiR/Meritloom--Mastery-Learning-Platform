@@ -1,5 +1,6 @@
 import { getLessonPracticeData } from "@/lib/practice/queries";
 import { getCategories, getCourseDetailBySlug } from "@/lib/queries";
+import { getLearningPathBySlug } from "@/lib/queries/learning-paths";
 import { ALL_LESSON_DETAILS_MAP } from "@/lib/data/static-courses";
 import { ALL_STATIC_QUIZZES } from "@/lib/data/static-quizzes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -9,10 +10,13 @@ import type {
   CourseLearningOverviewData,
   CourseSummary,
   FullLessonDetail,
+  LearnerActivityItem,
   LearnerCourseItem,
   LearnerDashboardData,
   LearnerLessonDetail,
   LearnerModuleDetail,
+  LearnerRecentNoteSummary,
+  LearnerSavedCourseSummary,
   LearnerTabStatus,
   LessonNavigationItem,
   LessonPlayerData,
@@ -50,6 +54,16 @@ export async function getLearnerDashboardData(
     onboardingCompleted: true,
     continueCourse: null,
     activeCourses: [],
+    totalActiveCoursesCount: 0,
+    weeklyMetrics: {
+      lessonsCompleted: 0,
+      practiceCount: 0,
+      knowledgeChecksCount: 0,
+    },
+    learningPath: null,
+    recentActivity: [],
+    savedCourses: [],
+    recentNotes: [],
     recommendedCourses: [],
     recentCourses: [],
   };
@@ -95,8 +109,25 @@ export async function getLearnerDashboardData(
     };
     defaultResult.onboardingCompleted = onboardingCompleted;
 
-    // 2. Concurrently query enrollments and recommendations
-    const [enrollmentsRes, recCoursesRes] = await Promise.all([
+    // Calculate start of current week (Monday 00:00:00 UTC)
+    const now = new Date();
+    const dayOfWeek = now.getUTCDay();
+    const diffToMonday = (dayOfWeek + 6) % 7;
+    const weekStart = new Date(now);
+    weekStart.setUTCDate(now.getUTCDate() - diffToMonday);
+    weekStart.setUTCHours(0, 0, 0, 0);
+    const weekStartIso = weekStart.toISOString();
+
+    // 2. Concurrently query all dashboard datasets in a single Promise.all batch
+    const [
+      enrollmentsRes,
+      allProgressRes,
+      quizAttemptsRes,
+      savedCoursesRes,
+      notesRes,
+      pathDetail,
+      recCoursesRes,
+    ] = await Promise.all([
       supabase
         .from("course_enrollments")
         .select(
@@ -126,6 +157,7 @@ export async function getLearnerDashboardData(
                 title,
                 slug,
                 position,
+                lesson_type,
                 is_bonus,
                 is_published
               )
@@ -135,8 +167,74 @@ export async function getLearnerDashboardData(
         )
         .eq("user_id", userId)
         .eq("status", "active")
-        .order("last_accessed_at", { ascending: false })
-        .limit(6),
+        .order("last_accessed_at", { ascending: false }),
+
+      supabase
+        .from("lesson_progress")
+        .select("course_id, lesson_id, completed, completed_at, updated_at")
+        .eq("user_id", userId)
+        .eq("completed", true)
+        .order("completed_at", { ascending: false }),
+
+      supabase
+        .from("practice_quiz_attempts")
+        .select("id, quiz_id, score, total_questions, completed_at, started_at")
+        .eq("user_id", userId)
+        .order("completed_at", { ascending: false })
+        .limit(10),
+
+      supabase
+        .from("saved_courses")
+        .select(
+          `
+          id,
+          course_id,
+          course:courses (
+            id,
+            slug,
+            title,
+            summary,
+            difficulty,
+            estimated_minutes,
+            cover_image_url,
+            category:categories (name, slug),
+            modules:course_modules (
+              lessons (id, is_bonus, is_published)
+            )
+          )
+        `,
+        )
+        .eq("user_id", userId)
+        .limit(3),
+
+      supabase
+        .from("lesson_notes")
+        .select(
+          `
+          id,
+          lesson_id,
+          content,
+          updated_at,
+          lesson:lessons (
+            id,
+            slug,
+            title,
+            module:course_modules (
+              course:courses (
+                id,
+                slug,
+                title
+              )
+            )
+          )
+        `,
+        )
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(3),
+
+      getLearningPathBySlug("web-development-foundations", userId),
+
       supabase
         .from("courses")
         .select(
@@ -164,70 +262,172 @@ export async function getLearnerDashboardData(
         .limit(8),
     ]);
 
+    // 3. Build fast lesson lookup map for title, slug, type, and course info
+    interface LessonMetadata {
+      title: string;
+      slug: string;
+      lessonType: string;
+      moduleTitle: string;
+      courseTitle: string;
+      courseSlug: string;
+    }
+    const lessonLookup = new Map<string, LessonMetadata>();
+
     const enrollments = enrollmentsRes.data || [];
-    const activeCourses: ActiveEnrollmentDetail[] = [];
     const enrolledCourseIds: string[] = [];
 
-    if (enrollments.length > 0) {
-      for (const row of enrollments) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const c = Array.isArray(row.course) ? row.course[0] : (row.course as any);
-        if (c?.id && c.is_published) {
-          enrolledCourseIds.push(c.id);
-        }
-      }
-
-      // Batch query ALL progress for all enrolled courses in ONE single database request
-      const { data: allProgressRows } = enrolledCourseIds.length > 0
-        ? await supabase
-            .from("lesson_progress")
-            .select("course_id, lesson_id, completed")
-            .eq("user_id", userId)
-            .in("course_id", enrolledCourseIds)
-            .eq("completed", true)
-        : { data: [] };
-
-      const progressByCourse = new Map<string, Set<string>>();
-      for (const p of allProgressRows || []) {
-        if (p.course_id && p.lesson_id) {
-          if (!progressByCourse.has(p.course_id)) {
-            progressByCourse.set(p.course_id, new Set());
-          }
-          progressByCourse.get(p.course_id)!.add(p.lesson_id);
-        }
-      }
-
-      for (const row of enrollments) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
-        if (!course || !course.is_published) continue;
-
-        const completedSet = progressByCourse.get(course.id) || new Set<string>();
-        let completedLessons = 0;
-        let totalLessons = 0;
-        let nextLessonTitle: string | null = null;
-        let nextLessonSlug: string | null = null;
-
+    for (const row of enrollments) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
+      if (course?.id && course.is_published) {
+        enrolledCourseIds.push(course.id);
         const rawModules = Array.isArray(course.modules) ? course.modules : [];
-        const sortedModules = [...rawModules].sort(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (a: any, b: any) => (a.position || 0) - (b.position || 0),
-        );
-
-        for (const mod of sortedModules) {
+        for (const mod of rawModules) {
           const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
-          const sortedLessons = [...rawLessons]
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((l: any) => l.is_published !== false)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+          for (const les of rawLessons) {
+            if (les?.id) {
+              lessonLookup.set(les.id, {
+                title: les.title || "Lesson",
+                slug: les.slug || "",
+                lessonType: les.lesson_type || "standard",
+                moduleTitle: mod.title || "Module",
+                courseTitle: course.title || "Course",
+                courseSlug: course.slug || "",
+              });
+            }
+          }
+        }
+      }
+    }
 
-          for (const les of sortedLessons) {
-            if (!les.is_bonus) {
-              totalLessons++;
-              if (completedSet.has(les.id)) {
-                completedLessons++;
-              } else if (!nextLessonTitle) {
+    // 4. Process user's completed lesson progress
+    const allProgressRows = allProgressRes.data || [];
+    const progressByCourse = new Map<string, Set<string>>();
+
+    for (const p of allProgressRows) {
+      if (p.course_id && p.lesson_id) {
+        if (!progressByCourse.has(p.course_id)) {
+          progressByCourse.set(p.course_id, new Set());
+        }
+        progressByCourse.get(p.course_id)!.add(p.lesson_id);
+      }
+    }
+
+    // 5. Calculate Weekly Activity Metrics ("This Week")
+    const completedThisWeek = allProgressRows.filter((p) => {
+      const ts = p.completed_at || p.updated_at;
+      return ts && ts >= weekStartIso;
+    });
+
+    const practiceCountThisWeek = completedThisWeek.filter((p) => {
+      const meta = lessonLookup.get(p.lesson_id);
+      return (
+        meta?.lessonType === "practice" ||
+        meta?.lessonType === "exercise" ||
+        meta?.slug?.toLowerCase().includes("practice")
+      );
+    }).length;
+
+    const quizAttempts = quizAttemptsRes.data || [];
+    const completedQuizzesThisWeek = quizAttempts.filter((q) => {
+      return q.completed_at && q.completed_at >= weekStartIso;
+    });
+
+    defaultResult.weeklyMetrics = {
+      lessonsCompleted: completedThisWeek.length,
+      practiceCount: practiceCountThisWeek,
+      knowledgeChecksCount: completedQuizzesThisWeek.length,
+    };
+
+    // 6. Calculate Recent Meaningful Activity (Latest 5 Events)
+    const activityEvents: LearnerActivityItem[] = [];
+
+    for (const p of allProgressRows.slice(0, 10)) {
+      const meta = lessonLookup.get(p.lesson_id);
+      const isPractice =
+        meta?.lessonType === "practice" ||
+        meta?.lessonType === "exercise" ||
+        meta?.slug?.toLowerCase().includes("practice");
+
+      const title = meta?.title || "Completed lesson";
+      const subtitle = meta?.courseTitle || "Course";
+      const timestamp = p.completed_at || p.updated_at || new Date().toISOString();
+
+      activityEvents.push({
+        id: `prog-${p.lesson_id}-${timestamp}`,
+        type: isPractice ? "practice_completed" : "lesson_completed",
+        title,
+        subtitle,
+        courseSlug: meta?.courseSlug || "",
+        lessonSlug: meta?.slug || "",
+        timestamp,
+      });
+    }
+
+    for (const q of quizAttempts.slice(0, 5)) {
+      if (!q.completed_at) continue;
+      const scoreInfo =
+        typeof q.score === "number" && typeof q.total_questions === "number"
+          ? `${q.score} / ${q.total_questions} correct`
+          : "Submitted";
+
+      activityEvents.push({
+        id: `quiz-${q.id}`,
+        type: "quiz_submitted",
+        title: "Knowledge Check submitted",
+        subtitle: "Practice Assessment",
+        courseSlug: "",
+        timestamp: q.completed_at,
+        scoreInfo,
+      });
+    }
+
+    // Sort by timestamp descending & deduplicate
+    activityEvents.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+    defaultResult.recentActivity = activityEvents.slice(0, 5);
+
+    // 7. Process Active Courses & Determine Continue Learning Card
+    const activeCourses: ActiveEnrollmentDetail[] = [];
+
+    for (const row of enrollments) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const course = Array.isArray(row.course) ? row.course[0] : (row.course as any);
+      if (!course || !course.is_published) continue;
+
+      const completedSet = progressByCourse.get(course.id) || new Set<string>();
+      let completedLessons = 0;
+      let totalLessons = 0;
+      let nextLessonTitle: string | null = null;
+      let nextLessonSlug: string | null = null;
+      let currentModuleName: string | null = null;
+
+      const rawModules = Array.isArray(course.modules) ? course.modules : [];
+      const sortedModules = [...rawModules].sort(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (a: any, b: any) => (a.position || 0) - (b.position || 0),
+      );
+
+      for (let mIdx = 0; mIdx < sortedModules.length; mIdx++) {
+        const mod = sortedModules[mIdx];
+        const rawLessons = Array.isArray(mod.lessons) ? mod.lessons : [];
+        const sortedLessons = [...rawLessons]
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .filter((l: any) => l.is_published !== false)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+
+        let moduleHasIncomplete = false;
+
+        for (const les of sortedLessons) {
+          if (!les.is_bonus) {
+            totalLessons++;
+            if (completedSet.has(les.id)) {
+              completedLessons++;
+            } else {
+              moduleHasIncomplete = true;
+              if (!nextLessonTitle) {
                 nextLessonTitle = les.title;
                 nextLessonSlug = les.slug;
               }
@@ -235,60 +435,147 @@ export async function getLearnerDashboardData(
           }
         }
 
-        if (totalLessons === 0 && course.slug === "html-fundamentals") {
-          totalLessons = 22;
+        if (moduleHasIncomplete && !currentModuleName) {
+          currentModuleName = `Module ${mIdx + 1} · ${mod.title}`;
+        }
+      }
+
+      if (totalLessons === 0) {
+        if (course.slug === "html-fundamentals") {
+          totalLessons = 23;
           if (!nextLessonTitle) {
             nextLessonTitle = "HTML - Introduction";
             nextLessonSlug = "html-introduction";
           }
+        } else if (course.slug === "css-fundamentals") {
+          totalLessons = 18;
+          if (!nextLessonTitle) {
+            nextLessonTitle = "CSS - Introduction";
+            nextLessonSlug = "css-introduction";
+          }
+        } else if (course.slug === "javascript-fundamentals") {
+          totalLessons = 17;
+          if (!nextLessonTitle) {
+            nextLessonTitle = "JavaScript - Introduction";
+            nextLessonSlug = "javascript-introduction";
+          }
         }
-
-        const progressPercent =
-          totalLessons > 0 ? Math.min(100, Math.round((completedLessons / totalLessons) * 100)) : 0;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const cat = Array.isArray(course.category) ? course.category[0] : (course.category as any);
-
-        activeCourses.push({
-          id: row.id,
-          courseId: course.id,
-          courseSlug: course.slug,
-          courseTitle: course.title,
-          categoryName: cat?.name ?? null,
-          categorySlug: cat?.slug ?? null,
-          thumbnailUrl: course.cover_image_url ?? null,
-          difficulty: (course.difficulty as CourseDifficulty) || "beginner",
-          totalLessons,
-          completedLessons,
-          progressPercent,
-          nextLessonTitle,
-          nextLessonSlug,
-          lastAccessedAt: row.last_accessed_at || row.enrolled_at || null,
-        });
       }
+
+      const progressPercent =
+        totalLessons > 0 ? Math.min(100, Math.round((completedLessons / totalLessons) * 100)) : 0;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cat = Array.isArray(course.category) ? course.category[0] : (course.category as any);
+
+      activeCourses.push({
+        id: row.id,
+        courseId: course.id,
+        courseSlug: course.slug,
+        courseTitle: course.title,
+        categoryName: cat?.name ?? null,
+        categorySlug: cat?.slug ?? null,
+        thumbnailUrl: course.cover_image_url ?? null,
+        difficulty: (course.difficulty as CourseDifficulty) || "beginner",
+        totalLessons,
+        completedLessons,
+        progressPercent,
+        nextLessonTitle,
+        nextLessonSlug,
+        currentModuleName,
+        lastAccessedAt: row.last_accessed_at || row.enrolled_at || null,
+      });
     }
 
-    defaultResult.activeCourses = activeCourses;
-    defaultResult.continueCourse = activeCourses[0] || null;
+    defaultResult.totalActiveCoursesCount = activeCourses.length;
+    defaultResult.activeCourses = activeCourses.slice(0, 3);
+    defaultResult.continueCourse =
+      activeCourses.find((c) => c.progressPercent < 100 && c.nextLessonSlug) ||
+      activeCourses[0] ||
+      null;
 
-    // 3. Process Recommended published free courses
+    // 8. Process Learning Path
+    defaultResult.learningPath = pathDetail;
+
+    // 9. Process Saved Courses
+    const savedList: LearnerSavedCourseSummary[] = [];
+    for (const row of savedCoursesRes.data || []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const c = Array.isArray(row.course) ? row.course[0] : (row.course as any);
+      if (!c?.id) continue;
+      const cat = Array.isArray(c.category) ? c.category[0] : c.category;
+      let lessonCount = 0;
+      if (Array.isArray(c.modules)) {
+        for (const m of c.modules) {
+          if (Array.isArray(m.lessons)) {
+            lessonCount += m.lessons.filter(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (l: any) => !l.is_bonus && l.is_published !== false,
+            ).length;
+          }
+        }
+      }
+      if (lessonCount === 0) {
+        if (c.slug === "html-fundamentals") lessonCount = 23;
+        else if (c.slug === "css-fundamentals") lessonCount = 18;
+        else if (c.slug === "javascript-fundamentals") lessonCount = 17;
+      }
+      savedList.push({
+        id: row.id,
+        courseId: c.id,
+        slug: c.slug,
+        title: c.title,
+        summary: c.summary || null,
+        difficulty: (c.difficulty as CourseDifficulty) || "beginner",
+        categoryName: cat?.name || null,
+        lessonCount,
+        coverImageUrl: c.cover_image_url || null,
+      });
+    }
+    defaultResult.savedCourses = savedList.slice(0, 3);
+
+    // 10. Process Recent Notes
+    const notesList: LearnerRecentNoteSummary[] = [];
+    for (const row of notesRes.data || []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const les = Array.isArray(row.lesson) ? row.lesson[0] : (row.lesson as any);
+      if (!les?.id) continue;
+      const mod = Array.isArray(les.module) ? les.module[0] : les.module;
+      const course = Array.isArray(mod?.course) ? mod.course[0] : mod?.course;
+
+      const rawContent = (row.content || "").trim();
+      const cleanContent = rawContent.replace(/[#*`_~[\]]/g, "").trim();
+      const contentPreview =
+        cleanContent.length > 120 ? `${cleanContent.slice(0, 117)}...` : cleanContent;
+
+      notesList.push({
+        id: row.id,
+        lessonId: les.id,
+        courseSlug: course?.slug || "",
+        lessonSlug: les.slug || "",
+        lessonTitle: les.title || "Lesson Note",
+        courseTitle: course?.title || "Course",
+        contentPreview,
+        updatedAt: row.updated_at || new Date().toISOString(),
+      });
+    }
+    defaultResult.recentNotes = notesList.slice(0, 3);
+
+    // 11. Process Recommended Courses
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let recCourses = (recCoursesRes.data || []) as any[];
 
-      // Filter by preferred difficulty if specified
       if (userLevel && ["beginner", "intermediate", "advanced"].includes(userLevel)) {
         recCourses = recCourses.filter((c) => c.difficulty === userLevel);
       }
 
-      // Exclude already enrolled courses
       if (enrolledCourseIds.length > 0) {
         const enrolledSet = new Set(enrolledCourseIds);
         recCourses = recCourses.filter((c) => !enrolledSet.has(c.id));
       }
 
       if (recCourses && recCourses.length > 0) {
-        // Map and rank by category match if interests exist
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mapped: CourseSummary[] = recCourses.map((c: any) => {
           const cat = Array.isArray(c.category) ? c.category[0] : c.category;
@@ -324,7 +611,6 @@ export async function getLearnerDashboardData(
           };
         });
 
-        // If user selected interests, sort matching category slugs to the top
         if (userInterests.length > 0) {
           mapped.sort((a, b) => {
             const aMatch = a.categorySlug && userInterests.includes(a.categorySlug) ? 1 : 0;
@@ -334,76 +620,14 @@ export async function getLearnerDashboardData(
         }
 
         defaultResult.recommendedCourses = mapped.slice(0, 4);
-      } else {
-        // Fallback: fetch any published free courses
-        const { data: fallbackCourses } = await supabase
-          .from("courses")
-          .select(
-            `
-            id,
-            slug,
-            title,
-            summary,
-            difficulty,
-            estimated_minutes,
-            cover_image_url,
-            is_free,
-            category:categories (
-              name,
-              slug
-            ),
-            modules:course_modules (
-              lessons (id, is_bonus, is_published)
-            )
-          `,
-          )
-          .eq("is_published", true)
-          .eq("is_free", true)
-          .limit(4);
-
-        if (fallbackCourses) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          defaultResult.recommendedCourses = fallbackCourses.map((c: any) => {
-            const cat = Array.isArray(c.category) ? c.category[0] : c.category;
-            let lessonCount = 0;
-            if (Array.isArray(c.modules)) {
-              for (const m of c.modules) {
-                if (Array.isArray(m.lessons)) {
-                  lessonCount += m.lessons.filter(
-                    (l: { is_bonus?: boolean; is_published?: boolean }) =>
-                      !l.is_bonus && l.is_published !== false,
-                  ).length;
-                }
-              }
-            }
-            if (lessonCount === 0) {
-              if (c.slug === "html-fundamentals") lessonCount = 23;
-              else if (c.slug === "css-fundamentals") lessonCount = 18;
-              else if (c.slug === "javascript-fundamentals") lessonCount = 17;
-            }
-
-            return {
-              id: c.id,
-              slug: c.slug,
-              title: c.title,
-              shortDescription: c.summary || "",
-              difficulty: (c.difficulty as CourseDifficulty) || "beginner",
-              estimatedMinutes: c.estimated_minutes || 0,
-              lessonCount,
-              categoryName: cat?.name || null,
-              categorySlug: cat?.slug || null,
-              thumbnailUrl: c.cover_image_url || null,
-              isFree: c.is_free ?? true,
-            };
-          });
-        }
       }
     } catch {
-      // Ignore
+      // Ignore recommendation ranking fallback
     }
 
     return defaultResult;
-  } catch {
+  } catch (err) {
+    console.error("Error loading learner dashboard data:", err);
     return defaultResult;
   }
 }
@@ -449,55 +673,9 @@ export async function getMyLearningCoursesData(
   if (!supabase) return result;
 
   try {
-    // 1. Fetch user auth & metadata for saved courses
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const metadata = user?.user_metadata ?? {};
-    const savedCourseIds: string[] = Array.isArray(metadata.saved_course_ids)
-      ? metadata.saved_course_ids
-      : [];
-
-    // 2. Fetch real counts concurrently
-    try {
-      const [activeCntRes, completedCntRes, tableSavedRes] = await Promise.all([
-        supabase
-          .from("course_enrollments")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .eq("status", "active"),
-        supabase
-          .from("course_enrollments")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .eq("status", "completed"),
-        supabase
-          .from("saved_courses")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", userId),
-      ]);
-
-      const activeCnt = activeCntRes.count ?? 0;
-      const completedCnt = completedCntRes.count ?? 0;
-      let savedCnt = savedCourseIds.length;
-      if (typeof tableSavedRes.count === "number" && tableSavedRes.count > 0) {
-        savedCnt = tableSavedRes.count;
-      }
-
-      result.counts = {
-        activeCount: activeCnt,
-        completedCount: completedCnt,
-        savedCount: savedCnt,
-      };
-    } catch {
-      // Ignore count lookup errors
-    }
-
-    // 3. Query courses for the selected tab
-    if (currentTab === "active" || currentTab === "completed") {
-      try {
-        const { data: enrollments } = await supabase
+    // 1. Fetch user auth, counts, and tab courses concurrently in parallel
+    const enrollmentsQuery = (currentTab === "active" || currentTab === "completed")
+      ? supabase
           .from("course_enrollments")
           .select(
             `
@@ -538,7 +716,50 @@ export async function getMyLearningCoursesData(
           )
           .eq("user_id", userId)
           .eq("status", currentTab)
-          .order("last_accessed_at", { ascending: false });
+          .order("last_accessed_at", { ascending: false })
+      : Promise.resolve({ data: null, error: null });
+
+    const [userRes, activeCntRes, completedCntRes, tableSavedRes, enrollmentsRes] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase
+        .from("course_enrollments")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "active"),
+      supabase
+        .from("course_enrollments")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "completed"),
+      supabase
+        .from("saved_courses")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId),
+      enrollmentsQuery,
+    ]);
+
+    const metadata = userRes.data?.user?.user_metadata ?? {};
+    const savedCourseIds: string[] = Array.isArray(metadata.saved_course_ids)
+      ? metadata.saved_course_ids
+      : [];
+
+    const activeCnt = activeCntRes.count ?? 0;
+    const completedCnt = completedCntRes.count ?? 0;
+    let savedCnt = savedCourseIds.length;
+    if (typeof tableSavedRes.count === "number" && tableSavedRes.count > 0) {
+      savedCnt = tableSavedRes.count;
+    }
+
+    result.counts = {
+      activeCount: activeCnt,
+      completedCount: completedCnt,
+      savedCount: savedCnt,
+    };
+
+    // 2. Query courses for the selected tab
+    if (currentTab === "active" || currentTab === "completed") {
+      try {
+        const enrollments = enrollmentsRes.data;
 
         if (enrollments && enrollments.length > 0) {
           const items: LearnerCourseItem[] = [];

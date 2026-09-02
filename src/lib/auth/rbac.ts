@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { StaffPermission, UserRole } from "@/lib/types/staff";
@@ -20,8 +21,11 @@ export interface AuthenticatedUserSession {
 /**
  * Ensures the currently authenticated user has an active, non-suspended account.
  * Redirects suspended users to /account-suspended.
+ *
+ * Request-memoized via React `cache()` so calling it across layout, page, and components
+ * executes at most once per HTTP request.
  */
-export async function requireActiveUser(): Promise<AuthenticatedUserSession> {
+export const requireActiveUser = cache(async function requireActiveUser(): Promise<AuthenticatedUserSession> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     redirect("/auth/sign-in");
@@ -65,12 +69,13 @@ export async function requireActiveUser(): Promise<AuthenticatedUserSession> {
       accountStatus: profile?.account_status || "active",
     },
   };
-}
+});
 
 /**
  * Requires either Root Admin or Sub-Admin role with an active account.
+ * Request-memoized via React `cache()`.
  */
-export async function requireAdminSession(): Promise<AuthenticatedUserSession> {
+export const requireAdminSession = cache(async function requireAdminSession(): Promise<AuthenticatedUserSession> {
   const session = await requireActiveUser();
   const role = session.profile.role;
 
@@ -92,23 +97,27 @@ export async function requireAdminSession(): Promise<AuthenticatedUserSession> {
   }
 
   return session;
-}
+});
 
 /**
  * Requires Root Admin role specifically (not Sub-Admin).
+ * Request-memoized via React `cache()`.
  */
-export async function requireRootAdmin(): Promise<AuthenticatedUserSession> {
+export const requireRootAdmin = cache(async function requireRootAdmin(): Promise<AuthenticatedUserSession> {
   const session = await requireActiveUser();
   if (session.profile.role !== "admin") {
     notFound();
   }
   return session;
-}
+});
 
 /**
  * Requires specific staff permission (Root Admin automatically bypasses all permission checks).
+ * Request-memoized via React `cache()`.
  */
-export async function requireStaffPermission(permission: StaffPermission): Promise<AuthenticatedUserSession> {
+export const requireStaffPermission = cache(async function requireStaffPermission(
+  permission: StaffPermission,
+): Promise<AuthenticatedUserSession> {
   const session = await requireAdminSession();
 
   // Root Admin has all permissions
@@ -123,12 +132,15 @@ export async function requireStaffPermission(permission: StaffPermission): Promi
   }
 
   return session;
-}
+});
 
 /**
  * Requires instructor authorization for a specific course (Root Admin, authorized Sub-Admin, or Assigned Instructor).
+ * Request-memoized via React `cache()`.
  */
-export async function requireCourseInstructor(courseId: string): Promise<AuthenticatedUserSession> {
+export const requireCourseInstructor = cache(async function requireCourseInstructor(
+  courseId: string,
+): Promise<AuthenticatedUserSession> {
   const session = await requireActiveUser();
   const { role } = session.profile;
 
@@ -166,7 +178,7 @@ export async function requireCourseInstructor(courseId: string): Promise<Authent
   }
 
   notFound();
-}
+});
 
 /**
  * Hierarchy & self-protection validator.

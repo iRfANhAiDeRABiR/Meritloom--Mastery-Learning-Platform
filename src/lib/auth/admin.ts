@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -23,8 +24,11 @@ export interface AdminUserSession {
  * - If suspended: redirects to /account-suspended
  * - If authenticated learner (not admin/sub_admin): triggers notFound() so private admin routes are not disclosed
  * - If authorized: returns the verified admin session
+ *
+ * Request-memoized via React `cache()` so calling it across layout, page, and components
+ * executes at most once per HTTP request.
  */
-export async function requireAdmin(): Promise<AdminUserSession> {
+export const requireAdmin = cache(async function requireAdmin(): Promise<AdminUserSession> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     redirect("/auth/sign-in?next=/admin");
@@ -79,12 +83,13 @@ export async function requireAdmin(): Promise<AdminUserSession> {
       accountStatus: profile?.account_status || "active",
     },
   };
-}
+});
 
 /**
  * Non-throwing check if current user has admin privileges.
+ * Request-memoized via React `cache()`.
  */
-export async function checkIsAdmin(): Promise<boolean> {
+export const checkIsAdmin = cache(async function checkIsAdmin(): Promise<boolean> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return false;
 
@@ -105,4 +110,4 @@ export async function checkIsAdmin(): Promise<boolean> {
   } catch {
     return false;
   }
-}
+});

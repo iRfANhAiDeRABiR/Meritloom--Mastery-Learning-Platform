@@ -1,5 +1,7 @@
+import * as React from "react";
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
+import { RouteProgressBar } from "@/components/common/route-progress-bar";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -67,6 +69,9 @@ export default function RootLayout({
     <html lang="en" className={dmSans.variable} suppressHydrationWarning>
       <body className="min-h-dvh bg-background font-sans text-ink antialiased">
         <ThemeProvider>
+          <React.Suspense fallback={null}>
+            <RouteProgressBar />
+          </React.Suspense>
           <a
             href="#main"
             className="sr-only rounded-field bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100]"

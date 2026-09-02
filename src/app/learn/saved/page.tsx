@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { LearnerLayout } from "@/components/learn/learner-layout";
 import { SavedCoursesGrid } from "@/components/saved/saved-courses-grid";
 import { getCurrentUser } from "@/lib/auth";
 import { getSavedCoursesPageData } from "@/lib/queries/saved";
@@ -60,11 +59,9 @@ export default async function SavedCoursesPage({
   }
 
   return (
-    <LearnerLayout user={user}>
-      <div className="p-4 sm:p-6 lg:p-10">
-        <SavedCoursesGrid data={data} />
-      </div>
-    </LearnerLayout>
+    <div className="p-4 sm:p-6 lg:p-10">
+      <SavedCoursesGrid data={data} />
+    </div>
   );
 }
 

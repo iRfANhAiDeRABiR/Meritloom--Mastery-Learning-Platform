@@ -30,30 +30,46 @@ export async function getProfileSettingsData(
 
     const email = user.email || "";
 
-    // 1. Fetch or initialize profile
-    let fullName =
+    // 1. Fetch profile, preferences, interests, and categories concurrently in parallel
+    const [profileRes, prefRes, interestRes, categories] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, created_at")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("learner_preferences")
+        .select(
+          "learning_goal, level_preference, preferred_minutes_per_day, schedule_preference, content_preferences, learning_reminders",
+        )
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("learner_interests")
+        .select("category_id")
+        .eq("user_id", userId),
+      getCategories(),
+    ]);
+
+    const profileRow = profileRes.data;
+    const fullName =
+      profileRow?.full_name ||
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
       email.split("@")[0] ||
       "Learner";
-    let avatarUrl: string | null =
-      user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
-    let createdAt = user.created_at || new Date().toISOString();
+    const avatarUrl: string | null =
+      profileRow?.avatar_url ||
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture ||
+      null;
+    const createdAt = profileRow?.created_at || user.created_at || new Date().toISOString();
 
-    try {
-      const { data: profileRow } = await supabase
+    if (!profileRow) {
+      // Create missing profile row asynchronously in background
+      void supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, created_at")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (profileRow) {
-        fullName = profileRow.full_name || fullName;
-        avatarUrl = profileRow.avatar_url || avatarUrl;
-        createdAt = profileRow.created_at || createdAt;
-      } else {
-        // Automatically create missing profile row
-        await supabase.from("profiles").upsert(
+        .upsert(
           {
             id: userId,
             full_name: fullName,
@@ -63,59 +79,28 @@ export async function getProfileSettingsData(
           },
           { onConflict: "id" },
         );
-      }
-    } catch {
-      // Ignore
     }
 
-    // 2. Fetch or default preferences
-    let learningGoal: PrimaryLearningGoal | null = null;
-    let levelPreference: CourseDifficulty | null = null;
-    let preferredMinutesPerDay: number | null = null;
-    let schedulePreference: StudyPace | null = null;
-    let contentPreferences: ContentPreference[] = [];
-    let learningReminders = false;
+    // 2. Preferences
+    const prefRow = prefRes.data;
+    const learningGoal: PrimaryLearningGoal | null =
+      (prefRow?.learning_goal as PrimaryLearningGoal) || null;
+    const levelPreference: CourseDifficulty | null =
+      (prefRow?.level_preference as CourseDifficulty) || null;
+    const preferredMinutesPerDay: number | null =
+      prefRow?.preferred_minutes_per_day || null;
+    const schedulePreference: StudyPace | null =
+      (prefRow?.schedule_preference as StudyPace) || null;
+    const contentPreferences: ContentPreference[] =
+      (prefRow?.content_preferences as ContentPreference[]) || [];
+    const learningReminders = Boolean(prefRow?.learning_reminders);
 
-    try {
-      const { data: prefRow } = await supabase
-        .from("learner_preferences")
-        .select(
-          "learning_goal, level_preference, preferred_minutes_per_day, schedule_preference, content_preferences, learning_reminders",
-        )
-        .eq("user_id", userId)
-        .maybeSingle();
+    // 3. Learner interests
+    const selectedCategoryIds: string[] = (interestRes.data || []).map(
+      (r) => r.category_id,
+    );
 
-      if (prefRow) {
-        learningGoal = (prefRow.learning_goal as PrimaryLearningGoal) || null;
-        levelPreference = (prefRow.level_preference as CourseDifficulty) || null;
-        preferredMinutesPerDay = prefRow.preferred_minutes_per_day || null;
-        schedulePreference = (prefRow.schedule_preference as StudyPace) || null;
-        contentPreferences = (prefRow.content_preferences as ContentPreference[]) || [];
-        learningReminders = Boolean(prefRow.learning_reminders);
-      }
-    } catch {
-      // Ignore
-    }
-
-    // 3. Fetch learner interests
-    let selectedCategoryIds: string[] = [];
-    try {
-      const { data: interestRows } = await supabase
-        .from("learner_interests")
-        .select("category_id")
-        .eq("user_id", userId);
-
-      if (interestRows && interestRows.length > 0) {
-        selectedCategoryIds = interestRows.map((r) => r.category_id);
-      }
-    } catch {
-      // Ignore
-    }
-
-    // 4. Fetch all active categories
-    const categories = await getCategories();
-
-    // 5. Determine auth methods & providers from trusted state
+    // 4. Determine auth methods & providers from trusted state
     const authMethods = getUserAuthMethods(user);
 
     // 6. Validate active tab

@@ -245,7 +245,53 @@ export interface ActiveEnrollmentDetail {
   progressPercent: number;
   nextLessonTitle: string | null;
   nextLessonSlug: string | null;
+  currentModuleName?: string | null;
   lastAccessedAt: string | null;
+}
+
+export interface WeeklyActivityMetrics {
+  lessonsCompleted: number;
+  practiceCount: number;
+  knowledgeChecksCount: number;
+}
+
+export type LearnerActivityEventType =
+  | "lesson_completed"
+  | "practice_completed"
+  | "quiz_submitted";
+
+export interface LearnerActivityItem {
+  id: string;
+  type: LearnerActivityEventType;
+  title: string;
+  subtitle: string;
+  courseSlug: string;
+  lessonSlug?: string;
+  timestamp: string;
+  scoreInfo?: string | null;
+}
+
+export interface LearnerSavedCourseSummary {
+  id: string;
+  courseId: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  difficulty: CourseDifficulty;
+  categoryName: string | null;
+  lessonCount: number;
+  coverImageUrl: string | null;
+}
+
+export interface LearnerRecentNoteSummary {
+  id: string;
+  lessonId: string;
+  courseSlug: string;
+  lessonSlug: string;
+  lessonTitle: string;
+  courseTitle: string;
+  contentPreview: string;
+  updatedAt: string;
 }
 
 export interface LearnerDashboardData {
@@ -253,6 +299,12 @@ export interface LearnerDashboardData {
   onboardingCompleted: boolean;
   continueCourse: ActiveEnrollmentDetail | null;
   activeCourses: ActiveEnrollmentDetail[];
+  totalActiveCoursesCount: number;
+  weeklyMetrics: WeeklyActivityMetrics;
+  learningPath: LearningPathDetail | null;
+  recentActivity: LearnerActivityItem[];
+  savedCourses: LearnerSavedCourseSummary[];
+  recentNotes: LearnerRecentNoteSummary[];
   recommendedCourses: CourseSummary[];
   recentCourses: CourseSummary[];
 }

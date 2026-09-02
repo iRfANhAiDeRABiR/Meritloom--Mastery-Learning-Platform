@@ -2,11 +2,13 @@
 
 import * as React from "react";
 import { useActionState } from "react";
+import Link from "next/link";
 import { AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { submitSupportMessage, type SupportActionState } from "@/lib/actions/support";
 import { notify } from "@/lib/notifications/toast";
+import { routes } from "@/lib/routes";
 import type { LearnerProfile } from "@/lib/types";
 
 const TOPIC_OPTIONS = [
@@ -204,9 +206,9 @@ export function ContactForm({ user }: { user: LearnerProfile | null }) {
 
       <p className="text-[11px] text-muted text-center leading-relaxed">
         Information submitted through this form is handled according to our{" "}
-        <a href="/privacy" className="text-primary font-semibold hover:underline">
+        <Link href={routes.privacy} className="text-primary font-semibold hover:underline">
           Privacy Policy
-        </a>
+        </Link>
         .
       </p>
     </form>

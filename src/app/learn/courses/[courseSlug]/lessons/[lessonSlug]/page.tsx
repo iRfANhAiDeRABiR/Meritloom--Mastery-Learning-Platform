@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { LearnerLayout } from "@/components/learn/learner-layout";
 import { LessonPlayerWrapper } from "@/components/lesson/lesson-player-wrapper";
 import { PracticeQuiz } from "@/components/quiz/practice-quiz";
 import { getCurrentUser } from "@/lib/auth";
@@ -108,14 +107,12 @@ export default async function LessonPlayerPage({
     }
 
     return (
-      <LearnerLayout user={user}>
-        <div className="p-4 sm:p-6 lg:p-10">
-          <PracticeQuiz data={quizData} />
-        </div>
-      </LearnerLayout>
+      <div className="p-4 sm:p-6 lg:p-10 w-full max-w-4xl mx-auto">
+        <PracticeQuiz data={quizData} />
+      </div>
     );
   }
 
   // Standard video/article/exercise lesson player
-  return <LessonPlayerWrapper data={data} user={user} />;
+  return <LessonPlayerWrapper data={data} />;
 }

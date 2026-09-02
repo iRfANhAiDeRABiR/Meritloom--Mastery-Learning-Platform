@@ -5,7 +5,6 @@ import { ContinueLearningCard } from "@/components/course-learning/continue-lear
 import { CourseLearningHeader } from "@/components/course-learning/course-learning-header";
 import { CourseOverviewCard } from "@/components/course-learning/course-overview-card";
 import { CourseTimeline } from "@/components/course-learning/course-timeline";
-import { LearnerLayout } from "@/components/learn/learner-layout";
 import { getCurrentUser } from "@/lib/auth";
 import { getCourseLearningOverviewData } from "@/lib/queries/learner";
 import { routes } from "@/lib/routes";
@@ -86,26 +85,24 @@ export default async function CourseLearningOverviewPage({
   }
 
   return (
-    <LearnerLayout user={user}>
-      <div className="flex flex-col gap-6 sm:gap-8">
-        {/* Course Breadcrumbs, Title & Overall Progress */}
-        <CourseLearningHeader data={data} />
+    <div className="flex flex-col gap-6 sm:gap-8">
+      {/* Course Breadcrumbs, Title & Overall Progress */}
+      <CourseLearningHeader data={data} />
 
-        {/* 2-Column Workspace: Timeline (70%) + Right Column (30%) */}
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] items-start">
-          {/* Main Course Content & Vertical Timeline */}
-          <main className="flex flex-col gap-6">
-            <CourseTimeline data={data} />
-          </main>
-
-          {/* Right Supporting Sidebar (Sticky on Desktop) */}
-          <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
-            <ContinueLearningCard data={data} />
-            <CourseOverviewCard data={data} />
-          </aside>
+      {/* 2-Column Workspace: Timeline (70%) + Right Column (30%) */}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] items-start">
+        {/* Main Course Content & Vertical Timeline */}
+        <div className="flex flex-col gap-6">
+          <CourseTimeline data={data} />
         </div>
+
+        {/* Right Supporting Sidebar (Sticky on Desktop) */}
+        <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
+          <ContinueLearningCard data={data} />
+          <CourseOverviewCard data={data} />
+        </aside>
       </div>
-    </LearnerLayout>
+    </div>
   );
 }
 

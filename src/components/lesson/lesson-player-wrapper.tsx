@@ -10,19 +10,14 @@ import { LessonMobileOutline } from "@/components/lesson/lesson-mobile-outline";
 import { LessonTopbar } from "@/components/lesson/lesson-topbar";
 import { LessonVideoPlayer } from "@/components/lesson/lesson-video-player";
 import { CodingPracticeWorkspace } from "@/components/practice/coding-practice-workspace";
-import { LearnerSidebar } from "@/components/learn/learner-sidebar";
-import type {
-  LearnerProfile,
-  LessonPlayerData,
-} from "@/lib/types";
+import type { LessonPlayerData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface LessonPlayerWrapperProps {
   data: LessonPlayerData;
-  user: LearnerProfile;
 }
 
-export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
+export function LessonPlayerWrapper({ data }: LessonPlayerWrapperProps) {
   const {
     course,
     currentLesson,
@@ -52,11 +47,19 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
       currentLesson.lessonType === "practice" ||
       currentLesson.lessonType === "exercise" ||
       currentLesson.title.toLowerCase().includes("practice") ||
-      currentLesson.slug.toLowerCase().includes("practice")
+      currentLesson.slug.toLowerCase().includes("practice"),
   );
 
-  const practiceConfig = data.practiceData?.config || getPracticeConfigForLesson(course.slug, currentLesson.slug, currentLesson.title, currentLesson.content);
-  const practiceInitialCode = data.practiceData?.initialCode || practiceConfig.starterCode;
+  const practiceConfig =
+    data.practiceData?.config ||
+    getPracticeConfigForLesson(
+      course.slug,
+      currentLesson.slug,
+      currentLesson.title,
+      currentLesson.content,
+    );
+  const practiceInitialCode =
+    data.practiceData?.initialCode || practiceConfig.starterCode;
 
   const handleCompletionChanged = (isCompleted: boolean) => {
     setCompletedLessonState(isCompleted);
@@ -71,102 +74,102 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
       : initialProgressPercent;
 
   return (
-    <div className="flex min-h-dvh bg-background text-ink antialiased">
-      {/* 1. Global Learner Sidebar (Hidden in Focus Mode or on Mobile) */}
-      {!isFocusMode && (
-        <div className="hidden xl:block shrink-0 sticky top-0 h-screen z-30">
-          <LearnerSidebar user={user} />
-        </div>
-      )}
+    <div className="flex flex-col flex-1 min-w-0 w-full">
+      {/* 1. Lesson Sub-Header / Topbar */}
+      <LessonTopbar
+        courseTitle={course.title}
+        courseSlug={course.slug}
+        isFocusMode={isFocusMode}
+        onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
+        onOpenMobileOutline={() => setIsMobileOutlineOpen(true)}
+      />
 
-      {/* Main Container */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* 2. Topbar */}
-        <LessonTopbar
-          courseTitle={course.title}
-          courseSlug={course.slug}
-          user={user}
-          isFocusMode={isFocusMode}
-          onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
-          onOpenMobileOutline={() => setIsMobileOutlineOpen(true)}
-        />
+      {/* 2. Multi-Column Learning Workspace */}
+      <div className="flex flex-1 min-w-0 w-full">
+        {/* Course Outline Sidebar (Desktop only, hidden in Focus Mode) */}
+        {!isFocusMode && (
+          <aside className="hidden lg:flex w-[270px] xl:w-[290px] shrink-0 sticky top-[7.5rem] h-[calc(100vh-7.5rem)]">
+            <LessonCourseOutline
+              courseSlug={course.slug}
+              currentLessonSlug={currentLesson.slug}
+              modules={modules}
+              totalLessons={totalLessons}
+              completedLessons={completedCount}
+              progressPercent={progressPercent}
+              className="w-full h-full"
+            />
+          </aside>
+        )}
 
-        {/* 3. Multi-Column Learning Workspace */}
-        <div className="flex flex-1 min-w-0 overflow-hidden w-full">
-          {/* Secondary Course Outline Sidebar (Desktop only, hidden in Focus Mode) */}
-          {!isFocusMode && (
-            <aside className="hidden lg:flex w-[260px] xl:w-[280px] shrink-0 sticky top-16 h-[calc(100vh-4rem)]">
-              <LessonCourseOutline
-                courseSlug={course.slug}
-                currentLessonSlug={currentLesson.slug}
-                modules={modules}
-                totalLessons={totalLessons}
-                completedLessons={completedCount}
-                progressPercent={progressPercent}
-                className="w-full h-full"
+        {/* Center Column: Video + Content + Bottom Nav */}
+        <div className="flex flex-1 flex-col items-center justify-start p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0">
+          <div
+            className={cn(
+              "w-full flex flex-col gap-6 sm:gap-8",
+              isFocusMode ? "max-w-5xl" : "max-w-3xl xl:max-w-4xl",
+            )}
+          >
+            {/* Practice Workspace (If Practice Lesson) */}
+            {isPractice ? (
+              <CodingPracticeWorkspace
+                lessonId={currentLesson.id}
+                lessonTitle={currentLesson.title}
+                config={practiceConfig}
+                initialCode={practiceInitialCode}
               />
-            </aside>
-          )}
+            ) : (
+              <>
+                {/* Video Player (If Video Lesson) */}
+                {currentLesson.lessonType === "video" && (
+                  <LessonVideoPlayer
+                    videoId={currentLesson.youtubeVideoId}
+                    videoUrl={currentLesson.videoUrl}
+                    title={currentLesson.title}
+                    sourceChannel={currentLesson.sourceChannel}
+                    sourceUrl={currentLesson.sourceUrl}
+                  />
+                )}
 
-          {/* Center Column: Video + Content + Bottom Nav */}
-          <main className="flex flex-1 flex-col items-center justify-start p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0">
-            <div
-              className={cn(
-                "w-full flex flex-col gap-6 sm:gap-8",
-                isFocusMode ? "max-w-4xl" : "max-w-3xl",
-              )}
-            >
-              {/* Practice Workspace (If Practice Lesson) */}
-              {isPractice ? (
-                <CodingPracticeWorkspace
-                  lessonId={currentLesson.id}
-                  lessonTitle={currentLesson.title}
-                  config={practiceConfig}
-                  initialCode={practiceInitialCode}
+                {/* Lesson Text / Article / Code Content */}
+                <LessonContentRenderer
+                  lesson={currentLesson}
+                  isBookmarked={data.isBookmarked}
                 />
-              ) : (
-                <>
-                  {/* Video Player (If Video Lesson) */}
-                  {currentLesson.lessonType === "video" && (
-                    <LessonVideoPlayer
-                      videoId={currentLesson.youtubeVideoId}
-                      videoUrl={currentLesson.videoUrl}
-                      title={currentLesson.title}
-                      sourceChannel={currentLesson.sourceChannel}
-                      sourceUrl={currentLesson.sourceUrl}
-                    />
-                  )}
+              </>
+            )}
 
-                  {/* Lesson Text / Article / Code Content */}
-                  <LessonContentRenderer lesson={currentLesson} isBookmarked={data.isBookmarked} />
-                </>
-              )}
-
-              {/* Stacked Objectives & Resources on smaller screens / mobile */}
-              <div className="flex flex-col gap-6 xl:hidden pt-4 border-t border-line">
-                <LessonContextPanel lesson={currentLesson} courseTitle={course.title} initialNote={data.initialNote || ""} />
-              </div>
-
-              {/* Lesson Bottom Navigation & Completion CTA */}
-              <LessonBottomNav
-                courseSlug={course.slug}
-                lessonSlug={currentLesson.slug}
-                isCompleted={completedLessonState}
-                previousLesson={previousLesson}
-                nextLesson={nextLesson}
-                isLastLesson={isLastLesson}
-                onCompletionChanged={handleCompletionChanged}
+            {/* Stacked Objectives & Resources on smaller screens / mobile (< xl) */}
+            <div className="flex flex-col gap-6 xl:hidden pt-4 border-t border-line">
+              <LessonContextPanel
+                lesson={currentLesson}
+                courseTitle={course.title}
+                initialNote={data.initialNote || ""}
               />
             </div>
-          </main>
 
-          {/* Right Context Panel: Objectives & Resources (Desktop only, hidden in Focus Mode) */}
-          {!isFocusMode && (
-            <aside className="hidden xl:flex w-[280px] 2xl:w-[310px] shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden border-l border-line p-4 lg:p-5 bg-card/30">
-              <LessonContextPanel lesson={currentLesson} courseTitle={course.title} initialNote={data.initialNote || ""} />
-            </aside>
-          )}
+            {/* Lesson Bottom Navigation & Completion CTA */}
+            <LessonBottomNav
+              courseSlug={course.slug}
+              lessonSlug={currentLesson.slug}
+              isCompleted={completedLessonState}
+              previousLesson={previousLesson}
+              nextLesson={nextLesson}
+              isLastLesson={isLastLesson}
+              onCompletionChanged={handleCompletionChanged}
+            />
+          </div>
         </div>
+
+        {/* Right Context Panel: Objectives & Resources (Desktop only, hidden in Focus Mode) */}
+        {!isFocusMode && (
+          <aside className="hidden xl:flex w-[290px] 2xl:w-[320px] shrink-0 sticky top-[7.5rem] h-[calc(100vh-7.5rem)] overflow-y-auto overflow-x-hidden border-l border-line p-4 lg:p-5 bg-card/30">
+            <LessonContextPanel
+              lesson={currentLesson}
+              courseTitle={course.title}
+              initialNote={data.initialNote || ""}
+            />
+          </aside>
+        )}
       </div>
 
       {/* Mobile Slide-Out Course Outline Drawer */}
@@ -183,4 +186,3 @@ export function LessonPlayerWrapper({ data, user }: LessonPlayerWrapperProps) {
     </div>
   );
 }
-

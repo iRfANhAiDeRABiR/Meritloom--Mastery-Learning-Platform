@@ -3,14 +3,9 @@
 import Link from "next/link";
 import { ArrowLeft, List, Maximize2, Minimize2 } from "lucide-react";
 
-import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Avatar } from "@/components/ui/avatar";
-import type { LearnerProfile } from "@/lib/types";
-
 interface LessonTopbarProps {
   courseTitle: string;
   courseSlug: string;
-  user: LearnerProfile;
   isFocusMode: boolean;
   onToggleFocusMode: () => void;
   onOpenMobileOutline: () => void;
@@ -19,18 +14,17 @@ interface LessonTopbarProps {
 export function LessonTopbar({
   courseTitle,
   courseSlug,
-  user,
   isFocusMode,
   onToggleFocusMode,
   onOpenMobileOutline,
 }: LessonTopbarProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-line bg-card/95 px-4 backdrop-blur-md transition-colors sm:px-6">
+    <header className="sticky top-16 z-20 flex h-14 w-full items-center justify-between border-b border-line bg-card/95 px-4 backdrop-blur-md transition-colors sm:px-6">
       {/* Left side: Back to Course + Titles */}
       <div className="flex items-center gap-3 min-w-0">
         <Link
           href={`/learn/courses/${courseSlug}`}
-          className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink hover:border-primary/40 hover:text-primary transition-all shadow-xs shrink-0"
+          className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink hover:border-primary/40 hover:text-primary transition-all shadow-xs shrink-0 cursor-pointer"
           title="Return to course overview"
         >
           <ArrowLeft className="size-3.5" aria-hidden="true" />
@@ -44,7 +38,7 @@ export function LessonTopbar({
         </h1>
       </div>
 
-      {/* Right side: Mobile Outline Trigger + Focus Mode + Theme + Profile */}
+      {/* Right side: Mobile Outline Trigger + Focus Mode */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Mobile Outline Button (Only visible < 1024px) */}
         <button
@@ -71,18 +65,7 @@ export function LessonTopbar({
             <Maximize2 className="size-4" aria-hidden="true" />
           )}
         </button>
-
-        {/* Global Theme Toggle */}
-        <ThemeToggle />
-
-        {/* User Avatar */}
-        <Avatar
-          src={user.avatarUrl}
-          name={user.name}
-          className="size-9 ring-1 ring-line"
-        />
       </div>
     </header>
   );
 }
-

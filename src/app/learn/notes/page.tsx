@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getMyNotesAndBookmarksData } from "@/lib/queries/notes-and-bookmarks";
-import { LearnerLayout } from "@/components/learn/learner-layout";
 import { MyNotesView } from "@/components/notes/my-notes-view";
 import { routes } from "@/lib/routes";
 
@@ -27,10 +26,8 @@ export default async function MyNotesPage() {
   const data = await getMyNotesAndBookmarksData(user.id);
 
   return (
-    <LearnerLayout user={user}>
-      <div className="p-4 sm:p-6 lg:p-10">
-        <MyNotesView data={data} />
-      </div>
-    </LearnerLayout>
+    <div className="p-4 sm:p-6 lg:p-10">
+      <MyNotesView data={data} />
+    </div>
   );
 }

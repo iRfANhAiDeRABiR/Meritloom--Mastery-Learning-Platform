@@ -197,3 +197,4 @@ export function ExploreCoursesFilters({ categories }: ExploreCoursesFiltersProps
     </div>
   );
 }
+
