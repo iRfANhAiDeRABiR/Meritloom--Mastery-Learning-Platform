@@ -49,8 +49,6 @@ export function ProfileSettingsLayout({ data }: ProfileSettingsLayoutProps) {
             <AccountTab
               profile={profile}
               provider={provider}
-              hasPassword={data.hasPassword}
-              hasGoogle={data.hasGoogle}
             />
           )}
         </main>

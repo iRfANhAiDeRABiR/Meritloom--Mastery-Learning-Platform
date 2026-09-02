@@ -23,6 +23,8 @@ const FOOTER_NAV = [
   {
     heading: "Legal",
     links: [
+      { label: "Privacy", href: routes.help },
+      { label: "Terms", href: routes.help },
       { label: "Privacy", href: routes.privacy },
       { label: "Terms", href: routes.terms },
     ],

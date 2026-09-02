@@ -286,3 +286,4 @@ on public.admin_audit_log
 for select
 to authenticated
 using (public.is_admin_or_sub_admin());
+
