@@ -55,7 +55,7 @@ export function getUserFacingError(
     lower.includes("networkerror") ||
     lower.includes("network request failed") ||
     lower.includes("fetch failed") ||
-    (typeof navigator !== "undefined" && !navigator.onLine)
+    (typeof navigator !== "undefined" && typeof navigator.onLine === "boolean" && navigator.onLine === false)
   ) {
     return {
       title: "Connection problem",
